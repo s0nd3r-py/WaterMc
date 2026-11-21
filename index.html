@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="ru" data-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WaterMc · Minecraft 1.21.11 server core</title>
+<meta name="description" content="WaterMc: a fast Leaf fork for Minecraft 1.21.11. Faster world generation, fast startup, built-in ViaVersion, Paper plugin compatible.">
+<meta property="og:title" content="WaterMc">
+<meta property="og:description" content="Fast Leaf-based server core for Minecraft 1.21.11">
+<meta property="og:image" content="https://s0nd3r-py.github.io/WaterMc/assets/banner.png">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070f1c;
+  --bg-2: #0b1a2e;
+  --card: rgba(16, 36, 62, 0.55);
+  --card-border: rgba(80, 170, 255, 0.14);
+  --text: #e8f3ff;
+  --muted: #8fa9c4;
+  --aqua: #2fb4ff;
+  --aqua-2: #6fe0ff;
+  --deep: #1270d6;
+  --radius: 16px;
+  --max: 1120px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+html[data-lang="ru"] [lang="en"], html[data-lang="en"] [lang="ru"] { display: none !important; }
+a { color: var(--aqua-2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; }
+code { background: rgba(47, 180, 255, 0.1); color: #bfe9ff; padding: 0.1em 0.4em; border-radius: 6px; font-size: 0.88em; }
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
+
+/* background glow and waves */
+.bg-fx { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.bg-fx::before {
+  content: ""; position: absolute; width: 900px; height: 900px; left: 50%; top: -420px; transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(47, 180, 255, 0.22), transparent 62%);
+}
+.bg-fx svg { position: absolute; bottom: -40px; left: 0; width: 100%; height: 340px; opacity: 0.55; }
+
+/* nav */
+nav {
+  position: sticky; top: 0; z-index: 10;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: rgba(7, 15, 28, 0.72); border-bottom: 1px solid rgba(80, 170, 255, 0.1);
+}
+nav .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; color: var(--text); }
+.brand:hover { text-decoration: none; }
+.brand img { width: 32px; height: 32px; border-radius: 8px; }
+.brand b { color: var(--aqua); }
+.nav-links { display: flex; gap: 22px; margin-left: auto; font-weight: 500; font-size: 15px; }
+.nav-links a { color: var(--muted); }
+.nav-links a:hover { color: var(--text); text-decoration: none; }
+.lang { display: flex; border: 1px solid var(--card-border); border-radius: 999px; overflow: hidden; }
+.lang button {
+  background: none; border: 0; color: var(--muted); font: 600 13px Inter, sans-serif; padding: 6px 12px; cursor: pointer;
+}
+.lang button.on { background: var(--aqua); color: #04121f; }
+
+/* hero */
+.hero { text-align: center; padding: 88px 0 64px; }
+.hero .drop { width: 96px; height: 96px; border-radius: 24px; box-shadow: 0 0 60px rgba(47, 180, 255, 0.45); }
+.hero h1 { font-size: clamp(48px, 8vw, 84px); line-height: 1; margin: 28px 0 0; font-weight: 800; letter-spacing: -0.03em; }
+.hero h1 span {
+  background: linear-gradient(180deg, var(--aqua-2), var(--deep)); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero p.lead { font-size: clamp(17px, 2.2vw, 21px); color: var(--muted); max-width: 680px; margin: 22px auto 0; }
+.cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 36px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 12px; font-weight: 700; font-size: 16px;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.btn:hover { text-decoration: none; transform: translateY(-2px); }
+.btn-primary { background: linear-gradient(180deg, #3cc0ff, #1580e6); color: #fff; box-shadow: 0 10px 30px rgba(28, 140, 240, 0.4); }
+.btn-primary:hover { box-shadow: 0 14px 40px rgba(28, 140, 240, 0.55); }
+.btn-ghost { border: 1px solid var(--card-border); color: var(--text); background: var(--card); }
+.btn svg { width: 18px; height: 18px; }
+.chips { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
+.chip { font-size: 13px; font-weight: 600; color: #bfe0ff; padding: 6px 14px; border-radius: 999px; background: rgba(47, 180, 255, 0.08); border: 1px solid var(--card-border); }
+
+/* sections */
+section { padding: 72px 0; scroll-margin-top: 48px; }
+.eyebrow { color: var(--aqua); font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; }
+h2 { font-size: clamp(30px, 4vw, 42px); margin: 10px 0 14px; letter-spacing: -0.02em; line-height: 1.15; }
+.sub { color: var(--muted); max-width: 680px; margin: 0 0 40px; font-size: 17px; }
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+.card {
+  background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 24px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.card:hover { border-color: rgba(80, 170, 255, 0.4); transform: translateY(-3px); }
+.card .ico { font-size: 26px; line-height: 1; }
+.card h3 { margin: 14px 0 8px; font-size: 18px; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { padding: 14px 0; border-bottom: 1px solid rgba(80, 170, 255, 0.1); color: var(--muted); font-size: 15px; }
+.list li:last-child { border-bottom: 0; }
+.list li b { color: var(--text); display: block; margin-bottom: 2px; font-size: 16px; }
+
+.sources { display: grid; gap: 12px; }
+.src { display: grid; grid-template-columns: 170px 1fr; gap: 18px; align-items: start; padding: 18px 22px; background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; }
+.src a, .src > span:first-child { font-weight: 700; color: var(--text); }
+.src p { margin: 0; color: var(--muted); font-size: 15px; }
+
+pre.code {
+  margin: 0; padding: 22px; border-radius: var(--radius); background: #050b15; border: 1px solid var(--card-border);
+  overflow-x: auto; font-size: 14px; line-height: 1.7; color: #cfe6ff;
+}
+.k { color: #6fe0ff; } .v { color: #ffc46b; } .c { color: #5f7a96; }
+
+.steps { counter-reset: step; margin-top: 40px; display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.step { position: relative; padding: 26px 24px 24px; background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); }
+.step::before {
+  counter-increment: step; content: counter(step); position: absolute; top: -16px; left: 22px; width: 34px; height: 34px; border-radius: 10px;
+  display: grid; place-items: center; font-weight: 800; color: #04121f; background: linear-gradient(180deg, var(--aqua-2), var(--aqua));
+}
+.step h3 { margin: 6px 0 8px; font-size: 18px; }
+.step p { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+.copy { position: relative; }
+.copy pre { margin: 0; padding: 14px 16px; padding-right: 64px; background: #050b15; border: 1px solid var(--card-border); border-radius: 10px; font-size: 13px; white-space: pre-wrap; word-break: break-word; color: #cfe6ff; }
+.copy button {
+  position: absolute; top: 8px; right: 8px; border: 1px solid var(--card-border); background: var(--bg-2); color: var(--muted);
+  font: 600 12px Inter, sans-serif; padding: 5px 10px; border-radius: 8px; cursor: pointer;
+}
+.copy button:hover { color: var(--text); }
+
+.note {
+  margin-top: 26px; padding: 16px 20px; border-radius: 12px; background: rgba(255, 196, 107, 0.07);
+  border: 1px solid rgba(255, 196, 107, 0.25); color: #f1d9b0; font-size: 15px;
+}
+
+footer { border-top: 1px solid rgba(80, 170, 255, 0.1); padding: 40px 0 56px; color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+footer p { margin: 4px 0; }
+
+@media (max-width: 820px) {
+  .nav-links { display: none; }
+  .lang { margin-left: auto; }
+  .split { grid-template-columns: 1fr; }
+  .src { grid-template-columns: 1fr; gap: 6px; }
+  section { padding: 56px 0; }
+  .hero { padding: 64px 0 40px; }
+}
+</style>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true">
+  <svg viewBox="0 0 1440 340" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="w" x1="0" x2="1"><stop offset="0" stop-color="#2fb4ff" stop-opacity="0"/><stop offset=".5" stop-color="#2fb4ff"/><stop offset="1" stop-color="#6fe0ff" stop-opacity=".2"/></linearGradient>
+    </defs>
+    <path d="M0 220 C 240 140, 480 300, 720 220 S 1200 120, 1440 200" fill="none" stroke="url(#w)" stroke-width="2"/>
+    <path d="M0 260 C 300 190, 520 330, 820 250 S 1240 170, 1440 250" fill="none" stroke="url(#w)" stroke-width="1.5" opacity=".7"/>
+    <path d="M0 300 C 260 240, 600 340, 900 290 S 1260 230, 1440 300" fill="none" stroke="url(#w)" stroke-width="1" opacity=".5"/>
+  </svg>
+</div>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#"><img src="assets/logo.png" alt=""><span>Water<b>Mc</b></span></a>
+    <div class="nav-links">
+      <a href="#features"><span lang="ru">Возможности</span><span lang="en">Features</span></a>
+      <a href="#sources"><span lang="ru">Из модов</span><span lang="en">From mods</span></a>
+      <a href="#config"><span lang="ru">Настройки</span><span lang="en">Config</span></a>
+      <a href="#install"><span lang="ru">Установка</span><span lang="en">Install</span></a>
+      <a href="https://github.com/s0nd3r-py/WaterMc">GitHub</a>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-set="ru">RU</button>
+      <button type="button" data-set="en">EN</button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <img class="drop" src="assets/logo.png" alt="WaterMc logo">
+    <h1>Water<span>Mc</span></h1>
+    <p class="lead">
+      <span lang="ru">Быстрое серверное ядро на базе Leaf для Minecraft 1.21.11. Быстрее генерация мира, быстрее запуск, плагины Paper работают без правок.</span>
+      <span lang="en">A fast Leaf-based server core for Minecraft 1.21.11. Faster world generation, faster startup, Paper plugins work unchanged.</span>
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/s0nd3r-py/WaterMc/releases/latest/download/watermc-paperclip-1.21.11.jar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16"/></svg>
+        <span lang="ru">Скачать 1.21.11</span><span lang="en">Download 1.21.11</span>
+      </a>
+      <a class="btn btn-ghost" href="https://github.com/s0nd3r-py/WaterMc">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+        GitHub
+      </a>
+    </div>
+    <div class="chips">
+      <span class="chip">Minecraft 1.21.11</span>
+      <span class="chip">Java 21</span>
+      <span class="chip">Paper · Spigot · Bukkit API</span>
+      <span class="chip">GPL-3.0</span>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="eyebrow"><span lang="ru">Возможности</span><span lang="en">Features</span></div>
+    <h2><span lang="ru">Всё, что даёт Leaf, и сверху ещё больше</span><span lang="en">Everything Leaf gives you, and more on top</span></h2>
+    <p class="sub">
+      <span lang="ru">WaterMc основан на Leaf (Paper → Purpur → Gale → Leaf) и переписывает горячие места сервера: генерацию мира, запуск, ИИ мобов и хранение данных.</span>
+      <span lang="en">WaterMc builds on Leaf (Paper → Purpur → Gale → Leaf) and rewrites the server's hot spots: world generation, startup, mob AI and data storage.</span>
+    </p>
+    <div class="grid">
+      <div class="card"><div class="ico">🗺️</div>
+        <h3><span lang="ru">Быстрая генерация мира</span><span lang="en">Fast world generation</span></h3>
+        <p><span lang="ru">Больше потоков генерации чанков, плоский поиск биома и быстрый выбор точки спавна на новом мире.</span><span lang="en">More chunk worker threads, flat biome search and fast spawn point selection on new worlds.</span></p></div>
+      <div class="card"><div class="ico">⚡</div>
+        <h3><span lang="ru">Быстрый запуск</span><span lang="en">Fast startup</span></h3>
+        <p><span lang="ru">Свой загрузчик, ленивый DataFixerUpper и маппинги, которые грузятся только когда они нужны плагину.</span><span lang="en">Own launcher, lazy DataFixerUpper and mappings that load only when a plugin needs them.</span></p></div>
+      <div class="card"><div class="ico">🐄</div>
+        <h3><span lang="ru">Толпы и фермы</span><span lang="en">Crowds and farms</span></h3>
+        <p><span lang="ru">Дешёвое толкание мобов, кэш памяти мозга и поиск блоков из Lithium, лимит размножения.</span><span lang="en">Cheap mob pushing, Lithium brain-memory cache and block searches, breeding cap.</span></p></div>
+      <div class="card"><div class="ico">🌐</div>
+        <h3><span lang="ru">Встроенный ViaVersion</span><span lang="en">Built-in ViaVersion</span></h3>
+        <p><span lang="ru">ViaVersion и ViaBackwards внутри ядра одной настройкой. Свой экземпляр в plugins/ всегда главнее.</span><span lang="en">ViaVersion and ViaBackwards inside the core behind one switch. Your own copy in plugins/ always wins.</span></p></div>
+      <div class="card"><div class="ico">👁️</div>
+        <h3><span lang="ru">Скрытие за стенами</span><span lang="en">Entity culling</span></h3>
+        <p><span lang="ru">Сервер не отправляет сущности, которых игрок точно не видит. Меньше трафика, ESP-читы слепнут.</span><span lang="en">The server skips entities a player provably cannot see. Less traffic, ESP cheats go blind.</span></p></div>
+      <div class="card"><div class="ico">📁</div>
+        <h3><span lang="ru">Порядок в папке</span><span lang="en">Clean server folder</span></h3>
+        <p><span lang="ru">config/, data/, worlds/, logs/ вместо тридцати файлов в корне. Перенос при первом запуске сам.</span><span lang="en">config/, data/, worlds/, logs/ instead of thirty files in the root, migrated on first start.</span></p></div>
+      <div class="card"><div class="ico">🔐</div>
+        <h3><span lang="ru">Аудит и watchdog</span><span lang="en">Audit and watchdogs</span></h3>
+        <p><span lang="ru">Лог называет плагин за каждой выдачей OP и командой от консоли. Watchdog плагинов и Netty.</span><span lang="en">The log names the plugin behind every OP grant and console command. Plugin and Netty watchdogs.</span></p></div>
+      <div class="card"><div class="ico">📜</div>
+        <h3>WaterScript</h3>
+        <p><span lang="ru">Встроенные скрипты: события, команды с правами, таймеры и переменные без отдельного плагина.</span><span lang="en">Built-in scripting: events, permission-checked commands, timers and variables without a plugin.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<section id="inside">
+  <div class="wrap">
+    <div class="eyebrow"><span lang="ru">Под капотом</span><span lang="en">Under the hood</span></div>
+    <h2><span lang="ru">Что переписано внутри</span><span lang="en">What is rewritten inside</span></h2>
+    <div class="split">
+      <div class="card">
+        <h3><span lang="ru">🚀 Запуск и плагины</span><span lang="en">🚀 Startup and plugins</span></h3>
+        <ul class="list">
+          <li><b><span lang="ru">Свой загрузчик</span><span lang="en">Own launcher</span></b><span lang="ru">Помнит хэши библиотек в <code>libraries/.watermc-launcher</code> и не пересчитывает их на каждом старте.</span><span lang="en">Remembers library hashes in <code>libraries/.watermc-launcher</code> and does not re-hash them on every start.</span></li>
+          <li><b><span lang="ru">Кэш ремаппера</span><span lang="en">Remapper cache</span></b><span lang="ru"><code>plugins/.water-remapped</code>: хэши jar в <code>hashes.tsv</code>, плагины только на API не переотображаются.</span><span lang="en"><code>plugins/.water-remapped</code>: jar hashes in <code>hashes.tsv</code>, API-only plugins are not remapped.</span></li>
+          <li><b><span lang="ru">Ленивый DFU и маппинги</span><span lang="en">Lazy DFU and mappings</span></b><span lang="ru">Схемы конвертации и таблицы Spigot↔Mojang строятся только по необходимости.</span><span lang="en">Conversion schemas and Spigot↔Mojang tables are built only when needed.</span></li>
+          <li><b><span lang="ru">Без GUI</span><span lang="en">No GUI</span></b><span lang="ru">Окно консоли на Swing/AWT удалено вместе со всем деревом классов.</span><span lang="en">The Swing/AWT console window and its class tree are gone.</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span lang="ru">🔧 Переписанные классы</span><span lang="en">🔧 Rewritten classes</span></h3>
+        <ul class="list">
+          <li><b>Climate.RTree</b><span lang="ru">Границы узлов в плоском <code>long[14]</code>, результат совпадает с ванилью до бита.</span><span lang="en">Node bounds in a flat <code>long[14]</code>, results match vanilla bit for bit.</span></li>
+          <li><b>ChunkEntitySlices</b><span lang="ru">Плоская копия габаритов, поиск соседей не трогает объекты сущностей.</span><span lang="en">Flat bounding-box copy, neighbour searches skip entity objects.</span></li>
+          <li><b>LevelTicks</b><span lang="ru">Помнит ближайший срок и не обходит контейнеры до него.</span><span lang="en">Remembers the nearest due time and skips scans until then.</span></li>
+          <li><b>Caffeine</b><span lang="ru">Все кэши Guava заменены на Caffeine 3.2.3, свежие Netty, fastutil, Log4j, ASM.</span><span lang="en">Every Guava cache replaced by Caffeine 3.2.3, up-to-date Netty, fastutil, Log4j, ASM.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sources">
+  <div class="wrap">
+    <div class="eyebrow"><span lang="ru">Из модов и форков</span><span lang="en">From mods and forks</span></div>
+    <h2><span lang="ru">Лучшее из экосистемы, переписанное под 1.21.11</span><span lang="en">The best of the ecosystem, rewritten for 1.21.11</span></h2>
+    <p class="sub"><span lang="ru">Авторы и лицензии каждой правки перечислены в репозитории.</span><span lang="en">Authors and licenses of every change are listed in the repository.</span></p>
+    <div class="sources">
+      <div class="src"><a href="https://github.com/CaffeineMC/lithium">Lithium</a><p><span lang="ru">Кэш условий поведения по изменениям памяти мозга, поиск блоков без POI, формы поршней.</span><span lang="en">Behavior conditions cached by brain memory changes, non-POI block searches, piston shapes.</span></p></div>
+      <div class="src"><a href="https://github.com/BX-Team/DivineMC">DivineMC</a><p><span lang="ru">Скрытие сущностей за стенами, параллельные сенсоры, предзагрузка порталов, асинхронный /locate.</span><span lang="en">Entity culling, parallel sensors, portal prefetch, async /locate.</span></p></div>
+      <div class="src"><a href="https://github.com/embeddedt/ModernFix">ModernFix</a><p><span lang="ru">Ранний отсев чанков, где крепость встать не может.</span><span lang="en">Early reject of chunks that can never hold a stronghold.</span></p></div>
+      <div class="src"><a href="https://github.com/Wesley1808/ServerCore">ServerCore</a><p><span lang="ru">Лимит размножения, динамическая дальность по MSPT.</span><span lang="en">Breeding cap, dynamic view distance by MSPT.</span></p></div>
+      <div class="src"><a href="https://github.com/astei/krypton">Krypton</a><p><span lang="ru">Строки пишутся прямо в буфер пакета.</span><span lang="en">Strings encoded straight into the packet buffer.</span></p></div>
+      <div class="src"><a href="https://github.com/malte0811/FerriteCore">FerriteCore</a><p><span lang="ru">Общая пустая карта для компонентов предметов.</span><span lang="en">Shared empty map for item components.</span></p></div>
+      <div class="src"><a href="https://github.com/getchoo/threadtweak">threadtweak</a><p><span lang="ru">Приоритеты потоков чанков и I/O.</span><span lang="en">Chunk and I/O thread priorities.</span></p></div>
+      <div class="src"><a href="https://github.com/Winds-Studio/Leaf">Leaf 26.x</a><p><span lang="ru">Активация сущностей через KD-дерево, кэш размера стака, быстрее пакеты чанков и команд.</span><span lang="en">Entity activation via k-d tree, stack size cache, faster chunk and command packets.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<section id="config">
+  <div class="wrap">
+    <div class="eyebrow"><span lang="ru">Настройки</span><span lang="en">Config</span></div>
+    <h2><span lang="ru">Всё новое включается в одном файле</span><span lang="en">Everything new lives in one file</span></h2>
+    <p class="sub"><span lang="ru">Новые функции по умолчанию выключены, ядро стартует безопасно «из коробки». Пример из <code>config/watermc.yml</code>:</span><span lang="en">New features are off by default, so the core starts safely out of the box. Example from <code>config/watermc.yml</code>:</span></p>
+<pre class="code"><span class="k">network</span>:
+  <span class="k">multi-version</span>:          <span class="c"># built-in ViaVersion + ViaBackwards</span>
+    <span class="k">enabled</span>: <span class="v">true</span>
+    <span class="k">min-version</span>: <span class="v">'1.21.5'</span>
+  <span class="k">raytrace-entity-culling</span>:
+    <span class="k">enabled</span>: <span class="v">true</span>
+<span class="k">performance</span>:
+  <span class="k">stronghold-early-reject</span>:
+    <span class="k">enabled</span>: <span class="v">true</span>            <span class="c"># on by default</span>
+  <span class="k">dynamic-distance</span>:
+    <span class="k">enabled</span>: <span class="v">true</span>
+    <span class="k">target-mspt</span>: <span class="v">40.0</span>
+<span class="k">gameplay-mechanisms</span>:
+  <span class="k">breeding-cap</span>:
+    <span class="k">enabled</span>: <span class="v">true</span>
+    <span class="k">limit</span>: <span class="v">32</span></pre>
+    <p style="margin-top:18px"><a href="https://github.com/s0nd3r-py/WaterMc/blob/main/docs/release-description.md"><span lang="ru">Все ключи конфига →</span><span lang="en">All config keys →</span></a></p>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <div class="eyebrow"><span lang="ru">Установка</span><span lang="en">Install</span></div>
+    <h2><span lang="ru">Три шага до запуска</span><span lang="en">Three steps to launch</span></h2>
+    <div class="steps">
+      <div class="step">
+        <h3><span lang="ru">Скачайте jar</span><span lang="en">Download the jar</span></h3>
+        <p><span lang="ru">Положите <code>watermc-paperclip-1.21.11.jar</code> в папку сервера.</span><span lang="en">Put <code>watermc-paperclip-1.21.11.jar</code> into your server folder.</span></p>
+        <a class="btn btn-primary" style="padding:10px 18px;font-size:14px" href="https://github.com/s0nd3r-py/WaterMc/releases/latest/download/watermc-paperclip-1.21.11.jar"><span lang="ru">Скачать</span><span lang="en">Download</span></a>
+      </div>
+      <div class="step">
+        <h3><span lang="ru">Запустите с Java 21</span><span lang="en">Run with Java 21</span></h3>
+        <p><span lang="ru">При первом запуске ядро скачает ванильный сервер с Mojang и наложит WaterMc поверх.</span><span lang="en">On first start the core downloads the vanilla server from Mojang and applies WaterMc on top.</span></p>
+        <div class="copy"><pre>java -Xms4G -Xmx4G -jar watermc-paperclip-1.21.11.jar --nogui</pre><button type="button" data-copy><span lang="ru">Копия</span><span lang="en">Copy</span></button></div>
+      </div>
+      <div class="step">
+        <h3><span lang="ru">Настройте под себя</span><span lang="en">Tune it</span></h3>
+        <p><span lang="ru">Конфиги ядра лежат в <code>config/</code>, миры в <code>worlds/</code>, данные игроков в <code>data/</code>.</span><span lang="en">Core configs are in <code>config/</code>, worlds in <code>worlds/</code>, player data in <code>data/</code>.</span></p>
+      </div>
+    </div>
+    <div class="note">
+      <span lang="ru">⚠️ При первом запуске поверх старого сервера WaterMc переносит файлы по новым папкам. Сделайте бэкап до перехода.</span>
+      <span lang="en">⚠️ On the first start over an existing server, WaterMc moves files into the new folders. Take a backup before switching.</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p><b style="color:var(--text)">WaterMc</b> · GPL-3.0 · © 2026 s0nd3r-py</p>
+      <p><span lang="ru">Основан на Leaf, Gale, Purpur и Paper.</span><span lang="en">Built on Leaf, Gale, Purpur and Paper.</span></p>
+    </div>
+    <div>
+      <p><a href="https://github.com/s0nd3r-py/WaterMc">GitHub</a> · <a href="https://github.com/s0nd3r-py/WaterMc/releases">Releases</a> · <a href="https://github.com/s0nd3r-py/WaterMc/blob/main/docs/about-watermc.md"><span lang="ru">Документация</span><span lang="en">Docs</span></a></p>
+      <p><span lang="ru">Не является официальным продуктом Minecraft и не связан с Mojang или Microsoft.</span><span lang="en">Not an official Minecraft product. Not affiliated with Mojang or Microsoft.</span></p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  function setLang(l) {
+    root.dataset.lang = l;
+    root.lang = l;
+    document.querySelectorAll('.lang button').forEach(function (b) { b.classList.toggle('on', b.dataset.set === l); });
+    try { localStorage.setItem('watermc-lang', l); } catch (e) {}
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('watermc-lang'); } catch (e) {}
+  setLang(saved || ((navigator.language || 'en').toLowerCase().indexOf('ru') === 0 || (navigator.language || '').toLowerCase().indexOf('uk') === 0 ? 'ru' : 'en'));
+  document.querySelectorAll('.lang button').forEach(function (b) { b.addEventListener('click', function () { setLang(b.dataset.set); }); });
+  document.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.parentElement.querySelector('pre').textContent;
+      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () {
+        btn.classList.add('done');
+        var old = btn.innerHTML;
+        btn.textContent = '✓';
+        setTimeout(function () { btn.innerHTML = old; }, 1400);
+      }).catch(function () {});
+    });
+  });
+})();
+</script>
+</body>
+</html>
