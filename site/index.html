@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WaterMc · Minecraft 1.21.11 server core</title>
+    <meta name="description" content="WaterMc: a fast Leaf fork for Minecraft 1.21.11. Faster world generation, fast startup, built-in ViaVersion, Paper plugin compatible." />
+    <meta name="theme-color" content="#070f1c" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="WaterMc" />
+    <meta property="og:description" content="Fast Leaf-based server core for Minecraft 1.21.11" />
+    <meta property="og:image" content="https://s0nd3r-py.github.io/WaterMc/banner.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/png" href="%BASE_URL%favicon.png" />
+    <script>
+      // apply the theme before first paint so the page never flashes the wrong colors
+      try {
+        var t = localStorage.getItem("theme")
+        var dark = t === "dark" || ((!t || t === "system") && matchMedia("(prefers-color-scheme: dark)").matches)
+        document.documentElement.classList.add(dark ? "dark" : "light")
+      } catch (e) {
+        document.documentElement.classList.add("dark")
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
