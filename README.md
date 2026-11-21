@@ -1,4 +1,4 @@
-<img src="public/image/watermc_banner.png" alt="WaterMc">
+<img src="public/image/watermc_banner_v2.png" alt="WaterMc">
 <div align="center">
 
 [![Download](https://img.shields.io/github/v/release/s0nd3r-py/WaterMc?label=download&style=for-the-badge&colorA=0b1e2d&colorB=1f8fd6)](https://github.com/s0nd3r-py/WaterMc/releases/latest)⠀
