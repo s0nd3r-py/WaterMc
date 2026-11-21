@@ -1,16 +1,19 @@
-import { DownloadIcon, EyeOffIcon, FolderTreeIcon, GlobeIcon, MapIcon, ScrollTextIcon, ShieldCheckIcon, TriangleAlertIcon, UsersIcon, ZapIcon } from "lucide-react"
+import { ArrowRightIcon, DownloadIcon, EyeOffIcon, FolderTreeIcon, GlobeIcon, MapIcon, ScrollTextIcon, ShieldCheckIcon, TriangleAlertIcon, UsersIcon, ZapIcon } from "lucide-react"
 import { cn } from "cn"
 
+import * as React from "react"
+
+import { BootScreen } from "@/components/boot-screen"
+import { CursorGlow } from "@/components/cursor-glow"
 import { CopyCommand } from "@/components/copy-command"
 import { Reveal } from "@/components/reveal"
 import { GithubIcon } from "@/components/site-header"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DOWNLOAD, REPO, RUN_COMMAND, faq, features, hero, inside, sources, steps } from "@/content"
+import { DOWNLOAD, REPO, RUN_COMMAND, configGroups, faq, features, hero, inside, sources, steps } from "@/content"
 import { useLang, type L } from "@/lib/i18n"
 
 const BASE = import.meta.env.BASE_URL
@@ -37,54 +40,72 @@ function SectionHeading({ eyebrow, title, text }: { eyebrow: L; title: L; text?:
   )
 }
 
-/* hero entrance: non-uniform stagger (0 → 150ms), runs once */
-const delays = [0, 50, 90, 120, 150]
+/* hero entrance: non-uniform stagger, runs once (after the boot console when it plays) */
+const delays = [0, 50, 90, 130, 170, 210]
 const enter = (i: number) => ({ style: { "--delay": `${delays[i]}ms` } as React.CSSProperties })
+
+const donorCount = sources.length
+const keyCount = configGroups.reduce((sum, group) => sum + group.keys.length, 0)
 
 function Hero() {
   const { t } = useLang()
+  const stats: { value: string; label: L }[] = [
+    { value: "1.21.11", label: { ru: "Версия Minecraft", en: "Minecraft version" } },
+    { value: String(donorCount), label: { ru: "Проектов, из которых взяты оптимизации", en: "Projects we ported optimizations from" } },
+    { value: String(keyCount), label: { ru: "Новых настроек в watermc.yml", en: "New settings in watermc.yml" } },
+  ]
+  const sectionRef = React.useRef<HTMLElement>(null)
   return (
-    <section className="relative overflow-hidden">
+    <section ref={sectionRef} className="relative isolate overflow-hidden border-b">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-[-320px] left-1/2 size-[820px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,var(--brand-glow),transparent_65%)]" />
-        <svg className="absolute bottom-0 left-0 h-48 w-full text-primary opacity-30" viewBox="0 0 1440 200" preserveAspectRatio="none">
-          <path d="M0 120 C 240 60, 480 180, 720 120 S 1200 40, 1440 110" fill="none" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M0 160 C 300 100, 560 200, 860 150 S 1260 90, 1440 150" fill="none" stroke="currentColor" strokeWidth="1" opacity=".6" />
-        </svg>
+        <div className="hero-grid absolute inset-0" />
+        <CursorGlow containerRef={sectionRef} />
       </div>
-      <div className="mx-auto flex max-w-6xl flex-col items-center px-4 pt-20 pb-24 text-center sm:px-6 sm:pt-28">
-        <img
-          src={`${BASE}logo.png`}
-          alt=""
-          width={88}
-          height={88}
+      <div className="mx-auto max-w-6xl px-4 pt-20 pb-16 sm:px-6 sm:pt-28 lg:pt-36">
+        <a
+          href={`${REPO}/releases/latest`}
           {...enter(0)}
-          className="enter size-22 rounded-3xl shadow-[0_0_60px_var(--brand-glow)]"
-        />
-        <h1 {...enter(1)} className="enter mt-8 text-6xl font-semibold tracking-[-0.035em] sm:text-7xl md:text-8xl">
-          Water
-          <span className="bg-linear-to-b from-[oklch(0.88_0.1_215)] to-primary bg-clip-text text-transparent">Mc</span>
+          className="enter inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 py-1 pr-3 pl-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+        >
+          <img src={`${BASE}logo.png`} alt="" width={18} height={18} className="size-[18px] rounded-full" />
+          {t({ ru: "Вышел 1.21.11-R1", en: "1.21.11-R1 released" })}
+          <ArrowRightIcon className="size-3.5" aria-hidden="true" />
+        </a>
+        <h1
+          {...enter(1)}
+          className="enter mt-7 max-w-4xl text-5xl leading-[1.02] font-semibold tracking-[-0.04em] text-balance sm:text-7xl lg:text-[88px]"
+        >
+          {t({ ru: "Пусть сервер ", en: "Keep your server " })}
+          <em className="bg-linear-to-br from-[oklch(0.9_0.1_210)] to-primary bg-clip-text pr-1 font-semibold text-transparent">
+            {t({ ru: "течёт", en: "flowing" })}
+          </em>
+          {t({ ru: ", а лаги идут ко дну.", en: ", let lag sink." })}
         </h1>
-        <p {...enter(2)} className="enter mt-6 max-w-2xl text-lg text-pretty text-muted-foreground sm:text-xl">
+        <p {...enter(2)} className="enter mt-7 max-w-xl text-lg text-pretty text-muted-foreground">
           {t(hero.lead)}
         </p>
-        <div {...enter(3)} className="enter mt-10 flex flex-wrap justify-center gap-3">
-          <a href={DOWNLOAD} className={cn(buttonVariants({ size: "lg" }), "h-11 px-5 text-[15px]")}>
+        <div {...enter(3)} className="enter mt-10 flex flex-wrap gap-3">
+          <a href={DOWNLOAD} className={cn(buttonVariants({ size: "lg" }), "h-12 px-6 text-[15px]")}>
             <DownloadIcon data-icon="inline-start" />
-            {t(hero.download)}
+            {t({ ru: "Скачать", en: "Download" })}
           </a>
-          <a href={REPO} className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-11 px-5 text-[15px]")}>
+          <a href="#install" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-12 px-6 text-[15px]")}>
+            {t({ ru: "Как начать", en: "Get started" })}
+            <ArrowRightIcon data-icon="inline-end" />
+          </a>
+          <a href={REPO} className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-12 px-6 text-[15px]")}>
             <GithubIcon data-icon="inline-start" />
-            GitHub
+            {t({ ru: "Открыть GitHub", en: "View on GitHub" })}
           </a>
         </div>
-        <div {...enter(4)} className="enter mt-8 flex flex-wrap justify-center gap-2">
-          {["Minecraft 1.21.11", "Java 21", "Paper · Spigot · Bukkit API", "GPL-3.0"].map((label) => (
-            <Badge key={label} variant="secondary">
-              {label}
-            </Badge>
+        <dl {...enter(4)} className="enter mt-20 grid overflow-hidden rounded-xl border bg-card/60 backdrop-blur-sm sm:grid-cols-3 lg:mt-28">
+          {stats.map((stat, i) => (
+            <div key={i} className={cn("flex flex-col gap-1.5 p-6 sm:p-7", i > 0 && "border-t sm:border-t-0 sm:border-l")}>
+              <dt className="order-2 font-mono text-xs text-muted-foreground">{t(stat.label)}</dt>
+              <dd className="order-1 font-mono text-4xl font-medium tracking-tight sm:text-5xl">{stat.value}</dd>
+            </div>
           ))}
-        </div>
+        </dl>
       </div>
     </section>
   )
@@ -247,6 +268,7 @@ function Faq() {
 export function HomePage() {
   return (
     <>
+      <BootScreen />
       <Hero />
       <Features />
       <Inside />

@@ -21,6 +21,11 @@
       } catch (e) {
         document.documentElement.classList.add("dark")
       }
+      // the console intro plays once per visit; mark it early so the hero waits instead of flashing
+      try {
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches && sessionStorage.getItem("watermc-boot-shown") !== "1")
+          document.documentElement.dataset.booting = "true"
+      } catch (e) {}
     </script>
   </head>
   <body>
