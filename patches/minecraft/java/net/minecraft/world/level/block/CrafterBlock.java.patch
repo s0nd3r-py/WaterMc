@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/world/level/block/CrafterBlock.java b/java/net/minecraft/world/level/block/CrafterBlock.java
+index c5fe15844d405a27cdae18c903dd481c25b437de..8d39cc37be3241fc9f7a9b60ad11d590a2ba5958 100644
+--- a/java/net/minecraft/world/level/block/CrafterBlock.java
++++ b/java/net/minecraft/world/level/block/CrafterBlock.java
+@@ -75,7 +75,7 @@ public class CrafterBlock extends BaseEntityBlock {
+         boolean triggeredValue = state.getValue(TRIGGERED);
+         BlockEntity blockEntity = level.getBlockEntity(pos);
+         if (hasNeighborSignal && !triggeredValue) {
+-            level.scheduleTick(pos, this, 4);
++            level.scheduleTick(pos, this, me.s0nd3r.watermc.core.config.modules.gameplay.DivineTweaks.crafter1gtDelay ? 1 : 4); // WaterMc - DivineMC (BX-Team, GPL-3.0): crafter 1gt delay, own switch
+             level.setBlock(pos, state.setValue(TRIGGERED, true), Block.UPDATE_CLIENTS);
+             this.setBlockEntityTriggered(blockEntity, true);
+         } else if (!hasNeighborSignal && triggeredValue) {
+@@ -124,7 +124,7 @@ public class CrafterBlock extends BaseEntityBlock {
+     @Override
+     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+         if (state.getValue(TRIGGERED)) {
+-            level.scheduleTick(pos, this, 4);
++            level.scheduleTick(pos, this, me.s0nd3r.watermc.core.config.modules.gameplay.DivineTweaks.crafter1gtDelay ? 1 : 4); // WaterMc - DivineMC (BX-Team, GPL-3.0): crafter 1gt delay, own switch
+         }
+     }
+ 

@@ -1,0 +1,382 @@
+diff --git a/java/ca/spottedleaf/moonrise/patches/collisions/CollisionUtil.java b/java/ca/spottedleaf/moonrise/patches/collisions/CollisionUtil.java
+index de764da80793d272ff597b4a0742ce785838799a..a200e1ddb4f63dfc488c6c0dab7dca4ee9697ad3 100644
+--- a/java/ca/spottedleaf/moonrise/patches/collisions/CollisionUtil.java
++++ b/java/ca/spottedleaf/moonrise/patches/collisions/CollisionUtil.java
+@@ -103,16 +103,21 @@ public final class CollisionUtil {
+ 
+     // assume !isEmpty(target) && abs(source_move) >= COLLISION_EPSILON
+     public static double collideX(final AABB target, final AABB source, final double source_move) {
+-        if ((source.minY - target.maxY) < -COLLISION_EPSILON && (source.maxY - target.minY) > COLLISION_EPSILON &&
+-            (source.minZ - target.maxZ) < -COLLISION_EPSILON && (source.maxZ - target.minZ) > COLLISION_EPSILON) {
++        return collideX(target, source.minX, source.minY, source.minZ, source.maxX, source.maxY, source.maxZ, source_move);
++    }
++
++    public static double collideX(final AABB target, final double minX, final double minY, final double minZ,
++                                  final double maxX, final double maxY, final double maxZ, final double source_move) {
++        if ((minY - target.maxY) < -COLLISION_EPSILON && (maxY - target.minY) > COLLISION_EPSILON &&
++            (minZ - target.maxZ) < -COLLISION_EPSILON && (maxZ - target.minZ) > COLLISION_EPSILON) {
+             if (source_move >= 0.0) {
+-                final double max_move = target.minX - source.maxX; // < 0.0 if no strict collision
++                final double max_move = target.minX - maxX; // < 0.0 if no strict collision
+                 if (max_move < -COLLISION_EPSILON) {
+                     return source_move;
+                 }
+                 return Math.min(max_move, source_move);
+             } else {
+-                final double max_move = target.maxX - source.minX; // > 0.0 if no strict collision
++                final double max_move = target.maxX - minX; // > 0.0 if no strict collision
+                 if (max_move > COLLISION_EPSILON) {
+                     return source_move;
+                 }
+@@ -124,16 +129,21 @@ public final class CollisionUtil {
+ 
+     // assume !isEmpty(target) && abs(source_move) >= COLLISION_EPSILON
+     public static double collideY(final AABB target, final AABB source, final double source_move) {
+-        if ((source.minX - target.maxX) < -COLLISION_EPSILON && (source.maxX - target.minX) > COLLISION_EPSILON &&
+-            (source.minZ - target.maxZ) < -COLLISION_EPSILON && (source.maxZ - target.minZ) > COLLISION_EPSILON) {
++        return collideY(target, source.minX, source.minY, source.minZ, source.maxX, source.maxY, source.maxZ, source_move);
++    }
++
++    public static double collideY(final AABB target, final double minX, final double minY, final double minZ,
++                                  final double maxX, final double maxY, final double maxZ, final double source_move) {
++        if ((minX - target.maxX) < -COLLISION_EPSILON && (maxX - target.minX) > COLLISION_EPSILON &&
++            (minZ - target.maxZ) < -COLLISION_EPSILON && (maxZ - target.minZ) > COLLISION_EPSILON) {
+             if (source_move >= 0.0) {
+-                final double max_move = target.minY - source.maxY; // < 0.0 if no strict collision
++                final double max_move = target.minY - maxY; // < 0.0 if no strict collision
+                 if (max_move < -COLLISION_EPSILON) {
+                     return source_move;
+                 }
+                 return Math.min(max_move, source_move);
+             } else {
+-                final double max_move = target.maxY - source.minY; // > 0.0 if no strict collision
++                final double max_move = target.maxY - minY; // > 0.0 if no strict collision
+                 if (max_move > COLLISION_EPSILON) {
+                     return source_move;
+                 }
+@@ -145,16 +155,21 @@ public final class CollisionUtil {
+ 
+     // assume !isEmpty(target) && abs(source_move) >= COLLISION_EPSILON
+     public static double collideZ(final AABB target, final AABB source, final double source_move) {
+-        if ((source.minX - target.maxX) < -COLLISION_EPSILON && (source.maxX - target.minX) > COLLISION_EPSILON &&
+-            (source.minY - target.maxY) < -COLLISION_EPSILON && (source.maxY - target.minY) > COLLISION_EPSILON) {
++        return collideZ(target, source.minX, source.minY, source.minZ, source.maxX, source.maxY, source.maxZ, source_move);
++    }
++
++    public static double collideZ(final AABB target, final double minX, final double minY, final double minZ,
++                                  final double maxX, final double maxY, final double maxZ, final double source_move) {
++        if ((minX - target.maxX) < -COLLISION_EPSILON && (maxX - target.minX) > COLLISION_EPSILON &&
++            (minY - target.maxY) < -COLLISION_EPSILON && (maxY - target.minY) > COLLISION_EPSILON) {
+             if (source_move >= 0.0) {
+-                final double max_move = target.minZ - source.maxZ; // < 0.0 if no strict collision
++                final double max_move = target.minZ - maxZ; // < 0.0 if no strict collision
+                 if (max_move < -COLLISION_EPSILON) {
+                     return source_move;
+                 }
+                 return Math.min(max_move, source_move);
+             } else {
+-                final double max_move = target.maxZ - source.minZ; // > 0.0 if no strict collision
++                final double max_move = target.maxZ - minZ; // > 0.0 if no strict collision
+                 if (max_move > COLLISION_EPSILON) {
+                     return source_move;
+                 }
+@@ -501,9 +516,14 @@ public final class CollisionUtil {
+ 
+     // assume !target.isEmpty() && abs(source_move) >= COLLISION_EPSILON
+     public static double collideX(final VoxelShape target, final AABB source, final double source_move) {
++        return collideX(target, source.minX, source.minY, source.minZ, source.maxX, source.maxY, source.maxZ, source_move);
++    }
++
++    public static double collideX(final VoxelShape target, final double minX, final double minY, final double minZ,
++                                  final double maxX, final double maxY, final double maxZ, final double source_move) {
+         final AABB single_aabb = ((CollisionVoxelShape)target).moonrise$getSingleAABBRepresentation();
+         if (single_aabb != null) {
+-            return collideX(single_aabb, source, source_move);
++            return collideX(single_aabb, minX, minY, minZ, maxX, maxY, maxZ, source_move);
+         }
+         // note: this function assumes that for any i in coords that coord[i + 1] - coord[i] > COLLISION_EPSILON is true
+ 
+@@ -536,7 +556,7 @@ public final class CollisionUtil {
+ 
+         final int floor_min_y = Math.max(
+                 0,
+-                findFloor(coords_y, off_y, source.minY + COLLISION_EPSILON, 0, size_y)
++                findFloor(coords_y, off_y, minY + COLLISION_EPSILON, 0, size_y)
+         );
+         if (floor_min_y >= size_y) {
+             // cannot intersect
+@@ -545,7 +565,7 @@ public final class CollisionUtil {
+ 
+         final int ceil_max_y = Math.min(
+                 size_y,
+-                findFloor(coords_y, off_y, source.maxY - COLLISION_EPSILON, floor_min_y, size_y) + 1
++                findFloor(coords_y, off_y, maxY - COLLISION_EPSILON, floor_min_y, size_y) + 1
+         );
+         if (floor_min_y >= ceil_max_y) {
+             // cannot intersect
+@@ -554,7 +574,7 @@ public final class CollisionUtil {
+ 
+         final int floor_min_z = Math.max(
+                 0,
+-                findFloor(coords_z, off_z, source.minZ + COLLISION_EPSILON, 0, size_z)
++                findFloor(coords_z, off_z, minZ + COLLISION_EPSILON, 0, size_z)
+         );
+         if (floor_min_z >= size_z) {
+             // cannot intersect
+@@ -563,7 +583,7 @@ public final class CollisionUtil {
+ 
+         final int ceil_max_z = Math.min(
+                 size_z,
+-                findFloor(coords_z, off_z, source.maxZ - COLLISION_EPSILON, floor_min_z, size_z) + 1
++                findFloor(coords_z, off_z, maxZ - COLLISION_EPSILON, floor_min_z, size_z) + 1
+         );
+         if (floor_min_z >= ceil_max_z) {
+             // cannot intersect
+@@ -575,7 +595,7 @@ public final class CollisionUtil {
+         final long[] bitset = cached_shape_data.voxelSet();
+ 
+         if (source_move > 0.0) {
+-            final double source_max = source.maxX;
++            final double source_max = maxX;
+             final int ceil_max_x = findFloor(
+                     coords_x, off_x, source_max - COLLISION_EPSILON, 0, size_x
+             ) + 1; // add one, we are not interested in (coords[i] + COLLISION_EPSILON) < max
+@@ -613,7 +633,7 @@ public final class CollisionUtil {
+ 
+             return source_move;
+         } else {
+-            final double source_min = source.minX;
++            final double source_min = minX;
+             final int floor_min_x = findFloor(
+                     coords_x, off_x, source_min + COLLISION_EPSILON, 0, size_x
+             );
+@@ -657,9 +677,14 @@ public final class CollisionUtil {
+     }
+ 
+     public static double collideY(final VoxelShape target, final AABB source, final double source_move) {
++        return collideY(target, source.minX, source.minY, source.minZ, source.maxX, source.maxY, source.maxZ, source_move);
++    }
++
++    public static double collideY(final VoxelShape target, final double minX, final double minY, final double minZ,
++                                  final double maxX, final double maxY, final double maxZ, final double source_move) {
+         final AABB single_aabb = ((CollisionVoxelShape)target).moonrise$getSingleAABBRepresentation();
+         if (single_aabb != null) {
+-            return collideY(single_aabb, source, source_move);
++            return collideY(single_aabb, minX, minY, minZ, maxX, maxY, maxZ, source_move);
+         }
+         // note: this function assumes that for any i in coords that coord[i + 1] - coord[i] > COLLISION_EPSILON is true
+ 
+@@ -692,7 +717,7 @@ public final class CollisionUtil {
+ 
+         final int floor_min_x = Math.max(
+                 0,
+-                findFloor(coords_x, off_x, source.minX + COLLISION_EPSILON, 0, size_x)
++                findFloor(coords_x, off_x, minX + COLLISION_EPSILON, 0, size_x)
+         );
+         if (floor_min_x >= size_x) {
+             // cannot intersect
+@@ -701,7 +726,7 @@ public final class CollisionUtil {
+ 
+         final int ceil_max_x = Math.min(
+                 size_x,
+-                findFloor(coords_x, off_x, source.maxX - COLLISION_EPSILON, floor_min_x, size_x) + 1
++                findFloor(coords_x, off_x, maxX - COLLISION_EPSILON, floor_min_x, size_x) + 1
+         );
+         if (floor_min_x >= ceil_max_x) {
+             // cannot intersect
+@@ -710,7 +735,7 @@ public final class CollisionUtil {
+ 
+         final int floor_min_z = Math.max(
+                 0,
+-                findFloor(coords_z, off_z, source.minZ + COLLISION_EPSILON, 0, size_z)
++                findFloor(coords_z, off_z, minZ + COLLISION_EPSILON, 0, size_z)
+         );
+         if (floor_min_z >= size_z) {
+             // cannot intersect
+@@ -719,7 +744,7 @@ public final class CollisionUtil {
+ 
+         final int ceil_max_z = Math.min(
+                 size_z,
+-                findFloor(coords_z, off_z, source.maxZ - COLLISION_EPSILON, floor_min_z, size_z) + 1
++                findFloor(coords_z, off_z, maxZ - COLLISION_EPSILON, floor_min_z, size_z) + 1
+         );
+         if (floor_min_z >= ceil_max_z) {
+             // cannot intersect
+@@ -731,7 +756,7 @@ public final class CollisionUtil {
+         final long[] bitset = cached_shape_data.voxelSet();
+ 
+         if (source_move > 0.0) {
+-            final double source_max = source.maxY;
++            final double source_max = maxY;
+             final int ceil_max_y = findFloor(
+                     coords_y, off_y, source_max - COLLISION_EPSILON, 0, size_y
+             ) + 1; // add one, we are not interested in (coords[i] + COLLISION_EPSILON) < max
+@@ -769,7 +794,7 @@ public final class CollisionUtil {
+ 
+             return source_move;
+         } else {
+-            final double source_min = source.minY;
++            final double source_min = minY;
+             final int floor_min_y = findFloor(
+                     coords_y, off_y, source_min + COLLISION_EPSILON, 0, size_y
+             );
+@@ -813,9 +838,14 @@ public final class CollisionUtil {
+     }
+ 
+     public static double collideZ(final VoxelShape target, final AABB source, final double source_move) {
++        return collideZ(target, source.minX, source.minY, source.minZ, source.maxX, source.maxY, source.maxZ, source_move);
++    }
++
++    public static double collideZ(final VoxelShape target, final double minX, final double minY, final double minZ,
++                                  final double maxX, final double maxY, final double maxZ, final double source_move) {
+         final AABB single_aabb = ((CollisionVoxelShape)target).moonrise$getSingleAABBRepresentation();
+         if (single_aabb != null) {
+-            return collideZ(single_aabb, source, source_move);
++            return collideZ(single_aabb, minX, minY, minZ, maxX, maxY, maxZ, source_move);
+         }
+         // note: this function assumes that for any i in coords that coord[i + 1] - coord[i] > COLLISION_EPSILON is true
+ 
+@@ -848,7 +878,7 @@ public final class CollisionUtil {
+ 
+         final int floor_min_x = Math.max(
+                 0,
+-                findFloor(coords_x, off_x, source.minX + COLLISION_EPSILON, 0, size_x)
++                findFloor(coords_x, off_x, minX + COLLISION_EPSILON, 0, size_x)
+         );
+         if (floor_min_x >= size_x) {
+             // cannot intersect
+@@ -857,7 +887,7 @@ public final class CollisionUtil {
+ 
+         final int ceil_max_x = Math.min(
+                 size_x,
+-                findFloor(coords_x, off_x, source.maxX - COLLISION_EPSILON, floor_min_x, size_x) + 1
++                findFloor(coords_x, off_x, maxX - COLLISION_EPSILON, floor_min_x, size_x) + 1
+         );
+         if (floor_min_x >= ceil_max_x) {
+             // cannot intersect
+@@ -866,7 +896,7 @@ public final class CollisionUtil {
+ 
+         final int floor_min_y = Math.max(
+                 0,
+-                findFloor(coords_y, off_y, source.minY + COLLISION_EPSILON, 0, size_y)
++                findFloor(coords_y, off_y, minY + COLLISION_EPSILON, 0, size_y)
+         );
+         if (floor_min_y >= size_y) {
+             // cannot intersect
+@@ -875,7 +905,7 @@ public final class CollisionUtil {
+ 
+         final int ceil_max_y = Math.min(
+                 size_y,
+-                findFloor(coords_y, off_y, source.maxY - COLLISION_EPSILON, floor_min_y, size_y) + 1
++                findFloor(coords_y, off_y, maxY - COLLISION_EPSILON, floor_min_y, size_y) + 1
+         );
+         if (floor_min_y >= ceil_max_y) {
+             // cannot intersect
+@@ -887,7 +917,7 @@ public final class CollisionUtil {
+         final long[] bitset = cached_shape_data.voxelSet();
+ 
+         if (source_move > 0.0) {
+-            final double source_max = source.maxZ;
++            final double source_max = maxZ;
+             final int ceil_max_z = findFloor(
+                     coords_z, off_z, source_max - COLLISION_EPSILON, 0, size_z
+             ) + 1; // add one, we are not interested in (coords[i] + COLLISION_EPSILON) < max
+@@ -925,7 +955,7 @@ public final class CollisionUtil {
+ 
+             return source_move;
+         } else {
+-            final double source_min = source.minZ;
++            final double source_min = minZ;
+             final int floor_min_z = findFloor(
+                     coords_z, off_z, source_min + COLLISION_EPSILON, 0, size_z
+             );
+@@ -1889,6 +1919,18 @@ public final class CollisionUtil {
+     public static boolean getCollisionsForBlocksOrWorldBorder(final Level world, final Entity entity, final AABB aabb,
+                                                               final List<VoxelShape> intoVoxel, final List<AABB> intoAABB,
+                                                               final int collisionFlags, final BiPredicate<BlockState, BlockPos> predicate) {
++        return collectBlockCollisions(world, entity, aabb, intoVoxel, intoAABB, null, collisionFlags, predicate);
++    }
++
++    public static boolean getCollisionsForBlocksOrWorldBorderFlat(final Level world, final Entity entity, final AABB aabb,
++                                                              final List<VoxelShape> intoVoxel, final me.s0nd3r.watermc.math.FastAABB flat,
++                                                              final int collisionFlags, final BiPredicate<BlockState, BlockPos> predicate) {
++        return collectBlockCollisions(world, entity, aabb, intoVoxel, null, flat, collisionFlags, predicate);
++    }
++
++    private static boolean collectBlockCollisions(final Level world, final Entity entity, final AABB aabb,
++                                                              final List<VoxelShape> intoVoxel, final List<AABB> intoAABB, final me.s0nd3r.watermc.math.FastAABB flat,
++                                                              final int collisionFlags, final BiPredicate<BlockState, BlockPos> predicate) {
+         final boolean checkOnly = (collisionFlags & COLLISION_FLAG_CHECK_ONLY) != 0;
+         boolean ret = false;
+ 
+@@ -1947,7 +1989,13 @@ public final class CollisionUtil {
+                         if (checkOnly) {
+                             return true;
+                         } else {
+-                            intoAABB.add(getBoxForChunk(currChunkX, currChunkZ));
++                            if (flat == null) {
++                                intoAABB.add(getBoxForChunk(currChunkX, currChunkZ));
++                            } else {
++                                final double x = (double)(currChunkX << 4), z = (double)(currChunkZ << 4);
++                                flat.add(x - 3*COLLISION_EPSILON, Double.NEGATIVE_INFINITY, z - 3*COLLISION_EPSILON,
++                                    x + (16.0 + 3*COLLISION_EPSILON), Double.POSITIVE_INFINITY, z + (16.0 + 3*COLLISION_EPSILON));
++                            }
+                             ret = true;
+                         }
+                     }
+@@ -1979,13 +2027,14 @@ public final class CollisionUtil {
+                     final int maxZIterate = currChunkZ == maxChunkZ ? (maxBlockZ & 15) - sectionAdjust : 15;
+                     final int minYIterate = currChunkY == minChunkY ? (minBlockY & 15) + sectionAdjust : 0;
+                     final int maxYIterate = currChunkY == maxChunkY ? (maxBlockY & 15) - sectionAdjust : 15;
++                    final PalettedContainer.Data<BlockState> waterBlocksData = blocks.waterDataAcquire(); // WaterMc - Leaf: one palette data read per section (HaHaWTH, GPL-3.0-only)
+ 
+                     for (int currY = minYIterate; currY <= maxYIterate; ++currY) {
+                         final int blockY = currY | (currChunkY << 4);
+                         for (int currZ = minZIterate; currZ <= maxZIterate; ++currZ) {
+                             final int blockZ = currZ | (currChunkZ << 4);
+                             for (int currX = minXIterate; currX <= maxXIterate; ++currX) {
+-                                final int localBlockIndex = (currX) | (currZ << 4) | ((currY) << 8);
++                                final int localBlockIndex = me.s0nd3r.watermc.math.PackedPos.sectionIndex(currX, currY, currZ);
+                                 final int blockX = currX | (currChunkX << 4);
+ 
+                                 final int edgeCount = hasSpecial ? ((blockX == minBlockX || blockX == maxBlockX) ? 1 : 0) +
+@@ -1995,7 +2044,7 @@ public final class CollisionUtil {
+                                     continue;
+                                 }
+ 
+-                                final BlockState blockData = blocks.get(localBlockIndex);
++                                final BlockState blockData = blocks.waterGetFromData(waterBlocksData, localBlockIndex); // WaterMc - Leaf: reduce PalettedContainer lookup in collisions
+ 
+                                 if (((CollisionBlockState)blockData).moonrise$emptyContextCollisionShape()) {
+                                     continue;
+@@ -2013,16 +2062,17 @@ public final class CollisionUtil {
+ 
+                                     AABB singleAABB = ((CollisionVoxelShape)blockCollision).moonrise$getSingleAABBRepresentation();
+                                     if (singleAABB != null) {
+-                                        singleAABB = singleAABB.move((double)blockX, (double)blockY, (double)blockZ);
++                                        final double minX = singleAABB.minX + (double)blockX, minY = singleAABB.minY + (double)blockY, minZ = singleAABB.minZ + (double)blockZ;
++                                        final double maxX = singleAABB.maxX + (double)blockX, maxY = singleAABB.maxY + (double)blockY, maxZ = singleAABB.maxZ + (double)blockZ;
+ 
+                                         // Not using the epsilon violates the collision rules but this is what Vanilla does.
+                                         // Check BlockCollisions.class
+                                         if (blockCollision == Shapes.block()) {
+-                                            if (!aabb.intersects(singleAABB)) {
++                                            if (!aabb.intersects(minX, minY, minZ, maxX, maxY, maxZ)) {
+                                                 continue;
+                                             }
+                                         } else {
+-                                            if (!voxelShapeIntersect(aabb, singleAABB)) {
++                                            if (!voxelShapeIntersect(aabb, minX, minY, minZ, maxX, maxY, maxZ)) {
+                                                 continue;
+                                             }
+                                         }
+@@ -2037,7 +2087,8 @@ public final class CollisionUtil {
+                                             return true;
+                                         } else {
+                                             ret = true;
+-                                            intoAABB.add(singleAABB);
++                                            if (flat == null) intoAABB.add(new AABB(minX, minY, minZ, maxX, maxY, maxZ));
++                                            else flat.add(minX, minY, minZ, maxX, maxY, maxZ);
+                                             continue;
+                                         }
+                                     }

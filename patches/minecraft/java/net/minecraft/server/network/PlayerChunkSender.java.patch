@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/server/network/PlayerChunkSender.java b/java/net/minecraft/server/network/PlayerChunkSender.java
+index 342e7f6fbb53966c879b369ffde5fee5fc2f01ef..2ddac4f490667cc37bb138598b0b22514b5295ae 100644
+--- a/java/net/minecraft/server/network/PlayerChunkSender.java
++++ b/java/net/minecraft/server/network/PlayerChunkSender.java
+@@ -97,7 +97,7 @@ public class PlayerChunkSender {
+     }
+ 
+     // Leaf start - async chunk sender
+-    public static void sendChunk(ServerGamePacketListenerImpl packetListener, ServerLevel level, LevelChunk chunk, org.dreeam.leaf.async.chunk.AsyncChunkSender chunkSender) {
++    public static void sendChunk(ServerGamePacketListenerImpl packetListener, ServerLevel level, LevelChunk chunk, me.s0nd3r.watermc.core.async.chunk.AsyncChunkSender chunkSender) {
+         final boolean shouldModify = level.chunkPacketBlockController.shouldModify(packetListener.player, chunk);
+         net.minecraft.world.level.block.entity.BlockEntity[] blockEntities = chunk.blockEntities.values().toArray(new net.minecraft.world.level.block.entity.BlockEntity[0]);
+         java.util.Map<net.minecraft.world.level.levelgen.Heightmap.Types, long[]> heightmaps = new java.util.EnumMap<>(net.minecraft.world.level.levelgen.Heightmap.Types.class);

@@ -1,0 +1,67 @@
+diff --git a/java/net/minecraft/world/level/block/entity/BlockEntity.java b/java/net/minecraft/world/level/block/entity/BlockEntity.java
+index 7761239b49a52d58ad69113126ae80cb6c837db4..19eece1af71a5fdb9444231dcf8feb3dfa411024 100644
+--- a/java/net/minecraft/world/level/block/entity/BlockEntity.java
++++ b/java/net/minecraft/world/level/block/entity/BlockEntity.java
+@@ -36,7 +36,7 @@ import net.minecraft.world.level.storage.ValueOutput;
+ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
+ 
+-public abstract class BlockEntity implements DebugValueSource, net.caffeinemc.mods.lithium.common.block.entity.inventory_comparator_tracking.ComparatorTracker, net.caffeinemc.mods.lithium.common.block.entity.SetBlockStateHandlingBlockEntity, net.caffeinemc.mods.lithium.common.block.entity.SetChangedHandlingBlockEntity { // Leaves - Lithium Sleeping Block Entity
++public abstract class BlockEntity implements DebugValueSource, me.s0nd3r.watermc.engine.common.block.entity.inventory_comparator_tracking.ComparatorTracker, me.s0nd3r.watermc.engine.common.block.entity.SetBlockStateHandlingBlockEntity, me.s0nd3r.watermc.engine.common.block.entity.SetChangedHandlingBlockEntity { // Leaves - Lithium Sleeping Block Entity
+     static boolean ignoreBlockEntityUpdates; // Paper - Perf: Optimize Hoppers
+     // CraftBukkit start - data containers
+     private static final org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry DATA_TYPE_REGISTRY = new org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry();
+@@ -239,7 +239,7 @@ public abstract class BlockEntity implements DebugValueSource, net.caffeinemc.mo
+         if (this.level != null) {
+             if (ignoreBlockEntityUpdates) return; // Paper - Perf: Optimize Hoppers
+             setChanged(this.level, this.worldPosition, this.blockState);
+-            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) lithium$handleSetChanged(); // Leaves - Lithium Sleeping Block Entity
++            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) lithium$handleSetChanged(); // Leaves - Lithium Sleeping Block Entity
+         }
+     }
+ 
+@@ -273,7 +273,7 @@ public abstract class BlockEntity implements DebugValueSource, net.caffeinemc.mo
+     public void setRemoved() {
+         this.hasComparators = UNKNOWN; // Leaves - Lithium Sleeping Block Entity
+         this.remove = true;
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && this.level != null && !this.level.isClientSide() && this instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker inventoryChangeTracker) inventoryChangeTracker.lithium$emitRemoved(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && this.level != null && !this.level.isClientSide() && this instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker inventoryChangeTracker) inventoryChangeTracker.lithium$emitRemoved(); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     public void clearRemoved() {
+@@ -313,7 +313,7 @@ public abstract class BlockEntity implements DebugValueSource, net.caffeinemc.mo
+     public void setBlockState(BlockState blockState) {
+         this.validateBlockState(blockState);
+         this.blockState = blockState;
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) this.lithium$handleSetBlockState(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) this.lithium$handleSetBlockState(); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     protected void applyImplicitComponents(DataComponentGetter componentGetter) {
+@@ -391,7 +391,7 @@ public abstract class BlockEntity implements DebugValueSource, net.caffeinemc.mo
+ 
+     // CraftBukkit start - add method
+     public org.bukkit.inventory.@Nullable InventoryHolder getOwner() {
+-        return getOwner(org.dreeam.leaf.config.modules.opt.TileEntitySnapshotCreation.enabled); // Leaf - EMC - Don't use snapshots for TileEntity::getOwner
++        return getOwner(me.s0nd3r.watermc.core.config.modules.opt.TileEntitySnapshotCreation.enabled); // Leaf - EMC - Don't use snapshots for TileEntity::getOwner
+     }
+ 
+     public org.bukkit.inventory.@Nullable InventoryHolder getOwner(boolean useSnapshot) {
+@@ -442,7 +442,7 @@ public abstract class BlockEntity implements DebugValueSource, net.caffeinemc.mo
+         if (direction.getAxis() != net.minecraft.core.Direction.Axis.Y && hasComparators != COMPARATOR_PRESENT && offset >= 1 && offset <= 2) {
+             this.hasComparators = COMPARATOR_PRESENT;
+ 
+-            if (this instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker inventoryChangeTracker) {
++            if (this instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker inventoryChangeTracker) {
+                 inventoryChangeTracker.lithium$emitFirstComparatorAdded();
+             }
+         }
+@@ -451,7 +451,7 @@ public abstract class BlockEntity implements DebugValueSource, net.caffeinemc.mo
+     @Override
+     public boolean lithium$hasAnyComparatorNearby() {
+         if (this.hasComparators == UNKNOWN) {
+-            this.hasComparators = net.caffeinemc.mods.lithium.common.block.entity.inventory_comparator_tracking.ComparatorTracking.findNearbyComparators(this.level, this.worldPosition) ? COMPARATOR_PRESENT : COMPARATOR_ABSENT;
++            this.hasComparators = me.s0nd3r.watermc.engine.common.block.entity.inventory_comparator_tracking.ComparatorTracking.findNearbyComparators(this.level, this.worldPosition) ? COMPARATOR_PRESENT : COMPARATOR_ABSENT;
+         }
+         return this.hasComparators == COMPARATOR_PRESENT;
+     }

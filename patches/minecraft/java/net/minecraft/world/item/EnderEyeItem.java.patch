@@ -1,0 +1,18 @@
+diff --git a/java/net/minecraft/world/item/EnderEyeItem.java b/java/net/minecraft/world/item/EnderEyeItem.java
+index e2df0204dd21185c24ef2dc1f900247ca3655721..ec583595a2418c18861473f2384bfdcff28cdd0a 100644
+--- a/java/net/minecraft/world/item/EnderEyeItem.java
++++ b/java/net/minecraft/world/item/EnderEyeItem.java
+@@ -61,8 +61,11 @@ public class EnderEyeItem extends Item {
+                 for (int i = 0; i < 3; i++) {
+                     for (int i1 = 0; i1 < 3; i1++) {
+                         BlockPos blockPos1 = blockPos.offset(i, 0, i1);
+-                        level.destroyBlock(blockPos1, true, null);
+-                        level.setBlock(blockPos1, Blocks.END_PORTAL.defaultBlockState(), Block.UPDATE_CLIENTS);
++                        // Leaf start - propagate block destruction cancellation
++                        if (!level.destroyBlockWithResult(blockPos1, true, null, Block.UPDATE_LIMIT).isCancelled()) {
++                            level.setBlock(blockPos1, Blocks.END_PORTAL.defaultBlockState(), Block.UPDATE_CLIENTS);
++                        }
++                        // Leaf end - propagate block destruction cancellation
+                     }
+                 }
+ 

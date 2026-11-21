@@ -1,0 +1,30 @@
+diff --git a/java/net/minecraft/network/CipherEncoder.java b/java/net/minecraft/network/CipherEncoder.java
+index 08363d710fb9c9d91967919b85fdd722e64d4d12..db6f00d7908013fa65346a024404d176b3917de7 100644
+--- a/java/net/minecraft/network/CipherEncoder.java
++++ b/java/net/minecraft/network/CipherEncoder.java
+@@ -2,8 +2,6 @@ package net.minecraft.network;
+ 
+ import io.netty.buffer.ByteBuf;
+ import io.netty.channel.ChannelHandlerContext;
+-import io.netty.handler.codec.MessageToByteEncoder;
+-import javax.crypto.Cipher;
+ 
+ public class CipherEncoder extends io.netty.handler.codec.MessageToMessageEncoder<ByteBuf> { // Paper - Use Velocity cipher; change superclass
+     private final com.velocitypowered.natives.encryption.VelocityCipher cipher; // Paper - Use Velocity cipher
+@@ -15,7 +13,15 @@ public class CipherEncoder extends io.netty.handler.codec.MessageToMessageEncode
+     // Paper start - Use Velocity cipher
+     @Override
+     protected void encode(ChannelHandlerContext ctx, ByteBuf message, java.util.List<Object> list) throws Exception {
+-        ByteBuf compatible = com.velocitypowered.natives.util.MoreByteBufUtils.ensureCompatible(ctx.alloc(), this.cipher, message);
++        // Encryption is connection-specific and in-place; shared plaintext must never be modified.
++        ByteBuf compatible;
++        if (message.isReadOnly() || message.refCnt() > 1 || message.nioBufferCount() != 1) {
++            compatible = com.velocitypowered.natives.util.MoreByteBufUtils.preferredBuffer(ctx.alloc(), this.cipher, message.readableBytes());
++            try { compatible.writeBytes(message, message.readerIndex(), message.readableBytes()); }
++            catch (Throwable failure) { compatible.release(); throw failure; }
++        } else {
++            compatible = com.velocitypowered.natives.util.MoreByteBufUtils.ensureCompatible(ctx.alloc(), this.cipher, message);
++        }
+         try {
+             this.cipher.process(compatible);
+             list.add(compatible);

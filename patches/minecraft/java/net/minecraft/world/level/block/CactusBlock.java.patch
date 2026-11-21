@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/block/CactusBlock.java b/java/net/minecraft/world/level/block/CactusBlock.java
+index b1974c6f611d0a4ee34a682fd72064b9f5c2a5e5..cb7527933bc51fd5d4146d1c3b1c13598a595d8f 100644
+--- a/java/net/minecraft/world/level/block/CactusBlock.java
++++ b/java/net/minecraft/world/level/block/CactusBlock.java
+@@ -80,7 +80,7 @@ public class CactusBlock extends Block implements BonemealableBlock { // Purpur
+                 }
+             } else if (ageValue == 15 && i < level.paperConfig().maxGrowthHeight.cactus) { // Paper - Configurable cactus/bamboo/reed growth height
+                 // Pluto start - Check if the cactus can even survive being placed
+-                if (org.dreeam.leaf.config.modules.opt.CheckSurvivalBeforeGrowth.cactusCheckSurvivalBeforeGrowth && !canSurvive(level, blockPos = pos.above())) { // Pluto - Decrease chunk/block lookups
++                if (me.s0nd3r.watermc.core.config.modules.opt.CheckSurvivalBeforeGrowth.cactusCheckSurvivalBeforeGrowth && !canSurvive(level, blockPos = pos.above())) { // Pluto - Decrease chunk/block lookups
+                     level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, blockPos, Block.getId(state));
+                     // We're going to fake the block breaking to match vanilla standards.
+                     for (net.minecraft.world.item.ItemStack drop : Block.getDrops(state, level, pos, null)) { // Use base cactus since we don't place a block

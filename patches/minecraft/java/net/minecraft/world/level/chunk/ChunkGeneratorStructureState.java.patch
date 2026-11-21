@@ -1,0 +1,28 @@
+diff --git a/java/net/minecraft/world/level/chunk/ChunkGeneratorStructureState.java b/java/net/minecraft/world/level/chunk/ChunkGeneratorStructureState.java
+index ae1ca5a260eeb65aca41e58e08a0d246a52ad81b..c9f6e001392d133591cf949932c490d0be8cb718 100644
+--- a/java/net/minecraft/world/level/chunk/ChunkGeneratorStructureState.java
++++ b/java/net/minecraft/world/level/chunk/ChunkGeneratorStructureState.java
+@@ -206,11 +206,11 @@ public class ChunkGeneratorStructureState {
+             int spread = placement.spread();
+             HolderSet<Biome> holderSet = placement.preferredBiomes();
+             // Leaf start - Matter - Secure Seed
+-            RandomSource randomSource = org.dreeam.leaf.config.modules.misc.SecureSeed.enabled
+-                ? new su.plo.matter.WorldgenCryptoRandom(0, 0, su.plo.matter.Globals.Salt.STRONGHOLDS, 0)
++            RandomSource randomSource = me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled
++                ? new me.s0nd3r.watermc.seed.WorldgenCryptoRandom(0, 0, me.s0nd3r.watermc.seed.Globals.Salt.STRONGHOLDS, 0)
+                 : RandomSource.createLegacy(); // Leaf - Faster random generator
+             // Leaf end - Matter - Secure Seed
+-            if (!org.dreeam.leaf.config.modules.misc.SecureSeed.enabled) {
++            if (!me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled) {
+             // Paper start - Add missing structure set seed configs
+             if (this.conf.strongholdSeed != null && structureSet.is(net.minecraft.world.level.levelgen.structure.BuiltinStructureSets.STRONGHOLDS)) {
+                 randomSource.setSeed(this.conf.strongholdSeed);
+@@ -261,7 +261,7 @@ public class ChunkGeneratorStructureState {
+                 }
+             }
+ 
+-            return Util.sequence(list, org.dreeam.leaf.config.modules.opt.FasterStructureGenFutureSequencing.enabled).thenApply(completed -> { // Leaf - Faster sequencing of futures for chunk structure gen
++            return Util.sequence(list, me.s0nd3r.watermc.core.config.modules.opt.FasterStructureGenFutureSequencing.enabled).thenApply(completed -> { // Leaf - Faster sequencing of futures for chunk structure gen
+                 double d2 = stopwatch.stop().elapsed(TimeUnit.MILLISECONDS) / 1000.0;
+                 LOGGER.debug("Calculation for {} took {}s", structureSet, d2);
+                 return completed;

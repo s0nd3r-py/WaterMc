@@ -1,0 +1,35 @@
+diff --git a/java/net/minecraft/network/Utf8String.java b/java/net/minecraft/network/Utf8String.java
+index 8970dc6ef844c7b01d8cd4463db9ca64c71d879c..9e038651243ed1383e679b108a2c7c961df8a80b 100644
+--- a/java/net/minecraft/network/Utf8String.java
++++ b/java/net/minecraft/network/Utf8String.java
+@@ -34,21 +34,16 @@ public class Utf8String {
+         if (string.length() > maxLength) {
+             throw new EncoderException("String too big (was " + string.length() + " characters, max " + maxLength + ")");
+         } else {
+-            int i = ByteBufUtil.utf8MaxBytes(string);
+-            ByteBuf byteBuf = buffer.alloc().buffer(i);
+-
+-            try {
+-                int i1 = ByteBufUtil.writeUtf8(byteBuf, string);
+-                int i2 = ByteBufUtil.utf8MaxBytes(maxLength);
+-                if (i1 > i2) {
+-                    throw new EncoderException("String too big (was " + i1 + " bytes encoded, max " + i2 + ")");
+-                }
+-
+-                VarInt.write(buffer, i1);
+-                buffer.writeBytes(byteBuf);
+-            } finally {
+-                byteBuf.release();
++            // WaterMc start - Krypton (Andrew Steinborn): measure, then encode straight into the packet buffer, no temporary buffer
++            int i1 = ByteBufUtil.utf8Bytes(string);
++            int i2 = ByteBufUtil.utf8MaxBytes(maxLength);
++            if (i1 > i2) {
++                throw new EncoderException("String too big (was " + i1 + " bytes encoded, max " + i2 + ")");
+             }
++
++            VarInt.write(buffer, i1);
++            ByteBufUtil.writeUtf8(buffer, string);
++            // WaterMc end - Krypton
+         }
+     }
+ }

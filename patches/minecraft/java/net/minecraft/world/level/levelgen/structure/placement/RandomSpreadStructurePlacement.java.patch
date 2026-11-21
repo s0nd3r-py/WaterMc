@@ -1,0 +1,18 @@
+diff --git a/java/net/minecraft/world/level/levelgen/structure/placement/RandomSpreadStructurePlacement.java b/java/net/minecraft/world/level/levelgen/structure/placement/RandomSpreadStructurePlacement.java
+index 06083cc7612ef28bcd9264bb21ab0bbbe0837589..b11544888c9fb56e6c42b248c342ac2744648d83 100644
+--- a/java/net/minecraft/world/level/levelgen/structure/placement/RandomSpreadStructurePlacement.java
++++ b/java/net/minecraft/world/level/levelgen/structure/placement/RandomSpreadStructurePlacement.java
+@@ -69,10 +69,10 @@ public class RandomSpreadStructurePlacement extends StructurePlacement {
+         int i1 = Math.floorDiv(regionZ, this.spacing);
+         // Leaf start - Matter - Secure Seed
+         WorldgenRandom worldgenRandom;
+-        if (org.dreeam.leaf.config.modules.misc.SecureSeed.enabled) {
+-            worldgenRandom = new su.plo.matter.WorldgenCryptoRandom(i, i1, su.plo.matter.Globals.Salt.POTENTIONAL_FEATURE, this.salt);
++        if (me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled) {
++            worldgenRandom = new me.s0nd3r.watermc.seed.WorldgenCryptoRandom(i, i1, me.s0nd3r.watermc.seed.Globals.Salt.POTENTIONAL_FEATURE, this.salt);
+         } else {
+-            worldgenRandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
++            worldgenRandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
+             worldgenRandom.setLargeFeatureWithSalt(seed, i, i1, this.salt());
+         }
+         // Leaf end - Matter - Secure Seed

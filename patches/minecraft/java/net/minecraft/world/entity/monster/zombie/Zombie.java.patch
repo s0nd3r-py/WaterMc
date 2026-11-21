@@ -1,0 +1,12 @@
+diff --git a/java/net/minecraft/world/entity/monster/zombie/Zombie.java b/java/net/minecraft/world/entity/monster/zombie/Zombie.java
+index b840ab9e91f7b859aa9cffdf6607eb4a20b81f61..26908aca7ba2f1a3b422c14fcd8893c0b05111ca 100644
+--- a/java/net/minecraft/world/entity/monster/zombie/Zombie.java
++++ b/java/net/minecraft/world/entity/monster/zombie/Zombie.java
+@@ -348,6 +348,7 @@ public class Zombie extends Monster {
+ 
+     public static @Nullable ZombieVillager convertVillagerToZombieVillager(ServerLevel level, Villager villager, net.minecraft.core.BlockPos blockPosition, boolean silent, org.bukkit.event.entity.EntityTransformEvent.TransformReason transformReason, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason creatureSpawnReason) {
+         // CraftBukkit end
++        me.s0nd3r.watermc.world.TradeDisplay.clear(villager); // WaterMc - the shown trade item must not become real equipment of the zombie
+         ZombieVillager zombieVillager = villager.convertTo(EntityType.ZOMBIE_VILLAGER, ConversionParams.single(villager, true, true), mob -> {
+             mob.finalizeSpawn(level, level.getCurrentDifficultyAt(mob.blockPosition()), EntitySpawnReason.CONVERSION, new Zombie.ZombieGroupData(false, true));
+             mob.setVillagerData(villager.getVillagerData());

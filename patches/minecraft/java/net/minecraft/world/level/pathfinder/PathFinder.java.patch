@@ -1,0 +1,76 @@
+diff --git a/java/net/minecraft/world/level/pathfinder/PathFinder.java b/java/net/minecraft/world/level/pathfinder/PathFinder.java
+index f08c5891df1c39be7dceabb7aee2624e56679aa4..05e2fc3de1361482b85432300295607d9c7da82b 100644
+--- a/java/net/minecraft/world/level/pathfinder/PathFinder.java
++++ b/java/net/minecraft/world/level/pathfinder/PathFinder.java
+@@ -26,9 +26,9 @@ public class PathFinder {
+     public final NodeEvaluator nodeEvaluator;
+     private final BinaryHeap openSet = new BinaryHeap();
+     private BooleanSupplier captureDebug = () -> false;
+-    private final org.dreeam.leaf.async.path.@Nullable NodeEvaluatorGenerator nodeEvaluatorGenerator; // Kaiiju - petal - async path processing - we use this later to generate an evaluator
++    private final me.s0nd3r.watermc.core.async.path.@Nullable NodeEvaluatorGenerator nodeEvaluatorGenerator; // Kaiiju - petal - async path processing - we use this later to generate an evaluator
+ 
+-    public PathFinder(NodeEvaluator nodeEvaluator, int maxVisitedNodes, org.dreeam.leaf.async.path.@Nullable NodeEvaluatorGenerator nodeEvaluatorGenerator) { // Kaiiju - petal - async path processing - add nodeEvaluatorGenerator
++    public PathFinder(NodeEvaluator nodeEvaluator, int maxVisitedNodes, me.s0nd3r.watermc.core.async.path.@Nullable NodeEvaluatorGenerator nodeEvaluatorGenerator) { // Kaiiju - petal - async path processing - add nodeEvaluatorGenerator
+         this.nodeEvaluator = nodeEvaluator;
+         this.maxVisitedNodes = maxVisitedNodes;
+         /// Kaiiju start - petal - async path processing - support nodeEvaluatorgenerators
+@@ -53,12 +53,12 @@ public class PathFinder {
+         // Use a generated evaluator if we have one otherwise run sync
+         NodeEvaluator nodeEvaluator = this.nodeEvaluatorGenerator == null
+             ? this.nodeEvaluator
+-            : org.dreeam.leaf.async.path.NodeEvaluatorCache.takeNodeEvaluator(this.nodeEvaluatorGenerator, this.nodeEvaluator);
++            : me.s0nd3r.watermc.core.async.path.NodeEvaluatorCache.takeNodeEvaluator(this.nodeEvaluatorGenerator, this.nodeEvaluator);
+         nodeEvaluator.prepare(region, mob);
+         Node start = nodeEvaluator.getStart();
+         if (start == null) {
+             if (this.nodeEvaluatorGenerator != null) {
+-                org.dreeam.leaf.async.path.NodeEvaluatorCache.removeNodeEvaluator(nodeEvaluator); // Kaiiju - petal - async path processing - handle nodeEvaluatorGenerator
++                me.s0nd3r.watermc.core.async.path.NodeEvaluatorCache.removeNodeEvaluator(nodeEvaluator); // Kaiiju - petal - async path processing - handle nodeEvaluatorGenerator
+             }
+             // Kaiiju end - petal - async path processing
+             return null;
+@@ -66,7 +66,7 @@ public class PathFinder {
+             // Paper start - Perf: remove streams and optimize collection
+             List<Map.Entry<Target, BlockPos>> map = Lists.newArrayList();
+             for (BlockPos pos : targets) {
+-                map.add(new java.util.AbstractMap.SimpleEntry<>(nodeEvaluator.getTarget(pos.getX(), pos.getY(), pos.getZ()), pos)); // Kaiiju - petal - async path processing - handle nodeEvaluatorGenerator
++                map.add(new java.util.AbstractMap.SimpleEntry<>(nodeEvaluator.getTarget(pos.getX(), pos.getY(), pos.getZ()), pos.immutable())); // Kaiiju - petal - async path processing - handle nodeEvaluatorGenerator
+             }
+             // Paper end - Perf: remove streams and optimize collection
+             // Kaiiju start - petal - async path processing
+@@ -78,21 +78,31 @@ public class PathFinder {
+ 
+             final int maxVisitedNodes = this.maxVisitedNodes;
+             final BooleanSupplier captureDebug = this.captureDebug;
+-            return new org.dreeam.leaf.async.path.AsyncPath(this, Lists.newArrayList(), targets, finder -> {
++            try {
++            return new me.s0nd3r.watermc.core.async.path.AsyncPath(this, Lists.newArrayList(), targets, finder -> {
+                 try {
+                     nodeEvaluator.invalidateCache();
+                     return finder.findPath(nodeEvaluator,
+-                            org.dreeam.leaf.async.path.NodeEvaluatorCache.HEAP_LOCAL.get(),
+-                            org.dreeam.leaf.async.path.NodeEvaluatorCache.NEIGHBORS_LOCAL.get(),
++                            me.s0nd3r.watermc.core.async.path.NodeEvaluatorCache.HEAP_LOCAL.get(),
++                            me.s0nd3r.watermc.core.async.path.NodeEvaluatorCache.NEIGHBORS_LOCAL.get(),
+                             maxVisitedNodes,
+                             captureDebug,
+                             start, map, maxRange, reachRange, maxVisitedNodesMultiplier);
+                 } finally {
+                     nodeEvaluator.done();
+                     nodeEvaluator.clearNodes();
+-                    org.dreeam.leaf.async.path.NodeEvaluatorCache.returnNodeEvaluator(nodeEvaluator);
++                    me.s0nd3r.watermc.core.async.path.NodeEvaluatorCache.returnNodeEvaluator(nodeEvaluator);
+                 }
+             });
++            } catch (java.util.concurrent.RejectedExecutionException rejected) {
++                try {
++                    nodeEvaluator.done();
++                } finally {
++                    nodeEvaluator.clearNodes();
++                    me.s0nd3r.watermc.core.async.path.NodeEvaluatorCache.returnNodeEvaluator(nodeEvaluator);
++                }
++                return null;
++            }
+             // Kaiiju end - petal - async path processing
+         }
+     }

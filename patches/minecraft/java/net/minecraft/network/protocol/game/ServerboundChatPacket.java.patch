@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/network/protocol/game/ServerboundChatPacket.java b/java/net/minecraft/network/protocol/game/ServerboundChatPacket.java
+index c2a444fb2190a4d4334a46f9e2875afe5ae073ed..c50194a88108f0c823d624e5acdc58e89cd137c5 100644
+--- a/java/net/minecraft/network/protocol/game/ServerboundChatPacket.java
++++ b/java/net/minecraft/network/protocol/game/ServerboundChatPacket.java
+@@ -23,7 +23,7 @@ public record ServerboundChatPacket(String message, Instant timeStamp, long salt
+         buffer.writeUtf(this.message, 256);
+         buffer.writeInstant(this.timeStamp);
+         buffer.writeLong(this.salt);
+-        if (org.dreeam.leaf.config.modules.network.ChatMessageSignature.enabled) buffer.writeNullable(this.signature, MessageSignature::write); // Leaf - Mirai - Configurable chat message signatures
++        if (me.s0nd3r.watermc.core.config.modules.network.ChatMessageSignature.enabled) buffer.writeNullable(this.signature, MessageSignature::write); // Leaf - Mirai - Configurable chat message signatures
+         this.lastSeenMessages.write(buffer);
+     }
+ 

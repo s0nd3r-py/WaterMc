@@ -1,0 +1,42 @@
+diff --git a/java/net/minecraft/world/entity/ai/behavior/Behavior.java b/java/net/minecraft/world/entity/ai/behavior/Behavior.java
+index 5b0cadd2544fb2a627822e645ff32fec2e9cfda9..107f10fe94fbb4679a6fae71e94040f346e9b6d8 100644
+--- a/java/net/minecraft/world/entity/ai/behavior/Behavior.java
++++ b/java/net/minecraft/world/entity/ai/behavior/Behavior.java
+@@ -103,17 +103,34 @@ public abstract class Behavior<E extends LivingEntity> implements BehaviorContro
+         return this.getClass().getSimpleName();
+     }
+ 
++    // Leaf/Lithium start - Reduce Brain memories lookup (2No2Name, LGPL-3.0): the answer only changes when a memory
++    // appears or disappears; keyed by brain too, so a behavior instance shared between mobs never reuses another's answer
++    private net.minecraft.world.entity.ai.@org.jspecify.annotations.Nullable Brain<?> waterCachedBrain;
++    private long waterCachedModCount;
++    private boolean waterCachedHasMemories;
++
+     protected boolean hasRequiredMemories(E owner) {
++        final net.minecraft.world.entity.ai.Brain<?> brain = owner.getBrain();
++        final long modCount = brain.waterMemoryModCount();
++        if (brain == this.waterCachedBrain && modCount == this.waterCachedModCount) {
++            return this.waterCachedHasMemories;
++        }
++        boolean result = true;
+         for (Entry<MemoryModuleType<?>, MemoryStatus> entry : this.entryCondition.entrySet()) {
+             MemoryModuleType<?> memoryModuleType = entry.getKey();
+             MemoryStatus memoryStatus = entry.getValue();
+-            if (!owner.getBrain().checkMemory(memoryModuleType, memoryStatus)) {
+-                return false;
++            if (!brain.checkMemory(memoryModuleType, memoryStatus)) {
++                result = false;
++                break;
+             }
+         }
+ 
+-        return true;
++        this.waterCachedBrain = brain;
++        this.waterCachedModCount = modCount;
++        this.waterCachedHasMemories = result;
++        return result;
+     }
++    // Leaf/Lithium end - Reduce Brain memories lookup
+ 
+     public static enum Status {
+         STOPPED,

@@ -1,0 +1,189 @@
+diff --git a/java/net/minecraft/world/level/Level.java b/java/net/minecraft/world/level/Level.java
+index 82ea05f127539853da9b0b12d477be1ac03017aa..ffeac3f398def5ffb0599125d2991ce032a6b11e 100644
+--- a/java/net/minecraft/world/level/Level.java
++++ b/java/net/minecraft/world/level/Level.java
+@@ -112,7 +112,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+         .add(new ExplosionParticleInfo(ParticleTypes.POOF, 0.5F, 1.0F))
+         .add(new ExplosionParticleInfo(ParticleTypes.SMOKE, 1.0F, 1.0F))
+         .build();
+-    public final List<TickingBlockEntity> blockEntityTickers = new org.dreeam.leaf.util.list.BlockEntityTickersList(); // SparklyPaper - optimize block entity removals
++    public final List<TickingBlockEntity> blockEntityTickers = new me.s0nd3r.watermc.core.util.list.BlockEntityTickersList(); // SparklyPaper - optimize block entity removals
+     protected final CollectingNeighborUpdater neighborUpdater;
+     private final List<TickingBlockEntity> pendingBlockEntityTickers = Lists.newArrayList();
+     private boolean tickingBlockEntities;
+@@ -125,7 +125,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+     public float rainLevel;
+     protected float oThunderLevel;
+     public float thunderLevel;
+-    public final RandomSource random = org.dreeam.leaf.config.modules.opt.FastRNG.enabled ? new org.dreeam.leaf.util.math.random.FasterRandomSource(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()) : new ca.spottedleaf.moonrise.common.util.ThreadUnsafeRandom(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()); // Paper - replace random // Leaf - Faster random generator
++    public final RandomSource random = me.s0nd3r.watermc.core.config.modules.opt.FastRNG.enabled ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()) : new ca.spottedleaf.moonrise.common.util.ThreadUnsafeRandom(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()); // Paper - replace random // Leaf - Faster random generator
+     @Deprecated
+     private final RandomSource threadSafeRandom = RandomSource.createThreadSafe();
+     private final Holder<DimensionType> dimensionTypeRegistration;
+@@ -166,8 +166,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+     // Paper end - add paper world config
+ 
+     // Gale start - Gale configuration
+-    private final org.galemc.gale.configuration.GaleWorldConfiguration galeConfig;
+-    public org.galemc.gale.configuration.GaleWorldConfiguration galeConfig() {
++    private final me.s0nd3r.watermc.tuning.configuration.TuningWorldConfiguration galeConfig;
++    public me.s0nd3r.watermc.tuning.configuration.TuningWorldConfiguration galeConfig() {
+         return this.galeConfig;
+     }
+     // Gale end - Gale configuration
+@@ -178,14 +178,14 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+     private int tileTickPosition;
+     public final Map<ServerExplosion.CacheKey, Float> explosionDensityCache = new java.util.HashMap<>(); // Paper - Optimize explosions
+     public java.util.ArrayDeque<net.minecraft.world.level.block.RedstoneTorchBlock.Toggle> redstoneUpdateInfos; // Paper - Faster redstone torch rapid clock removal; Move from Map in BlockRedstoneTorch to here
+-    public final net.minecraft.world.level.levelgen.BitRandomSource simpleRandom = org.dreeam.leaf.config.modules.opt.FastRNG.enabled ? new org.dreeam.leaf.util.math.random.FasterRandomSource(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()) : new ca.spottedleaf.moonrise.common.util.SimpleThreadUnsafeRandom(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()); // Gale - Pufferfish - move random tick random // Leaf - Faster random generator
++    public final net.minecraft.world.level.levelgen.BitRandomSource simpleRandom = me.s0nd3r.watermc.core.config.modules.opt.FastRNG.enabled ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()) : new ca.spottedleaf.moonrise.common.util.SimpleThreadUnsafeRandom(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed()); // Gale - Pufferfish - move random tick random // Leaf - Faster random generator
+     public boolean shouldConsumeArrow = true; // Paper PR - prevent item consumption for cancelled shot events
+ 
+     // Purpur start - Add adjustable breeding cooldown to config
+-    private com.google.common.cache.Cache<BreedingCooldownPair, Object> playerBreedingCooldowns;
++    private com.github.benmanes.caffeine.cache.Cache<BreedingCooldownPair, Object> playerBreedingCooldowns;
+ 
+-    private com.google.common.cache.Cache<BreedingCooldownPair, Object> getNewBreedingCooldownCache() {
+-        return com.google.common.cache.CacheBuilder.newBuilder().expireAfterWrite(this.purpurConfig.animalBreedingCooldownSeconds, java.util.concurrent.TimeUnit.SECONDS).build();
++    private com.github.benmanes.caffeine.cache.Cache<BreedingCooldownPair, Object> getNewBreedingCooldownCache() {
++        return me.s0nd3r.watermc.util.WaterCaches.newBuilder().expireAfterWrite(this.purpurConfig.animalBreedingCooldownSeconds, java.util.concurrent.TimeUnit.SECONDS).build();
+     }
+ 
+     public void resetBreedingCooldowns() {
+@@ -887,7 +887,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+         java.util.function.Function<org.spigotmc.SpigotWorldConfig, // Spigot - create per world config
+         io.papermc.paper.configuration.WorldConfiguration> paperWorldConfigCreator, // Paper - create paper world config
+         java.util.function.Function<org.spigotmc.SpigotWorldConfig, // Gale - Gale configuration
+-        org.galemc.gale.configuration.GaleWorldConfiguration> galeWorldConfigCreator, // Gale - Gale configuration
++        me.s0nd3r.watermc.tuning.configuration.TuningWorldConfiguration> galeWorldConfigCreator, // Gale - Gale configuration
+         java.util.concurrent.Executor executor // Paper - Anti-Xray
+     ) {
+         // Paper start - getblock optimisations - cache world height/sections
+@@ -926,7 +926,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+         this.damageSources = new DamageSources(registryAccess);
+         this.entityLookup = new ca.spottedleaf.moonrise.patches.chunk_system.level.entity.dfl.DefaultEntityLookup(this); // Paper - rewrite chunk system
+         this.chunkPacketBlockController = this.paperConfig().anticheat.antiXray.enabled ? new io.papermc.paper.antixray.ChunkPacketBlockControllerAntiXray(this, executor) : io.papermc.paper.antixray.ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
+-        this.turbo = org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled ? new io.papermc.paper.redstone.RedstoneWireTurbo((net.minecraft.world.level.block.RedStoneWireBlock) net.minecraft.world.level.block.Blocks.REDSTONE_WIRE) : null;
++        this.turbo = me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled ? new io.papermc.paper.redstone.RedstoneWireTurbo((net.minecraft.world.level.block.RedStoneWireBlock) net.minecraft.world.level.block.Blocks.REDSTONE_WIRE) : null;
+     }
+ 
+     // Paper start - Cancel hit for vanished players
+@@ -1117,7 +1117,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+ 
+     @Override
+     public boolean setBlock(BlockPos pos, BlockState state, @Block.UpdateFlags int flags, int recursionLeft) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this, pos, "Updating block asynchronously"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this, pos, "Updating block asynchronously"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
+         // CraftBukkit start - tree generation
+         if (this.captureTreeGeneration) {
+             // Paper start - Protect Bedrock and End Portal/Frames from being destroyed
+@@ -1162,6 +1162,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+             }
+             // Imanity end - AntiXraySDK integration
+             this.chunkPacketBlockController.onBlockChange(this, pos, state, blockState, flags, recursionLeft); // Paper - Anti-Xray
++            me.s0nd3r.watermc.culling.EntityCullingManager.onBlockChange(this, pos); // WaterMc - raytrace entity culling: invalidate nearby occlusion caches
+             // CraftBukkit end
+             if (blockState == null) {
+                 // CraftBukkit start - remove blockstate if failed (or the same)
+@@ -1271,11 +1272,17 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+         return this.setBlock(pos, fluidState.createLegacyBlock(), Block.UPDATE_ALL | (movedByPiston ? Block.UPDATE_MOVE_BY_PISTON : 0));
+     }
+ 
++    // Leaf start - propagate block destruction cancellation (HaHaWTH, GPL-3.0)
+     @Override
+     public boolean destroyBlock(BlockPos pos, boolean dropBlock, @Nullable Entity entity, int recursionLeft) {
++        return this.destroyBlockWithResult(pos, dropBlock, entity, recursionLeft).isChanged();
++    }
++
++    @Override
++    public LevelWriter.DestroyBlockResult destroyBlockWithResult(BlockPos pos, boolean dropBlock, @Nullable Entity entity, int recursionLeft) {
+         BlockState blockState = this.getBlockState(pos);
+         if (blockState.isAir()) {
+-            return false;
++            return LevelWriter.DestroyBlockResult.UNCHANGED;
+         } else {
+             FluidState fluidState = this.getFluidState(pos);
+             // Paper start - BlockDestroyEvent; while the above removeBlock method looks very similar
+@@ -1287,7 +1294,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+             if (com.destroystokyo.paper.event.block.BlockDestroyEvent.getHandlerList().getRegisteredListeners().length > 0) {
+                 com.destroystokyo.paper.event.block.BlockDestroyEvent event = new com.destroystokyo.paper.event.block.BlockDestroyEvent(org.bukkit.craftbukkit.block.CraftBlock.at(this, pos), fluidState.createLegacyBlock().createCraftBlockData(), effectType.createCraftBlockData(), xp, dropBlock);
+                 if (!event.callEvent()) {
+-                    return false;
++                    return LevelWriter.DestroyBlockResult.CANCELLED;
+                 }
+                 effectType = ((CraftBlockData) event.getEffectBlock()).getState();
+                 playEffect = event.playEffect();
+@@ -1310,9 +1317,10 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+                 this.gameEvent(GameEvent.BLOCK_DESTROY, pos, GameEvent.Context.of(entity, blockState));
+             }
+ 
+-            return flag;
++            return flag ? LevelWriter.DestroyBlockResult.CHANGED : LevelWriter.DestroyBlockResult.UNCHANGED;
+         }
+     }
++    // Leaf end - propagate block destruction cancellation
+ 
+     public void addDestroyBlockEffect(BlockPos pos, BlockState state) {
+     }
+@@ -1500,20 +1508,22 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+             TickingBlockEntity tickingBlockEntity = this.blockEntityTickers.get(this.tileTickPosition);
+             // Spigot end
+             if (tickingBlockEntity.isRemoved()) {
+-                ((org.dreeam.leaf.util.list.BlockEntityTickersList) this.blockEntityTickers).markAsRemoved(this.tileTickPosition); // toRemove.add(tickingBlockEntity); // SparklyPaper - optimize block entity removals // Paper - Fix MC-117075; use removeAll
++                ((me.s0nd3r.watermc.core.util.list.BlockEntityTickersList) this.blockEntityTickers).markAsRemoved(this.tileTickPosition); // toRemove.add(tickingBlockEntity); // SparklyPaper - optimize block entity removals // Paper - Fix MC-117075; use removeAll
+             } else if (runsNormally /*&& this.shouldTickBlocksAt(tickingBlockEntity.getPos())*/) { // Leaf - remove shouldTickBlocksAt check - duplicate at BoundTickingBlockEntity#tick
++                final long waterInspectStart = me.s0nd3r.watermc.diagnostics.ChunkInspector.start(); // WaterMc - /watermc inspect
+                 tickingBlockEntity.tick();
++                if (waterInspectStart != 0L) { final BlockPos waterPos = tickingBlockEntity.getPos(); me.s0nd3r.watermc.diagnostics.ChunkInspector.recordBlockEntity(this.getWorld().getName(), waterPos.getX() >> 4, waterPos.getZ() >> 4, tickingBlockEntity.getType().endsWith("hopper"), waterInspectStart); } // WaterMc
+                 // Paper start - rewrite chunk system
+                 // Leaf start - SparklyPaper - parallel world ticking (only run mid-tick at the end of each tick / fixes concurrency bugs related to executeMidTickTasks)
+                 ++tickedEntities;
+-                if (!org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && (tickedEntities & 7) == 0) {
++                if (!me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && (tickedEntities & 7) == 0) {
+                     // Leaf end - SparklyPaper - parallel world ticking (only run mid-tick at the end of each tick / fixes concurrency bugs related to executeMidTickTasks)
+                     ((ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemLevel)(Level)(Object)this).moonrise$midTickTasks();
+                 }
+                 // Paper end - rewrite chunk system
+             }
+         }
+-        ((org.dreeam.leaf.util.list.BlockEntityTickersList) this.blockEntityTickers).removeMarkedEntries(); // SparklyPaper - optimize block entity removals
++        ((me.s0nd3r.watermc.core.util.list.BlockEntityTickersList) this.blockEntityTickers).removeMarkedEntries(); // SparklyPaper - optimize block entity removals
+ 
+         this.tickingBlockEntities = false;
+     }
+@@ -1529,7 +1539,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+             entity.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DISCARD); // Gale - Airplane - remove lambda from ticking guard - diff on change ServerLevel#tick
+             // Paper end - Prevent block entity and entity crashes
+         }
+-        if (!org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) // Leaf - SparklyPaper - parallel world ticking (only run mid-tick at the end of each tick / fixes concurrency bugs related to executeMidTickTasks)
++        if (!me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) // Leaf - SparklyPaper - parallel world ticking (only run mid-tick at the end of each tick / fixes concurrency bugs related to executeMidTickTasks)
+         this.moonrise$midTickTasks(); // Paper - rewrite chunk system // Gale - Airplane - remove lambda from ticking guard - diff on change ServerLevel#tick
+     }
+ 
+@@ -1671,7 +1681,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+ 
+     @Override
+     public @Nullable BlockEntity getBlockEntity(BlockPos pos) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThreadOrAsyncThread((ServerLevel) this, "Cannot read world asynchronously"); // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThreadOrAsyncThread((ServerLevel) this, "Cannot read world asynchronously"); // Leaf - SparklyPaper - parallel world ticking
+         // Paper start - Perf: Optimize capturedTileEntities lookup
+         net.minecraft.world.level.block.entity.BlockEntity blockEntity;
+         if (!this.capturedTileEntities.isEmpty() && (blockEntity = this.capturedTileEntities.get(pos)) != null) {
+@@ -1688,7 +1698,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+     }
+ 
+     public void setBlockEntity(BlockEntity blockEntity) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread((ServerLevel) this, "Cannot modify world asynchronously"); // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread((ServerLevel) this, "Cannot modify world asynchronously"); // Leaf - SparklyPaper - parallel world ticking
+         BlockPos blockPos = blockEntity.getBlockPos();
+         if (this.isInValidBounds(blockPos)) {
+             // CraftBukkit start
+@@ -1770,7 +1780,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+ 
+     @Override
+     public List<Entity> getEntities(@Nullable Entity entity, AABB boundingBox, Predicate<? super Entity> predicate) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread((ServerLevel)this, boundingBox, "Cannot getEntities asynchronously"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread((ServerLevel)this, boundingBox, "Cannot getEntities asynchronously"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
+         Profiler.get().incrementCounter("getEntities");
+         List<Entity> list = Lists.newArrayList();
+ 

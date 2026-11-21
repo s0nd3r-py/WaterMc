@@ -1,0 +1,346 @@
+diff --git a/java/net/minecraft/server/level/ServerLevel.java b/java/net/minecraft/server/level/ServerLevel.java
+index acaaf7d8648bc9d55721ee35bcea619e63a26005..3467d66b1fb2acf93fe0c7b9c1b4564b996ea043 100644
+--- a/java/net/minecraft/server/level/ServerLevel.java
++++ b/java/net/minecraft/server/level/ServerLevel.java
+@@ -195,6 +195,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     private final MinecraftServer server;
+     public final net.minecraft.world.level.storage.PrimaryLevelData serverLevelData; // CraftBukkit - type
+     final EntityTickList entityTickList = new EntityTickList(this); // Leaf - SparklyPaper - parallel world ticking
++    public EntityTickList waterEntityTickList() { return this.entityTickList; } // WaterMc - parallel sensor phase
+     private final ServerWaypointManager waypointManager;
+     private final EnvironmentAttributeSystem environmentAttributes;
+     // Paper - rewrite chunk system
+@@ -224,7 +225,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     final LevelDebugSynchronizers debugSynchronizers = new LevelDebugSynchronizers(this);
+     // Leaf start - SparklyPaper - parallel world ticking
+     public final java.util.concurrent.ExecutorService tickExecutor;
+-    public final java.util.concurrent.ConcurrentLinkedQueue<org.dreeam.leaf.async.world.WorldReadRequest> asyncReadRequestQueue;
++    public final java.util.concurrent.ConcurrentLinkedQueue<me.s0nd3r.watermc.core.async.world.WorldReadRequest> asyncReadRequestQueue;
+     private volatile boolean isShuttingDown = false; // Shutdown handling for async reads
+     // Leaf end - SparklyPaper - parallel world ticking
+ 
+@@ -237,7 +238,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     private final alternate.current.wire.WireHandler wireHandler = new alternate.current.wire.WireHandler(this); // Paper - optimize redstone (Alternate Current)
+     public boolean hasRidableMoveEvent = false; // Purpur - Ridables
+     final List<ServerPlayer> realPlayers; // Leaves - skip
+-    public final org.dreeam.leaf.async.tracker.AsyncTracker leaf$asyncTracker = new org.dreeam.leaf.async.tracker.AsyncTracker(this); // Leaf - Multithreaded tracker
++    public final me.s0nd3r.watermc.core.async.tracker.AsyncTracker leaf$asyncTracker = new me.s0nd3r.watermc.core.async.tracker.AsyncTracker(this); // Leaf - Multithreaded tracker
+     private @Nullable WorldBorder worldBorder; // Leaf - Cache world border
+ 
+     @Override
+@@ -707,7 +708,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+             chunkGenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkGenerator, gen);
+         }
+         // CraftBukkit end
+-        su.plo.matter.Globals.setupGlobals(this); // Leaf - Matter - Secure Seed
++        me.s0nd3r.watermc.seed.Globals.setupGlobals(this); // Leaf - Matter - Secure Seed
+         boolean flag = server.forceSynchronousWrites();
+         DataFixer fixerUpper = server.getFixerUpper();
+         // Paper - rewrite chunk system
+@@ -779,8 +780,8 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         this.preciseTime = this.serverLevelData.getDayTime(); // Purpur - Configurable daylight cycle
+         this.realPlayers = Lists.newArrayList(); // Leaves - skip
+         // Leaf start - SparklyPaper - parallel world ticking
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
+-            this.tickExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(new org.dreeam.leaf.async.world.SparklyPaperServerLevelTickExecutorThreadFactory(getWorld().getName()));
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
++            this.tickExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(new me.s0nd3r.watermc.core.async.world.SparklyPaperServerLevelTickExecutorThreadFactory(getWorld().getName()));
+             this.asyncReadRequestQueue = new java.util.concurrent.ConcurrentLinkedQueue<>();
+         } else {
+             this.tickExecutor = null;
+@@ -831,7 +832,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+ 
+     public void prepareShutdown() {
+         this.isShuttingDown = true;
+-        org.dreeam.leaf.async.world.WorldReadRequest req;
++        me.s0nd3r.watermc.core.async.world.WorldReadRequest req;
+         int clearedRequests = 0;
+         while ((req = this.asyncReadRequestQueue.poll()) != null) {
+             req.future().completeExceptionally(new IllegalStateException("World " + this.getWorld().getName() + " is shutting down. Cannot process buffered read: " + req.type()));
+@@ -846,15 +847,15 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     // Leaf start - SparklyPaper - parallel world ticking
+     private void processAsyncReadRequests() {
+         // Clear queue if buffering gets disabled to prevent memory leaks
+-        if (org.dreeam.leaf.async.world.UnsafeReadPolicy.BUFFERED != org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.asyncUnsafeReadHandling && !this.asyncReadRequestQueue.isEmpty()) {
+-            org.dreeam.leaf.async.world.WorldReadRequest req;
++        if (me.s0nd3r.watermc.core.async.world.UnsafeReadPolicy.BUFFERED != me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.asyncUnsafeReadHandling && !this.asyncReadRequestQueue.isEmpty()) {
++            me.s0nd3r.watermc.core.async.world.WorldReadRequest req;
+             while ((req = this.asyncReadRequestQueue.poll()) != null) {
+                 req.future().completeExceptionally(new IllegalStateException("Async read buffering disabled while request was pending."));
+             }
+             return;
+         }
+ 
+-        org.dreeam.leaf.async.world.WorldReadRequest request;
++        me.s0nd3r.watermc.core.async.world.WorldReadRequest request;
+         int processed = 0;
+         // Limit processing per tick to avoid stalling the tick loop
+         int maxToProcess = 16384; // Consider making this configurable
+@@ -877,7 +878,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     }
+ 
+     // Executes the actual read operation based on the request type
+-    public Object executeReadRequest(org.dreeam.leaf.async.world.WorldReadRequest request) {
++    public Object executeReadRequest(me.s0nd3r.watermc.core.async.world.WorldReadRequest request) {
+         Object[] params = request.params();
+         BlockPos pos; // Declare pos outside the switch
+ 
+@@ -945,7 +946,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     public void tick(BooleanSupplier hasTimeLeft) {
+         ProfilerFiller profilerFiller = Profiler.get();
+         this.handlingTick = true;
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) this.processAsyncReadRequests(); // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) this.processAsyncReadRequests(); // Leaf - SparklyPaper - parallel world ticking
+         TickRateManager tickRateManager = this.tickRateManager();
+         boolean runsNormally = tickRateManager.runsNormally();
+         if (runsNormally) {
+@@ -957,7 +958,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         }
+ 
+         // Leaf start - SparklyPaper - parallel world ticking
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && (++this.tickedBlocksOrFluids & 7L) != 0L) { // Execute mid-tick tasks if PWT is enabled
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && (++this.tickedBlocksOrFluids & 7L) != 0L) { // Execute mid-tick tasks if PWT is enabled
+             this.moonrise$midTickTasks();
+         }
+         // Leaf end - SparklyPaper - parallel world ticking
+@@ -1034,9 +1035,10 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+                 profilerFiller.pop();
+             }
+ 
+-            io.papermc.paper.entity.activation.ActivationRange.activateEntities(this); // Paper - EAR
++            if (me.s0nd3r.watermc.core.config.modules.opt.OptimizeEntityActivation.enabled) { this.waterEntityActivation.activateEntities(this); } else { io.papermc.paper.entity.activation.ActivationRange.activateEntities(this); } // Paper - EAR // Leaf - optimize entity activation
+             boolean didDespawn = tickRateManager.runsNormally() && despawnMap.tick(this, this.entityTickList); // Leaf - optimize despawn
+             this.globalTemptationLookup.tick(this); // Paper - optimise temptation lookups - reset global cache prior to next entity tick // Leaf - Paper PR: Optimise temptation lookups changes
++            me.s0nd3r.watermc.ai.ParallelSensors.preTick(this); // WaterMc - parallel sensor phase (off by default)
+             this.entityTickList
+                 .forEach(
+                     entity -> {
+@@ -1068,7 +1070,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+                                         entity.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DISCARD);
+                                         // Paper end - Prevent block entity and entity crashes
+                                     }
+-                                    if (!org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) // Leaf - SparklyPaper - parallel world ticking (only run mid-tick at the end of each tick / fixes concurrency bugs related to executeMidTickTasks)
++                                    if (!me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) // Leaf - SparklyPaper - parallel world ticking (only run mid-tick at the end of each tick / fixes concurrency bugs related to executeMidTickTasks)
+                                     this.moonrise$midTickTasks(); // Paper - rewrite chunk system
+                                     // Gale end - Airplane - remove lambda from ticking guard - copied from guardEntityTick
+                                     profilerFiller.pop();
+@@ -1088,7 +1090,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         profilerFiller.push("entityManagement");
+         // Paper - rewrite chunk system
+         profilerFiller.pop();
+-        if (org.dreeam.leaf.config.modules.gameplay.Knockback.useLegacyTrackerTicking) this.getChunkSource().chunkMap.tick(); // Leaf - Use legacy tracker ticking
++        if (me.s0nd3r.watermc.core.config.modules.gameplay.Knockback.useLegacyTrackerTicking) this.getChunkSource().chunkMap.tick(); // Leaf - Use legacy tracker ticking
+         profilerFiller.push("debugSynchronizers");
+         if (this.debugSynchronizers.hasAnySubscriberFor(DebugSubscriptions.NEIGHBOR_UPDATES)) {
+             this.neighborUpdater
+@@ -1100,8 +1102,8 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         this.debugSynchronizers.tick(this.server.debugSubscribers());
+         profilerFiller.pop();
+         this.environmentAttributes().invalidateTickCache();
+-        if (org.dreeam.leaf.config.modules.opt.DespawnTime.proactiveWeakLoading) this.moonrise$getEntityLookup().leaf$tickWeakEntities(); // Leaf - Rewrite entity despawn time
+-        if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled) { this.leaf$asyncTracker.onEntitiesTickEnd(); } // Leaf - Multithreaded tracker
++        if (me.s0nd3r.watermc.core.config.modules.opt.DespawnTime.proactiveWeakLoading) this.moonrise$getEntityLookup().leaf$tickWeakEntities(); // Leaf - Rewrite entity despawn time
++        if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled) { this.leaf$asyncTracker.onEntitiesTickEnd(); } // Leaf - Multithreaded tracker
+     }
+ 
+     @Override
+@@ -1203,7 +1205,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+ 
+                 // Leaf start - Reduce optimiseRandomTick new BlockPos instance create
+                 final BlockPos pos = POS_CACHE.set((location & 15) | offsetX, (location >>> 8) | offsetY, ((location >>> 4) & 15) | offsetZ);
+-                final BlockPos finalPos = org.dreeam.leaf.config.modules.opt.MutableBlockPos.enabled ? pos : pos.immutable();
++                final BlockPos finalPos = me.s0nd3r.watermc.core.config.modules.opt.MutableBlockPos.enabled ? pos : pos.immutable();
+                 state.randomTick(this, finalPos, simpleRandom); // Leaf - Micro optimizations for random tick - no redundant cast
+                 // Leaf end - Reduce optimiseRandomTick new BlockPos instance create
+ 
+@@ -1219,11 +1221,11 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     }
+     // Paper end - optimise random ticking
+ 
+-    public final org.dreeam.leaf.world.DespawnMap despawnMap = new org.dreeam.leaf.world.DespawnMap(); // Leaf - optimize despawn
+-    public final org.dreeam.leaf.world.NatureSpawnChunkMap natureSpawnChunkMap = new org.dreeam.leaf.world.NatureSpawnChunkMap(); // Leaf - optimize mob spawning
+-    public final org.dreeam.leaf.world.RandomTickSystem randomTickSystem = new org.dreeam.leaf.world.RandomTickSystem(); // Leaf - optimize random tick
+-    public final org.dreeam.leaf.world.EntityCollisionCache entityCollisionCache = new org.dreeam.leaf.world.EntityCollisionCache(); // Leaf - cache collision list
+-    public final org.dreeam.leaf.util.FastBitRadixSort fastBitRadixSort = new org.dreeam.leaf.util.FastBitRadixSort(); // Leaf - fast bit radix sort
++    public final me.s0nd3r.watermc.core.world.DespawnMap despawnMap = new me.s0nd3r.watermc.core.world.DespawnMap(); // Leaf - optimize despawn
++    public final me.s0nd3r.watermc.core.world.EntityActivation waterEntityActivation = new me.s0nd3r.watermc.core.world.EntityActivation(); // Leaf - optimize entity activation
++    public final me.s0nd3r.watermc.core.world.NatureSpawnChunkMap natureSpawnChunkMap = new me.s0nd3r.watermc.core.world.NatureSpawnChunkMap(); // Leaf - optimize mob spawning
++    public final me.s0nd3r.watermc.core.world.RandomTickSystem randomTickSystem = new me.s0nd3r.watermc.core.world.RandomTickSystem(); // Leaf - optimize random tick
++    public final me.s0nd3r.watermc.core.util.FastBitRadixSort fastBitRadixSort = new me.s0nd3r.watermc.core.util.FastBitRadixSort(); // Leaf - fast bit radix sort
+     public void tickChunk(LevelChunk chunk, int randomTickSpeed) {
+         final net.minecraft.world.level.levelgen.BitRandomSource simpleRandom = this.simpleRandom; // Paper - optimise random ticking // Leaf - Faster random generator - upcasting
+         ChunkPos pos = chunk.getPos();
+@@ -1232,7 +1234,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         ProfilerFiller profilerFiller = Profiler.get();
+         profilerFiller.push("iceandsnow");
+ 
+-        final int rate = org.dreeam.leaf.config.modules.gameplay.IceAndSnowChance.iceAndSnowChance; // Leaf - configurable ice and snow tick chance
++        final int rate = me.s0nd3r.watermc.core.config.modules.gameplay.IceAndSnowChance.iceAndSnowChance; // Leaf - configurable ice and snow tick chance
+         if (!this.paperConfig().environment.disableIceAndSnow) { // Paper - Option to disable ice and snow
+         for (int i = 0; i < randomTickSpeed; i++) {
+             if (simpleRandom.nextInt(rate) == 0) {  // Paper - optimise random ticking // Leaf - configurable ice and snow tick chance
+@@ -1617,7 +1619,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         // Paper start - rewrite chunk system
+         // Leaf start - SparklyPaper - parallel world ticking (only run mid-tick at the end of each tick / fixes concurrency bugs related to executeMidTickTasks)
+         ++this.tickedBlocksOrFluids;
+-        if (!org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && (this.tickedBlocksOrFluids & 7L) != 0L) {
++        if (!me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && (this.tickedBlocksOrFluids & 7L) != 0L) {
+             // Leaf end - SparklyPaper - parallel world ticking (only run mid-tick at the end of each tick / fixes concurrency bugs related to executeMidTickTasks)
+             ((ca.spottedleaf.moonrise.patches.chunk_system.server.ChunkSystemMinecraftServer)this.server).moonrise$executeMidTickTasks();
+         }
+@@ -1633,7 +1635,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         // Paper start - rewrite chunk system
+         // Leaf start - SparklyPaper - parallel world ticking (only run mid-tick at the end of each tick / fixes concurrency bugs related to executeMidTickTasks)
+         ++this.tickedBlocksOrFluids;
+-        if (!org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && (this.tickedBlocksOrFluids & 7L) != 0L) {
++        if (!me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && (this.tickedBlocksOrFluids & 7L) != 0L) {
+             // Leaf end - SparklyPaper - parallel world ticking (only run mid-tick at the end of each tick / fixes concurrency bugs related to executeMidTickTasks)
+             ((ca.spottedleaf.moonrise.patches.chunk_system.server.ChunkSystemMinecraftServer)this.server).moonrise$executeMidTickTasks();
+         }
+@@ -1650,10 +1652,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         profilerFiller.push(() -> BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString());
+         profilerFiller.incrementCounter("tickNonPassenger");
+         final boolean isActive = io.papermc.paper.entity.activation.ActivationRange.checkIfActive(entity); // Paper - EAR 2
++        final long waterInspectStart = me.s0nd3r.watermc.diagnostics.ChunkInspector.start(); // WaterMc - /watermc inspect
+         if (isActive) { // Paper - EAR 2
+         entity.tick();
+         entity.postTick(); // CraftBukkit
+         } else {entity.inactiveTick();} // Paper - EAR 2
++        if (waterInspectStart != 0L) me.s0nd3r.watermc.diagnostics.ChunkInspector.recordEntity(this.getWorld().getName(), entity.chunkPosition().x, entity.chunkPosition().z, waterInspectStart); // WaterMc
+         profilerFiller.pop();
+ 
+         entity.updateLastTick(); // Leaf - Rewrite entity despawn time
+@@ -1715,8 +1719,8 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+ 
+     // Paper start - Incremental chunk and player saving
+     public void saveIncrementally(boolean doFull) {
+-        if (org.dreeam.leaf.config.modules.misc.DisableWorldDataSaving.shouldSkipSave(this)) return; // Leaf - disable world data saving
+-        if (org.dreeam.leaf.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) return; // Leaf - Add read-only mode for Linear v2
++        if (me.s0nd3r.watermc.core.config.modules.misc.DisableWorldDataSaving.shouldSkipSave(this)) return; // Leaf - disable world data saving
++        if (me.s0nd3r.watermc.core.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) return; // Leaf - Add read-only mode for Linear v2
+         if (doFull) {
+             org.bukkit.Bukkit.getPluginManager().callEvent(new org.bukkit.event.world.WorldSaveEvent(this.getWorld()));
+         }
+@@ -1743,7 +1747,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         // Paper end - add close param
+         ServerChunkCache chunkSource = this.getChunkSource();
+         // Leaf start - disable world data saving
+-        if (org.dreeam.leaf.config.modules.misc.DisableWorldDataSaving.shouldSkipSave(this) || org.dreeam.leaf.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) { // Leaf - Add read-only mode for Linear v2
++        if (me.s0nd3r.watermc.core.config.modules.misc.DisableWorldDataSaving.shouldSkipSave(this) || me.s0nd3r.watermc.core.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) { // Leaf - Add read-only mode for Linear v2
+             if (close) {
+                 try {
+                     chunkSource.close(false);
+@@ -1898,7 +1902,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     }
+ 
+     private void addPlayer(ServerPlayer player) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this, "Cannot add player off-main"); // Leaf - SparklyPaper - parallel world ticking (async is no longer safe; schedule on main; additional concurrency issues logs)
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this, "Cannot add player off-main"); // Leaf - SparklyPaper - parallel world ticking (async is no longer safe; schedule on main; additional concurrency issues logs)
+         Entity entity = this.getEntity(player.getUUID());
+         if (entity != null) {
+             LOGGER.warn("Force-added player with duplicate UUID {}", player.getUUID());
+@@ -1912,7 +1916,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     // CraftBukkit start
+     private boolean addEntity(Entity entity, org.bukkit.event.entity.CreatureSpawnEvent.@Nullable SpawnReason spawnReason) {
+         // Leaf start - SparklyPaper - parallel world ticking
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
+             ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this, "Cannot add entity off-main"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
+         } else {
+             org.spigotmc.AsyncCatcher.catchOp("entity add"); // Spigot
+@@ -2299,8 +2303,15 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         // CraftBukkit end
+         ParticleOptions particleOptions = serverExplosion.isSmall() ? smallExplosionParticles : largeExplosionParticles;
+ 
++        final boolean limitPackets = me.s0nd3r.watermc.core.config.modules.water.ExplosionPacketCoalescing.enabled; // Water - Limit explosion packets per player per tick
+         for (ServerPlayer serverPlayer : this.players) {
+             if (serverPlayer.distanceToSqr(vec3) < 4096.0) {
++                // Water start - Limit explosion packets per player per tick
++                if (limitPackets) {
++                    me.s0nd3r.watermc.network.ExplosionPacketLimiter.send(this, serverPlayer, vec3, radius, i, serverExplosion.getHitPlayers().get(serverPlayer), particleOptions, explosionSound, blockParticles);
++                    continue;
++                }
++                // Water end - Limit explosion packets per player per tick
+                 Optional<Vec3> optional = Optional.ofNullable(serverExplosion.getHitPlayers().get(serverPlayer));
+                 serverPlayer.connection.send(new ClientboundExplodePacket(vec3, radius, i, optional, particleOptions, explosionSound, blockParticles));
+             }
+@@ -2459,7 +2470,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+                 ServerPlayer serverPlayer = players.get(i); // Paper - particle API
+                 if (sender != null && !serverPlayer.getBukkitEntity().canSee(sender.getBukkitEntity())) continue; // CraftBukkit
+ 
+-                this.sendParticles(serverPlayer, overrideLimiter, x, y, z, clientboundLevelParticlesPacket);
++                this.sendParticles(serverPlayer, overrideLimiter, x, y, z, clientboundLevelParticlesPacket, false);
+             }
+         } else {
+             for (int i = 0, size = bukkitReceivers.size(); i < size; i++) { // Paper - particle API
+@@ -2467,7 +2478,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+                 ServerPlayer serverPlayer = ((org.bukkit.craftbukkit.entity.CraftPlayer) bukkitPlayer).getHandle();
+                 if (sender != null && !serverPlayer.getBukkitEntity().canSee(sender.getBukkitEntity())) continue; // CraftBukkit
+ 
+-                this.sendParticles(serverPlayer, overrideLimiter, x, y, z, clientboundLevelParticlesPacket);
++                this.sendParticles(serverPlayer, overrideLimiter, x, y, z, clientboundLevelParticlesPacket, false);
+             }
+         }
+     }
+@@ -2490,15 +2501,33 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         Packet<?> packet = new ClientboundLevelParticlesPacket(
+             particle, overrideLimiter, alwaysShow, posX, posY, posZ, (float)xDist, (float)yDist, (float)zDist, (float)maxSpeed, count
+         );
+-        return this.sendParticles(player, overrideLimiter, posX, posY, posZ, packet);
++        // Explicitly targeted effects (including /particle) retain their delivery semantics.
++        return this.sendParticles(player, overrideLimiter, posX, posY, posZ, packet, false);
+     }
+ 
+     private boolean sendParticles(ServerPlayer player, boolean overrideLimiter, double x, double y, double z, Packet<?> packet) {
++        return this.sendParticles(player, overrideLimiter, x, y, z, packet, true);
++    }
++
++    private boolean sendParticles(ServerPlayer player, boolean overrideLimiter, double x, double y, double z, Packet<?> packet, boolean vanilla) {
+         if (player.level() != this) {
+             return false;
+         } else {
+             BlockPos blockPos = player.blockPosition();
+             if (blockPos.closerToCenterThan(new Vec3(x, y, z), overrideLimiter ? 512.0 : 32.0)) {
++                if (vanilla && !overrideLimiter && me.s0nd3r.watermc.core.config.modules.water.VanillaParticleBudget.enabled
++                    && packet instanceof ClientboundLevelParticlesPacket particles && !particles.alwaysShow()
++                    // VibrationSystem uses the delivery result to decide whether to retry.
++                    && particles.getParticle().getType() != net.minecraft.core.particles.ParticleTypes.VIBRATION) {
++                    if (player.waterParticleBudget == null) {
++                        player.waterParticleBudget = new me.s0nd3r.watermc.network.ParticleBudget();
++                    }
++                    if (!player.waterParticleBudget.tryConsume(MinecraftServer.currentTick, particles.getCount(),
++                        me.s0nd3r.watermc.core.config.modules.water.VanillaParticleBudget.maxPacketsPerTick,
++                        me.s0nd3r.watermc.core.config.modules.water.VanillaParticleBudget.maxParticlesPerTick)) {
++                        return false;
++                    }
++                }
+                 player.connection.send(packet);
+                 return true;
+             } else {
+@@ -2828,7 +2857,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+ 
+         for (TickingBlockEntity tickingBlockEntity : this.blockEntityTickers) {
+             BlockPos pos = tickingBlockEntity.getPos();
+-            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && pos == null) pos = BlockPos.ZERO; // Leaves - Lithium Sleeping Block Entity
++            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && pos == null) pos = BlockPos.ZERO; // Leaves - Lithium Sleeping Block Entity
+             csvOutput.writeRow(pos.getX(), pos.getY(), pos.getZ(), tickingBlockEntity.getType());
+         }
+     }
+@@ -3155,7 +3184,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+             if (entity instanceof ServerPlayer serverPlayer) {
+                 ServerLevel.this.players.add(serverPlayer);
+                 // Leaves start - skip
+-                if (!(serverPlayer instanceof org.leavesmc.leaves.replay.ServerPhotographer)) { // and photographer
++                if (!(serverPlayer instanceof me.s0nd3r.watermc.integration.replay.ServerPhotographer)) { // and photographer
+                     ServerLevel.this.realPlayers.add(serverPlayer);
+                 }
+                 // Leaves end - skip
+@@ -3238,7 +3267,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+             if (entity instanceof ServerPlayer serverPlayer) {
+                 ServerLevel.this.players.remove(serverPlayer);
+                 // Leaves start - skip
+-                if (!(serverPlayer instanceof org.leavesmc.leaves.replay.ServerPhotographer)) { // and photographer
++                if (!(serverPlayer instanceof me.s0nd3r.watermc.integration.replay.ServerPhotographer)) { // and photographer
+                     ServerLevel.this.realPlayers.remove(serverPlayer);
+                 }
+                 // Leaves end - skip

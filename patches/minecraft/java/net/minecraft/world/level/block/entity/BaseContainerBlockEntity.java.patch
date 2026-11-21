@@ -1,0 +1,142 @@
+diff --git a/java/net/minecraft/world/level/block/entity/BaseContainerBlockEntity.java b/java/net/minecraft/world/level/block/entity/BaseContainerBlockEntity.java
+index 600550342f1de444fb3d628af7fc0ec55624a0b6..90349d2e18a1cd7e7f7b102222e0e2a2c9315d1e 100644
+--- a/java/net/minecraft/world/level/block/entity/BaseContainerBlockEntity.java
++++ b/java/net/minecraft/world/level/block/entity/BaseContainerBlockEntity.java
+@@ -26,7 +26,7 @@ import net.minecraft.world.level.storage.ValueOutput;
+ import net.minecraft.world.phys.Vec3;
+ import org.jspecify.annotations.Nullable;
+ 
+-public abstract class BaseContainerBlockEntity extends BlockEntity implements Container, MenuProvider, Nameable, net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeEmitter {
++public abstract class BaseContainerBlockEntity extends BlockEntity implements Container, MenuProvider, Nameable, me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeEmitter {
+     public LockCode lockKey = LockCode.NO_LOCK;
+     public @Nullable Component name;
+ 
+@@ -39,7 +39,7 @@ public abstract class BaseContainerBlockEntity extends BlockEntity implements Co
+         super.loadAdditional(input);
+         this.lockKey = LockCode.fromTag(input);
+         this.name = parseCustomNameSafe(input, "CustomName");
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && this instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker inventoryChangeTracker) inventoryChangeTracker.lithium$emitStackListReplaced(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && this instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker inventoryChangeTracker) inventoryChangeTracker.lithium$emitStackListReplaced(); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     @Override
+@@ -68,7 +68,7 @@ public abstract class BaseContainerBlockEntity extends BlockEntity implements Co
+ 
+     public boolean canOpen(Player player) {
+         // Leaf start - SparklyPaper - parallel world ticking (see: PARALLEL_NOTES.md - Opening an inventory after a world switch)
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer && this.getLevel() != serverPlayer.level()) {
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer && this.getLevel() != serverPlayer.level()) {
+             net.minecraft.server.MinecraftServer.LOGGER.warn("Player {} ({}) attempted to open a BlockEntity @ {} {}, {}, {} while they were in a different world {} than the block themselves!", serverPlayer.getScoreboardName(), serverPlayer.getStringUUID(), this.getLevel().getWorld().getName(), this.getBlockPos().getX(), this.getBlockPos().getY(), this.getBlockPos().getZ(), serverPlayer.level().getWorld().getName());
+             return false;
+         }
+@@ -192,14 +192,14 @@ public abstract class BaseContainerBlockEntity extends BlockEntity implements Co
+     // CraftBukkit end
+ 
+     // Leaves start - Lithium Sleeping Block Entity
+-    it.unimi.dsi.fastutil.objects.ReferenceArraySet<net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener> inventoryChangeListeners = null;
+-    it.unimi.dsi.fastutil.objects.ReferenceArraySet<net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener> inventoryHandlingTypeListeners = null;
++    it.unimi.dsi.fastutil.objects.ReferenceArraySet<me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener> inventoryChangeListeners = null;
++    it.unimi.dsi.fastutil.objects.ReferenceArraySet<me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener> inventoryHandlingTypeListeners = null;
+ 
+     @Override
+     public void lithium$emitContentModified() {
+-        it.unimi.dsi.fastutil.objects.ReferenceArraySet<net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener> inventoryChangeListeners = this.inventoryChangeListeners;
++        it.unimi.dsi.fastutil.objects.ReferenceArraySet<me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener> inventoryChangeListeners = this.inventoryChangeListeners;
+         if (inventoryChangeListeners != null) {
+-            for (net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener inventoryChangeListener : inventoryChangeListeners) {
++            for (me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener inventoryChangeListener : inventoryChangeListeners) {
+                 inventoryChangeListener.lithium$handleInventoryContentModified(this);
+             }
+             inventoryChangeListeners.clear();
+@@ -208,10 +208,10 @@ public abstract class BaseContainerBlockEntity extends BlockEntity implements Co
+ 
+     @Override
+     public void lithium$emitStackListReplaced() {
+-        it.unimi.dsi.fastutil.objects.ReferenceArraySet<net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener> listeners = this.inventoryHandlingTypeListeners;
++        it.unimi.dsi.fastutil.objects.ReferenceArraySet<me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener> listeners = this.inventoryHandlingTypeListeners;
+         this.inventoryHandlingTypeListeners = null; //Prevent concurrent modification
+         if (listeners != null && !listeners.isEmpty()) {
+-            for (net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener inventoryChangeListener : listeners) {
++            for (me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener inventoryChangeListener : listeners) {
+                 inventoryChangeListener.handleStackListReplaced(this);
+             }
+             listeners.clear();
+@@ -220,7 +220,7 @@ public abstract class BaseContainerBlockEntity extends BlockEntity implements Co
+             this.inventoryHandlingTypeListeners = listeners;
+         }
+ 
+-        if (this instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener listener) {
++        if (this instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener listener) {
+             listener.handleStackListReplaced(this);
+         }
+ 
+@@ -229,10 +229,10 @@ public abstract class BaseContainerBlockEntity extends BlockEntity implements Co
+ 
+     @Override
+     public void lithium$emitRemoved() {
+-        it.unimi.dsi.fastutil.objects.ReferenceArraySet<net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener> listeners = this.inventoryHandlingTypeListeners;
++        it.unimi.dsi.fastutil.objects.ReferenceArraySet<me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener> listeners = this.inventoryHandlingTypeListeners;
+         this.inventoryHandlingTypeListeners = null; //Prevent concurrent modification
+         if (listeners != null && !listeners.isEmpty()) {
+-            for (net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener listener : listeners) {
++            for (me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener listener : listeners) {
+                 listener.lithium$handleInventoryRemoved(this);
+             }
+             listeners.clear();
+@@ -241,7 +241,7 @@ public abstract class BaseContainerBlockEntity extends BlockEntity implements Co
+             this.inventoryHandlingTypeListeners = listeners;
+         }
+ 
+-        if (this instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener listener) {
++        if (this instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener listener) {
+             listener.lithium$handleInventoryRemoved(this);
+         }
+ 
+@@ -253,32 +253,32 @@ public abstract class BaseContainerBlockEntity extends BlockEntity implements Co
+             this.inventoryChangeListeners.clear();
+         }
+ 
+-        net.caffeinemc.mods.lithium.common.hopper.LithiumStackList lithiumStackList = this instanceof net.caffeinemc.mods.lithium.api.inventory.LithiumInventory ? net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackListOrNull((net.caffeinemc.mods.lithium.api.inventory.LithiumInventory) this) : null;
+-        if (lithiumStackList != null && this instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker inventoryChangeTracker) {
++        me.s0nd3r.watermc.engine.common.hopper.LithiumStackList lithiumStackList = this instanceof me.s0nd3r.watermc.engine.api.inventory.LithiumInventory ? me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackListOrNull((me.s0nd3r.watermc.engine.api.inventory.LithiumInventory) this) : null;
++        if (lithiumStackList != null && this instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker inventoryChangeTracker) {
+             lithiumStackList.removeInventoryModificationCallback(inventoryChangeTracker);
+         }
+     }
+ 
+     @Override
+     public void lithium$emitFirstComparatorAdded() {
+-        it.unimi.dsi.fastutil.objects.ReferenceArraySet<net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener> inventoryChangeListeners = this.inventoryChangeListeners;
++        it.unimi.dsi.fastutil.objects.ReferenceArraySet<me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener> inventoryChangeListeners = this.inventoryChangeListeners;
+         if (inventoryChangeListeners != null && !inventoryChangeListeners.isEmpty()) {
+             inventoryChangeListeners.removeIf(inventoryChangeListener -> inventoryChangeListener.lithium$handleComparatorAdded(this));
+         }
+     }
+ 
+     @Override
+-    public void lithium$forwardContentChangeOnce(net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener inventoryChangeListener, net.caffeinemc.mods.lithium.common.hopper.LithiumStackList stackList) {
++    public void lithium$forwardContentChangeOnce(me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener inventoryChangeListener, me.s0nd3r.watermc.engine.common.hopper.LithiumStackList stackList) {
+         if (this.inventoryChangeListeners == null) {
+             this.inventoryChangeListeners = new it.unimi.dsi.fastutil.objects.ReferenceArraySet<>(1);
+         }
+-        stackList.setNextInventoryModificationCallback((net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) this);
++        stackList.setNextInventoryModificationCallback((me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) this);
+         this.inventoryChangeListeners.add(inventoryChangeListener);
+ 
+     }
+ 
+     @Override
+-    public void lithium$forwardMajorInventoryChanges(net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener inventoryChangeListener) {
++    public void lithium$forwardMajorInventoryChanges(me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener inventoryChangeListener) {
+         if (this.inventoryHandlingTypeListeners == null) {
+             this.inventoryHandlingTypeListeners = new it.unimi.dsi.fastutil.objects.ReferenceArraySet<>(1);
+         }
+@@ -286,7 +286,7 @@ public abstract class BaseContainerBlockEntity extends BlockEntity implements Co
+     }
+ 
+     @Override
+-    public void lithium$stopForwardingMajorInventoryChanges(net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener inventoryChangeListener) {
++    public void lithium$stopForwardingMajorInventoryChanges(me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener inventoryChangeListener) {
+         if (this.inventoryHandlingTypeListeners != null) {
+             this.inventoryHandlingTypeListeners.remove(inventoryChangeListener);
+         }

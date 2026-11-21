@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/commands/Commands.java b/java/net/minecraft/commands/Commands.java
+index e74f118e6aacb8d4725eabea4e4794243355094a..ab2bf3d30946c6d3d7800a5411681fa042b5940d 100644
+--- a/java/net/minecraft/commands/Commands.java
++++ b/java/net/minecraft/commands/Commands.java
+@@ -297,7 +297,7 @@ public class Commands {
+             StopCommand.register(this.dispatcher);
+             TransferCommand.register(this.dispatcher);
+             WhitelistCommand.register(this.dispatcher);
+-            if (org.dreeam.leaf.config.modules.gameplay.AfkCommand.enabled) org.purpurmc.purpur.command.AFKCommand.register(this.dispatcher); // Leaf - Improve Purpur AFK system
++            if (me.s0nd3r.watermc.core.config.modules.gameplay.AfkCommand.enabled) org.purpurmc.purpur.command.AFKCommand.register(this.dispatcher); // Leaf - Improve Purpur AFK system
+             org.purpurmc.purpur.command.CreditsCommand.register(this.dispatcher); // Purpur - Add credits command
+             org.purpurmc.purpur.command.DemoCommand.register(this.dispatcher); // Purpur - Add demo command
+             org.purpurmc.purpur.command.PingCommand.register(this.dispatcher); // Purpur - Add ping command
+@@ -680,7 +680,7 @@ public class Commands {
+     private static net.kyori.adventure.text.Component getUnknownCommandMessage(
+         net.kyori.adventure.text.TextComponent.Builder builder, CommandSyntaxException commandSyntaxException, String command
+     ) {
+-        String rawMessage = org.dreeam.leaf.config.modules.misc.UnknownCommandMessage.unknownCommandMessage;
++        String rawMessage = me.s0nd3r.watermc.core.config.modules.misc.UnknownCommandMessage.unknownCommandMessage;
+ 
+         if ("default".equals(rawMessage)) {
+             return getVanillaUnknownCommandMessage(builder, commandSyntaxException, command);

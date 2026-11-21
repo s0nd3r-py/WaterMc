@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/world/entity/ai/navigation/GroundPathNavigation.java b/java/net/minecraft/world/entity/ai/navigation/GroundPathNavigation.java
+index 7afb07f1ad6ab1fea60e195f740da1277c452651..d1fe607141d694f57245815372431c3c6e61a6d3 100644
+--- a/java/net/minecraft/world/entity/ai/navigation/GroundPathNavigation.java
++++ b/java/net/minecraft/world/entity/ai/navigation/GroundPathNavigation.java
+@@ -26,7 +26,7 @@ public class GroundPathNavigation extends PathNavigation {
+     }
+ 
+     // Kaiiju start - petal - async path processing
+-    protected static final org.dreeam.leaf.async.path.NodeEvaluatorGenerator nodeEvaluatorGenerator = (org.dreeam.leaf.async.path.NodeEvaluatorFeatures nodeEvaluatorFeatures) -> {
++    protected static final me.s0nd3r.watermc.core.async.path.NodeEvaluatorGenerator nodeEvaluatorGenerator = (me.s0nd3r.watermc.core.async.path.NodeEvaluatorFeatures nodeEvaluatorFeatures) -> {
+         WalkNodeEvaluator nodeEvaluator = new WalkNodeEvaluator();
+         nodeEvaluator.setCanPassDoors(nodeEvaluatorFeatures.canPassDoors());
+         nodeEvaluator.setCanFloat(nodeEvaluatorFeatures.canFloat());
+@@ -40,7 +40,7 @@ public class GroundPathNavigation extends PathNavigation {
+     protected PathFinder createPathFinder(int maxVisitedNodes) {
+         this.nodeEvaluator = new WalkNodeEvaluator();
+         // Kaiiju start - petal - async path processing
+-        if (org.dreeam.leaf.config.modules.async.AsyncPathfinding.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.AsyncPathfinding.enabled) {
+             return new PathFinder(this.nodeEvaluator, maxVisitedNodes, nodeEvaluatorGenerator);
+         }
+         // Kaiiju end - petal - async path processing

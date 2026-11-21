@@ -1,0 +1,73 @@
+diff --git a/java/net/minecraft/world/entity/Mob.java b/java/net/minecraft/world/entity/Mob.java
+index 0364af4baee059b7ddc4739f27917662f6accbcb..e62533e6bbb43211c2f514cbab964fde87982574 100644
+--- a/java/net/minecraft/world/entity/Mob.java
++++ b/java/net/minecraft/world/entity/Mob.java
+@@ -223,7 +223,7 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
+     public void inactiveTick() {
+         super.inactiveTick();
+         // Paper PR start - Skip AI during inactive ticks for non-aware mobs
+-        if (org.dreeam.leaf.config.modules.opt.SkipAIForNonAwareMob.enabled && !(this.isEffectiveAi() && this.aware)) {
++        if (me.s0nd3r.watermc.core.config.modules.opt.SkipAIForNonAwareMob.enabled && !(this.isEffectiveAi() && this.aware)) {
+             return;
+         }
+         // Paper PR end - Skip AI during inactive ticks for non-aware mobs
+@@ -817,6 +817,43 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
+         }
+     }
+ 
++    private me.s0nd3r.watermc.ai.BrainActivation.State waterBrainActivation;
++
++    private void waterUpdateBrainActivation() {
++        if (!me.s0nd3r.watermc.core.config.modules.opt.DynamicActivationofBrain.enabled || !this.getType().dabEnabled
++            || (me.s0nd3r.watermc.core.config.modules.opt.DynamicActivationofBrain.dontEnableIfInWater
++                && !this.getType().is(net.minecraft.tags.EntityTypeTags.CAN_BREATHE_UNDER_WATER) && this.isInWater())) {
++            this.activatedPriority = 1;
++            if (this.waterBrainActivation != null) this.waterBrainActivation.reset();
++            return;
++        }
++        if (!me.s0nd3r.watermc.core.config.modules.opt.DynamicActivationofBrain.visibilityAware) {
++            this.activatedPriority = Math.max(1, this.activatedPriority);
++            return;
++        }
++        if (this.waterBrainActivation == null) this.waterBrainActivation = new me.s0nd3r.watermc.ai.BrainActivation.State();
++        final me.s0nd3r.watermc.ai.BrainActivation.State state = this.waterBrainActivation;
++        final int checkInterval = me.s0nd3r.watermc.core.config.modules.opt.DynamicActivationofBrain.visibilityCheckInterval;
++        // Nearby players, combat and ridden mobs resume immediately, without waiting for a raycast poll.
++        if ((this.activatedPriorityReset && this.activatedPriority <= 1) || this.getTarget() != null
++            || this.hurtTime > 0 || this.getRider() != null) {
++            state.observe(true, this.tickCount, checkInterval);
++        } else if (state.needsVisibilityCheck(this.tickCount)) {
++            boolean visible = false;
++            final net.minecraft.world.level.ChunkPos pos = this.chunkPosition();
++            for (net.minecraft.server.level.ServerPlayer player : ((ServerLevel) this.level()).players()) {
++                if (player.isSpectator()) continue;
++                if (player.getChunkTrackingView().contains(pos.x, pos.z) && player.hasLineOfSight(this)) {
++                    visible = true;
++                    break;
++                }
++            }
++            state.observe(visible, this.tickCount, checkInterval);
++        }
++        this.activatedPriority = state.tick(me.s0nd3r.watermc.core.config.modules.opt.DynamicActivationofBrain.unseenBackoffStepTicks,
++            me.s0nd3r.watermc.core.config.modules.opt.DynamicActivationofBrain.maximumActivationPrio);
++    }
++
+     @Override
+     protected final void serverAiStep() {
+         this.noActionTime++;
+@@ -829,12 +866,14 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
+             return;
+         }
+         // Paper end - Allow nerfed mobs to jump and float
++        this.waterUpdateBrainActivation();
+         ProfilerFiller profilerFiller = Profiler.get();
+         profilerFiller.push("sensing");
+         this.sensing.tick();
+         profilerFiller.pop();
+         int i = this.tickCount + this.getId();
+-        if (i % 2 != 0 && this.tickCount > 1) {
++        if (!me.s0nd3r.watermc.ai.BrainActivation.shouldTick(this.tickCount, this.getId(), this.activatedPriority)
++            || (i % 2 != 0 && this.tickCount > 1)) {
+             profilerFiller.push("targetSelector");
+             this.targetSelector.tickRunningGoals(false);
+             profilerFiller.pop();

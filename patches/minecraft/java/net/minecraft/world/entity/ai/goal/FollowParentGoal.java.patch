@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/ai/goal/FollowParentGoal.java b/java/net/minecraft/world/entity/ai/goal/FollowParentGoal.java
+index 0d5b565dc7c8d5dd1394b31b388b7d39abaa935b..1fad315e7ad810b1dff69ab5d6cf33188cfac705 100644
+--- a/java/net/minecraft/world/entity/ai/goal/FollowParentGoal.java
++++ b/java/net/minecraft/world/entity/ai/goal/FollowParentGoal.java
+@@ -18,7 +18,7 @@ public class FollowParentGoal extends Goal {
+         this.speedModifier = speedModifier;
+     }
+ 
+-    private final int leaf$internal = Math.max(1, reducedTickDelay(org.dreeam.leaf.config.modules.opt.EntityGoal.chanceFollowParent)); private int leaf$counter; // Leaf - configurable goal update interval
++    private final int leaf$internal = Math.max(1, reducedTickDelay(me.s0nd3r.watermc.core.config.modules.opt.EntityGoal.chanceFollowParent)); private int leaf$counter; // Leaf - configurable goal update interval
+     @Override
+     public boolean canUse() {
+         leaf$counter++; if (leaf$counter < leaf$internal) { return false; } else { leaf$counter = this.animal.random.nextInt(leaf$internal); } // Leaf - configurable goal update interval

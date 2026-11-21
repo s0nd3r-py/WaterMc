@@ -1,0 +1,16 @@
+diff --git a/java/net/minecraft/world/level/levelgen/SurfaceRules.java b/java/net/minecraft/world/level/levelgen/SurfaceRules.java
+index 029926e1a8be234218f227c982237e957e23d5e7..7495db2c78a6628f7136fc90ba2ddcfa134ec192 100644
+--- a/java/net/minecraft/world/level/levelgen/SurfaceRules.java
++++ b/java/net/minecraft/world/level/levelgen/SurfaceRules.java
+@@ -318,9 +318,9 @@ public class SurfaceRules {
+             ++this.lastUpdateY;
+             Supplier<Holder<Biome>> getter = this.biome;
+             if (getter == null) {
+-                this.biome = getter = new org.dreeam.leaf.world.biome.PositionalBiomeGetter(this.biomeGetter, this.pos);
++                this.biome = getter = new me.s0nd3r.watermc.core.world.biome.PositionalBiomeGetter(this.biomeGetter, this.pos);
+             }
+-            ((org.dreeam.leaf.world.biome.PositionalBiomeGetter) getter).update(blockX, blockY, blockZ);
++            ((me.s0nd3r.watermc.core.world.biome.PositionalBiomeGetter) getter).update(blockX, blockY, blockZ);
+             // Leaf end - Reduce worldgen allocations
+             this.blockY = blockY;
+             this.waterHeight = waterHeight;

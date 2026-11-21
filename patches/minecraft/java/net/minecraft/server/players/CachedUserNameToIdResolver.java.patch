@@ -1,0 +1,181 @@
+diff --git a/java/net/minecraft/server/players/CachedUserNameToIdResolver.java b/java/net/minecraft/server/players/CachedUserNameToIdResolver.java
+index a06275b08bc2a343260245a348958ed57fdd37d4..24b93d242e903588f13e635f5189132220f90dd5 100644
+--- a/java/net/minecraft/server/players/CachedUserNameToIdResolver.java
++++ b/java/net/minecraft/server/players/CachedUserNameToIdResolver.java
+@@ -17,9 +17,6 @@ import java.io.IOException;
+ import java.io.Reader;
+ import java.io.Writer;
+ import java.nio.charset.StandardCharsets;
+-import java.text.DateFormat;
+-import java.text.ParseException;
+-import java.text.SimpleDateFormat;
+ import java.util.Calendar;
+ import java.util.Comparator;
+ import java.util.Date;
+@@ -54,7 +51,7 @@ public class CachedUserNameToIdResolver implements UserNameToIdResolver {
+     public CachedUserNameToIdResolver(GameProfileRepository profileRepository, File file) {
+         this.profileRepository = profileRepository;
+         this.file = file;
+-        Lists.reverse(this.load()).forEach(this::safeAdd);
++        this.load().forEach(this::safeAdd); // WaterMc - journal is already oldest-first
+     }
+ 
+     private void safeAdd(CachedUserNameToIdResolver.GameProfileInfo profileInfo) {
+@@ -98,7 +95,7 @@ public class CachedUserNameToIdResolver implements UserNameToIdResolver {
+         Date time = instance.getTime();
+         CachedUserNameToIdResolver.GameProfileInfo gameProfileInfo = new CachedUserNameToIdResolver.GameProfileInfo(nameAndId, time);
+         this.safeAdd(gameProfileInfo);
+-        if (!org.spigotmc.SpigotConfig.saveUserCacheOnStopOnly) this.save(true); // Spigot - skip saving if disabled // Paper - Perf: Async GameProfileCache saving
++        if (!org.spigotmc.SpigotConfig.saveUserCacheOnStopOnly) this.persist(gameProfileInfo); // Spigot - skip saving if disabled // WaterMc - append one record
+         return gameProfileInfo;
+     }
+ 
+@@ -173,38 +170,51 @@ public class CachedUserNameToIdResolver implements UserNameToIdResolver {
+         } finally { this.stateLock.unlock(); } // Paper - Fix GameProfileCache concurrency
+     }
+ 
+-    private static DateFormat createDateFormat() {
+-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.ROOT);
+-    }
++    // WaterMc start - data/usercache.wdb journal; each new profile is one appended record instead of rewriting the whole file
++    private me.s0nd3r.watermc.storage.@org.jspecify.annotations.Nullable WaterRecordLog log;
+ 
++    /** Oldest profile first, newest last (log order). */
+     private List<CachedUserNameToIdResolver.GameProfileInfo> load() {
+         List<CachedUserNameToIdResolver.GameProfileInfo> list = Lists.newArrayList();
+-
+         try {
+-            Object var9;
+-            try (Reader reader = Files.newReader(this.file, StandardCharsets.UTF_8)) {
+-                JsonArray jsonArray = this.gson.fromJson(reader, JsonArray.class);
+-                if (jsonArray != null) {
+-                    DateFormat dateFormat = createDateFormat();
+-                    jsonArray.forEach(jsonElement -> readGameProfile(jsonElement, dateFormat).ifPresent(list::add));
+-                    return list;
++            final me.s0nd3r.watermc.storage.WaterRecordLog.Opened opened = me.s0nd3r.watermc.storage.LegacyJsonMigration.openMigrating(
++                this.file.toPath(), me.s0nd3r.watermc.storage.LegacyJsonMigration.backupDirectory(), false, CachedUserNameToIdResolver::convertLegacy);
++            this.log = opened.log();
++            for (final byte[] payload : opened.entries().values()) {
++                try {
++                    readGameProfile(com.google.gson.JsonParser.parseString(new String(payload, StandardCharsets.UTF_8))).ifPresent(list::add);
++                } catch (RuntimeException ex) {
++                    LOGGER.warn("Skipping unreadable usercache record", ex);
+                 }
+-
+-                var9 = list;
+             }
++        } catch (IOException | RuntimeException ex) {
++            LOGGER.warn("Failed to load profile cache {}", this.file, ex);
++        }
++        return list;
++    }
+ 
+-            return (List<CachedUserNameToIdResolver.GameProfileInfo>)var9;
+-        } catch (FileNotFoundException var7) {
+-            // Spigot start
+-        } catch (com.google.gson.JsonSyntaxException | NullPointerException ex) {
+-            LOGGER.warn("Usercache.json is corrupted or has bad formatting. Deleting it to prevent further issues.");
+-            this.file.delete();
+-            // Spigot end
+-        } catch (JsonParseException | IOException var8) {
+-            LOGGER.warn("Failed to load profile cache {}", this.file, var8);
++    /** usercache.json is most-recently-used first; the journal stores oldest first so later records win. */
++    private static java.util.LinkedHashMap<String, byte[]> convertLegacy(final JsonArray jsonArray) {
++        final java.util.LinkedHashMap<String, byte[]> records = new java.util.LinkedHashMap<>();
++        for (final JsonElement element : Lists.reverse(Lists.newArrayList(jsonArray))) {
++            readGameProfile(element).ifPresent(info -> records.put(info.nameAndId().id().toString(), me.s0nd3r.watermc.storage.LegacyJsonMigration.utf8(element.toString())));
+         }
++        return records;
++    }
+ 
+-        return list;
++    private static byte[] encode(final CachedUserNameToIdResolver.GameProfileInfo info) {
++        return me.s0nd3r.watermc.storage.LegacyJsonMigration.utf8(writeGameProfile(info).toString());
++    }
++
++    private void persist(final CachedUserNameToIdResolver.GameProfileInfo info) {
++        final me.s0nd3r.watermc.storage.WaterRecordLog current = this.log;
++        if (current == null) {
++            return;
++        }
++        current.put(info.nameAndId().id().toString(), encode(info));
++        if (current.shouldCompact(Math.min(this.profilesByUUID.size(), org.spigotmc.SpigotConfig.userCacheCap))) {
++            this.save(true);
++        }
+     }
+ 
+     @Override
+@@ -213,28 +223,27 @@ public class CachedUserNameToIdResolver implements UserNameToIdResolver {
+         this.save(false);
+     }
+ 
++    /** Compacts the journal down to the {@code userCacheCap} most recently used profiles. */
+     @Override
+     public void save(boolean asyncSave) {
+         // Paper end - Perf: Async GameProfileCache saving
+-        JsonArray jsonArray = new JsonArray();
+-        DateFormat dateFormat = createDateFormat();
+-        this.listTopMRUProfiles(org.spigotmc.SpigotConfig.userCacheCap).forEach(gameProfileInfo -> jsonArray.add(writeGameProfile(gameProfileInfo, dateFormat))); // Spigot // Paper - Fix GameProfileCache concurrency
+-        String string = this.gson.toJson((JsonElement)jsonArray);
+-
+-        Runnable save = () -> { // Paper - Perf: Async GameProfileCache saving
+-        try (Writer writer = Files.newWriter(this.file, StandardCharsets.UTF_8)) {
+-            writer.write(string);
+-        } catch (IOException var9) {
++        final me.s0nd3r.watermc.storage.WaterRecordLog current = this.log;
++        if (current == null) {
++            return;
+         }
+-        // Paper start - Perf: Async GameProfileCache saving
+-        };
+-        if (asyncSave) {
+-            io.papermc.paper.util.MCUtil.scheduleAsyncTask(save);
+-        } else {
+-            save.run();
++        final java.util.concurrent.CompletableFuture<Void> done = current.compact(() -> {
++            final List<CachedUserNameToIdResolver.GameProfileInfo> top = this.listTopMRUProfiles(org.spigotmc.SpigotConfig.userCacheCap); // Spigot // Paper - Fix GameProfileCache concurrency
++            final java.util.LinkedHashMap<String, byte[]> snapshot = new java.util.LinkedHashMap<>();
++            for (final CachedUserNameToIdResolver.GameProfileInfo info : Lists.reverse(top)) {
++                snapshot.put(info.nameAndId().id().toString(), encode(info));
++            }
++            return snapshot;
++        });
++        if (!asyncSave) {
++            done.join();
+         }
+-        // Paper end - Perf: Async GameProfileCache saving
+     }
++    // WaterMc end
+ 
+     private Stream<CachedUserNameToIdResolver.GameProfileInfo> getTopMRUProfiles(int limit) {
+         // Paper start - Fix GameProfileCache concurrency
+@@ -255,14 +264,14 @@ public class CachedUserNameToIdResolver implements UserNameToIdResolver {
+     }
+     // Paper end - Fix GameProfileCache concurrency
+ 
+-    private static JsonElement writeGameProfile(CachedUserNameToIdResolver.GameProfileInfo profileInfo, DateFormat format) {
++    private static JsonElement writeGameProfile(CachedUserNameToIdResolver.GameProfileInfo profileInfo) {
+         JsonObject jsonObject = new JsonObject();
+         profileInfo.nameAndId().appendTo(jsonObject);
+-        jsonObject.addProperty("expiresOn", format.format(profileInfo.expirationDate()));
++        jsonObject.addProperty("expiresOn", me.s0nd3r.watermc.util.WaterDateFormats.format(me.s0nd3r.watermc.util.WaterDateFormats.USER_CACHE, profileInfo.expirationDate()));
+         return jsonObject;
+     }
+ 
+-    private static Optional<CachedUserNameToIdResolver.GameProfileInfo> readGameProfile(JsonElement element, DateFormat format) {
++    private static Optional<CachedUserNameToIdResolver.GameProfileInfo> readGameProfile(JsonElement element) {
+         if (element.isJsonObject()) {
+             JsonObject asJsonObject = element.getAsJsonObject();
+             NameAndId nameAndId = NameAndId.fromJson(asJsonObject);
+@@ -272,9 +281,9 @@ public class CachedUserNameToIdResolver implements UserNameToIdResolver {
+                     String asString = jsonElement.getAsString();
+ 
+                     try {
+-                        Date date = format.parse(asString);
++                        Date date = me.s0nd3r.watermc.util.WaterDateFormats.parseOffset(me.s0nd3r.watermc.util.WaterDateFormats.USER_CACHE, asString);
+                         return Optional.of(new CachedUserNameToIdResolver.GameProfileInfo(nameAndId, date));
+-                    } catch (ParseException var7) {
++                    } catch (java.time.format.DateTimeParseException var7) {
+                         LOGGER.warn("Failed to parse date {}", asString, var7);
+                     }
+                 }

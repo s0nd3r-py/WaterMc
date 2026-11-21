@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/vehicle/DismountHelper.java b/java/net/minecraft/world/entity/vehicle/DismountHelper.java
+index 0569fcce0de69ac35808989298491c4addf6a99b..661f5193977cba9b9a713357d04a7b1dfd10a203 100644
+--- a/java/net/minecraft/world/entity/vehicle/DismountHelper.java
++++ b/java/net/minecraft/world/entity/vehicle/DismountHelper.java
+@@ -54,7 +54,7 @@ public class DismountHelper {
+ 
+     public static VoxelShape nonClimbableShape(BlockGetter level, BlockPos pos) {
+         BlockState blockState = level.getBlockState(pos);
+-        return ((blockState.tagFlag & (org.dreeam.leaf.util.BlockMasks.TRAP_DOOR_CL_OPEN | org.dreeam.leaf.util.BlockMasks.CLIMBABLE_TAG)) == 0) // Leaf - Cache block state tags
++        return ((blockState.tagFlag & (me.s0nd3r.watermc.core.util.BlockMasks.TRAP_DOOR_CL_OPEN | me.s0nd3r.watermc.core.util.BlockMasks.CLIMBABLE_TAG)) == 0) // Leaf - Cache block state tags
+             ? blockState.getCollisionShape(level, pos)
+             : Shapes.empty();
+     }

@@ -1,0 +1,31 @@
+diff --git a/java/net/minecraft/world/entity/EntityEquipment.java b/java/net/minecraft/world/entity/EntityEquipment.java
+index c26f7fb2fb47ea1656cc2daf239ced943570c6c2..80f03ae15f9a2c64fdb7ecdb26737291c93efa8a 100644
+--- a/java/net/minecraft/world/entity/EntityEquipment.java
++++ b/java/net/minecraft/world/entity/EntityEquipment.java
+@@ -7,7 +7,7 @@ import java.util.Objects;
+ import java.util.Map.Entry;
+ import net.minecraft.world.item.ItemStack;
+ 
+-public class EntityEquipment implements net.caffeinemc.mods.lithium.common.entity.EquipmentInfo, net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.CountChangeSubscriber<ItemStack>, net.caffeinemc.mods.lithium.common.world.in_world_tracking.MaybeInLevelObject { // Leaf - Lithium - equipment tracking
++public class EntityEquipment implements me.s0nd3r.watermc.engine.common.entity.EquipmentInfo, me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.CountChangeSubscriber<ItemStack>, me.s0nd3r.watermc.engine.common.world.in_world_tracking.MaybeInLevelObject { // Leaf - Lithium - equipment tracking
+     public static final Codec<EntityEquipment> CODEC = Codec.unboundedMap(EquipmentSlot.CODEC, ItemStack.CODEC).xmap(map -> {
+         EnumMap<EquipmentSlot, ItemStack> map1 = new EnumMap<>(EquipmentSlot.class);
+         map1.putAll((Map<? extends EquipmentSlot, ? extends ItemStack>)map);
+@@ -220,7 +220,7 @@ public class EntityEquipment implements net.caffeinemc.mods.lithium.common.entit
+         this.inLevel = true;
+         this.initializeData();
+ 
+-        net.caffeinemc.mods.lithium.common.world.in_world_tracking.MaybeInLevelObject.super.lithium$handleAddedToLevel(level);
++        me.s0nd3r.watermc.engine.common.world.in_world_tracking.MaybeInLevelObject.super.lithium$handleAddedToLevel(level);
+     }
+ 
+     @Override
+@@ -228,7 +228,7 @@ public class EntityEquipment implements net.caffeinemc.mods.lithium.common.entit
+         this.inLevel = false;
+         this.invalidateData();
+ 
+-        net.caffeinemc.mods.lithium.common.world.in_world_tracking.MaybeInLevelObject.super.lithium$handleRemovedFromLevel(level);
++        me.s0nd3r.watermc.engine.common.world.in_world_tracking.MaybeInLevelObject.super.lithium$handleRemovedFromLevel(level);
+     }
+ 
+     private void invalidateData() {

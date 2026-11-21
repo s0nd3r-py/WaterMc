@@ -1,0 +1,97 @@
+diff --git a/java/net/minecraft/world/level/block/piston/PistonMovingBlockEntity.java b/java/net/minecraft/world/level/block/piston/PistonMovingBlockEntity.java
+index bc42a6c678987a39b0a70a1a3e96eb90340ffea5..46b64bbdf321d24008e2ba4a3ecbc8b21259cf7f 100644
+--- a/java/net/minecraft/world/level/block/piston/PistonMovingBlockEntity.java
++++ b/java/net/minecraft/world/level/block/piston/PistonMovingBlockEntity.java
+@@ -360,34 +360,72 @@ public class PistonMovingBlockEntity extends BlockEntity {
+     }
+ 
+     public VoxelShape getCollisionShape(BlockGetter level, BlockPos pos) {
+-        VoxelShape collisionShape;
+-        if (!this.extending && this.isSourcePiston && this.movedState.getBlock() instanceof PistonBaseBlock) {
+-            collisionShape = this.movedState.setValue(PistonBaseBlock.EXTENDED, true).getCollisionShape(level, pos);
+-        } else {
+-            collisionShape = Shapes.empty();
+-        }
++        // WaterMc start - Leaf/Lithium: cache retracting piston collision shapes (LGPL-3.0 Lithium, ported via Leaf, GPL-3.0)
++        final boolean retractingSourcePiston = !this.extending && this.isSourcePiston && this.movedState.getBlock() instanceof PistonBaseBlock;
++        VoxelShape collisionShape = Shapes.empty();
+ 
+         Direction direction = NOCLIP.get();
+         if (this.progress < 1.0 && direction == this.getMovementDirection()) {
++            if (retractingSourcePiston) {
++                collisionShape = this.movedState.setValue(PistonBaseBlock.EXTENDED, true).getCollisionShape(level, pos);
++            }
+             return collisionShape;
++        }
++
++        float extendedProgress = this.getExtendedProgress(this.progress);
++        if (retractingSourcePiston && this.movedState.getValue(PistonBaseBlock.FACING) == this.direction
++            && (extendedProgress == 0.0F || extendedProgress == 0.5F || extendedProgress == 1.0F)) {
++            return PISTON_BASE_WITH_MOVING_HEAD_SHAPES[waterMergedShapeIndex(extendedProgress, this.direction)];
++        }
++        if (retractingSourcePiston) {
++            collisionShape = this.movedState.setValue(PistonBaseBlock.EXTENDED, true).getCollisionShape(level, pos);
++        }
++        // WaterMc end
++
++        BlockState blockState;
++        if (this.isSourcePiston()) {
++            blockState = Blocks.PISTON_HEAD
++                .defaultBlockState()
++                .setValue(PistonHeadBlock.FACING, this.direction)
++                .setValue(PistonHeadBlock.SHORT, this.extending != 1.0F - this.progress < 0.25F);
+         } else {
+-            BlockState blockState;
+-            if (this.isSourcePiston()) {
+-                blockState = Blocks.PISTON_HEAD
+-                    .defaultBlockState()
+-                    .setValue(PistonHeadBlock.FACING, this.direction)
+-                    .setValue(PistonHeadBlock.SHORT, this.extending != 1.0F - this.progress < 0.25F);
+-            } else {
+-                blockState = this.movedState;
+-            }
++            blockState = this.movedState;
++        }
+ 
+-            float extendedProgress = this.getExtendedProgress(this.progress);
+-            double d = this.direction.getStepX() * extendedProgress;
+-            double d1 = this.direction.getStepY() * extendedProgress;
+-            double d2 = this.direction.getStepZ() * extendedProgress;
+-            return Shapes.or(collisionShape, blockState.getCollisionShape(level, pos).move(d, d1, d2));
++        double d = this.direction.getStepX() * extendedProgress;
++        double d1 = this.direction.getStepY() * extendedProgress;
++        double d2 = this.direction.getStepZ() * extendedProgress;
++        return Shapes.or(collisionShape, blockState.getCollisionShape(level, pos).move(d, d1, d2));
++    }
++
++    // WaterMc start - Leaf/Lithium: precomputed base + head shapes for a retracting piston at progress 0, 0.5 and 1
++    private static final VoxelShape[] PISTON_BASE_WITH_MOVING_HEAD_SHAPES = precomputePistonBaseWithMovingHeadShapes();
++
++    private static VoxelShape[] precomputePistonBaseWithMovingHeadShapes() {
++        final float[] offsets = {0.0F, 0.5F, 1.0F};
++        final Direction[] directions = Direction.values();
++        final VoxelShape[] merged = new VoxelShape[offsets.length * directions.length];
++        for (final Direction facing : directions) {
++            final VoxelShape base = Blocks.PISTON.defaultBlockState()
++                .setValue(PistonBaseBlock.EXTENDED, true)
++                .setValue(PistonBaseBlock.FACING, facing)
++                .getCollisionShape(null, null);
++            for (final float offset : offsets) {
++                final VoxelShape head = Blocks.PISTON_HEAD.defaultBlockState()
++                    .setValue(PistonHeadBlock.FACING, facing)
++                    .setValue(PistonHeadBlock.SHORT, offset < 0.25F)
++                    .getCollisionShape(null, null)
++                    .move(facing.getStepX() * offset, facing.getStepY() * offset, facing.getStepZ() * offset);
++                merged[waterMergedShapeIndex(offset, facing)] = Shapes.or(base, head);
++            }
+         }
++        return merged;
++    }
++
++    private static int waterMergedShapeIndex(final float offset, final Direction direction) {
++        return (int) (2.0F * offset) + 3 * direction.get3DDataValue();
+     }
++    // WaterMc end
+ 
+     public long getLastTicked() {
+         return this.lastTicked;

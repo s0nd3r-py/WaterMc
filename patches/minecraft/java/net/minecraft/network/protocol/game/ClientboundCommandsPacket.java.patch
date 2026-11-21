@@ -1,0 +1,25 @@
+diff --git a/java/net/minecraft/network/protocol/game/ClientboundCommandsPacket.java b/java/net/minecraft/network/protocol/game/ClientboundCommandsPacket.java
+index d6d04088405a3a31a7e5e8cfe35c7dbfe6081b84..78eda8760dbaea73d08a67d6d7028816dc3fcc0f 100644
+--- a/java/net/minecraft/network/protocol/game/ClientboundCommandsPacket.java
++++ b/java/net/minecraft/network/protocol/game/ClientboundCommandsPacket.java
+@@ -82,10 +82,9 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
+         queue.add(rootNode);
+ 
+         CommandNode<S> commandNode;
++        map.defaultReturnValue(-1); // WaterMc - Leaf: optimize enumerateNodes - one hash lookup per node instead of containsKey + put
+         while ((commandNode = queue.poll()) != null) {
+-            if (!map.containsKey(commandNode)) {
+-                int size = map.size();
+-                map.put(commandNode, size);
++            if (map.putIfAbsent(commandNode, map.size()) == -1) { // WaterMc - new node: its id is the size before insertion, as before
+                 queue.addAll(commandNode.getChildren());
+                 if (commandNode.getRedirect() != null) {
+                     queue.add(commandNode.getRedirect());
+@@ -93,6 +92,7 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
+             }
+         }
+ 
++        map.defaultReturnValue(0); // WaterMc - restore the default callers saw before
+         return map;
+     }
+ 

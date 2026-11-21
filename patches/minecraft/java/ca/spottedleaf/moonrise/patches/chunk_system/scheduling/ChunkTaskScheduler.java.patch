@@ -1,0 +1,13 @@
+diff --git a/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkTaskScheduler.java b/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkTaskScheduler.java
+index 640548d78b87653871dd1f7b0f84574c5e205fe8..c27c7eb7a26fc1c94ae205151b0d71ad803f7525 100644
+--- a/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkTaskScheduler.java
++++ b/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkTaskScheduler.java
+@@ -1025,7 +1025,7 @@ public final class ChunkTaskScheduler {
+ 
+     public static File getChunkDebugFile() {
+         return new File(
+-                new File(new File("."), "debug"),
++                me.s0nd3r.watermc.bootstrap.ServerLayout.current().logsDir().resolve("debug").toFile(), /* WaterMc - logs/debug */
+                 "chunks-" + DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss").format(LocalDateTime.now()) + ".txt"
+         );
+     }

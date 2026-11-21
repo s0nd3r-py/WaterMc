@@ -1,0 +1,13 @@
+diff --git a/java/ca/spottedleaf/moonrise/paper/PaperHooks.java b/java/ca/spottedleaf/moonrise/paper/PaperHooks.java
+index 31e34721f48a5d88379f50104abcf0fc63ebd194..ee90f1d9bcbe4d20ba72ef8f387d13e1dc3fd60c 100644
+--- a/java/ca/spottedleaf/moonrise/paper/PaperHooks.java
++++ b/java/ca/spottedleaf/moonrise/paper/PaperHooks.java
+@@ -35,7 +35,7 @@ public final class PaperHooks extends BaseChunkSystemHooks implements PlatformHo
+ 
+     @Override
+     public String getBrand() {
+-        return "Paper";
++        return "WaterMc"; // WaterMc - own brand in thread names and logs
+     }
+ 
+     @Override

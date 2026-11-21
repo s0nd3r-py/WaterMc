@@ -1,0 +1,79 @@
+diff --git a/java/net/minecraft/world/ticks/LevelTicks.java b/java/net/minecraft/world/ticks/LevelTicks.java
+index 88dca66f253240c194c1b7427cd6fd4754111872..16bcfc43731f0cc5997b27b03aa26d9ed03b7913 100644
+--- a/java/net/minecraft/world/ticks/LevelTicks.java
++++ b/java/net/minecraft/world/ticks/LevelTicks.java
+@@ -34,6 +34,10 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+     private final LongPredicate tickCheck;
+     private final Long2ObjectMap<LevelChunkTicks<T>> allContainers = new Long2ObjectOpenHashMap<>();
+     private final Long2LongMap nextTickForContainer = Util.make(new Long2LongOpenHashMap(), map -> map.defaultReturnValue(Long.MAX_VALUE));
++    // WaterMc: нижняя граница ближайшего срока. Устаревшее раннее значение безопасно:
++    // оно вызывает лишний обход, но никогда не откладывает готовое событие.
++    private long water$earliestScheduledTick = Long.MIN_VALUE;
++    private long water$scheduleVersion;
+     private final Queue<LevelChunkTicks<T>> containersToTick = new PriorityQueue<>(CONTAINER_DRAIN_ORDER);
+     private final Queue<ScheduledTick<T>> toRunThisTick = new ArrayDeque<>();
+     private final List<ScheduledTick<T>> alreadyRunThisTick = new ArrayList<>();
+@@ -54,6 +58,7 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+         ScheduledTick<T> scheduledTick = chunkTicks.peek();
+         if (scheduledTick != null) {
+             this.nextTickForContainer.put(packedChunkPos, scheduledTick.triggerTick());
++            this.water$noteScheduledTick(scheduledTick.triggerTick());
+         }
+ 
+         chunkTicks.setOnTickAdded(this.chunkScheduleUpdater);
+@@ -99,6 +104,11 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+     }
+ 
+     private void sortContainersToTick(long gameTime) {
++        if (gameTime < this.water$earliestScheduledTick) {
++            return;
++        }
++        final long scheduleVersion = this.water$scheduleVersion;
++        long earliestRemainingTick = Long.MAX_VALUE;
+         ObjectIterator<Entry> objectIterator = Long2LongMaps.fastIterator(this.nextTickForContainer);
+ 
+         while (objectIterator.hasNext()) {
+@@ -109,19 +119,34 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+                 LevelChunkTicks<T> levelChunkTicks = this.allContainers.get(longKey);
+                 if (levelChunkTicks == null) {
+                     objectIterator.remove();
++                    continue;
+                 } else {
+                     ScheduledTick<T> scheduledTick = levelChunkTicks.peek();
+                     if (scheduledTick == null) {
+                         objectIterator.remove();
++                        continue;
+                     } else if (scheduledTick.triggerTick() > gameTime) {
+-                        entry.setValue(scheduledTick.triggerTick());
++                        longValue = scheduledTick.triggerTick();
++                        entry.setValue(longValue);
+                     } else if (this.tickCheck.test(longKey)) {
+                         objectIterator.remove();
+                         this.containersToTick.add(levelChunkTicks);
++                        continue;
+                     }
+                 }
+             }
++            earliestRemainingTick = Math.min(earliestRemainingTick, longValue);
+         }
++        // LongPredicate допускает повторный вход в schedule(). Если он добавил событие
++        // во время обхода, сохраняем консервативную нижнюю границу и перепроверяем позже.
++        // До успешного завершения обхода старое значение остаётся безопасным и при исключении.
++        this.water$earliestScheduledTick = scheduleVersion == this.water$scheduleVersion
++            ? earliestRemainingTick : Math.min(this.water$earliestScheduledTick, earliestRemainingTick);
++    }
++
++    private void water$noteScheduledTick(long triggerTick) {
++        this.water$earliestScheduledTick = Math.min(this.water$earliestScheduledTick, triggerTick);
++        ++this.water$scheduleVersion;
+     }
+ 
+     private void drainContainers(long gameTime, int maxAllowedTicks) {
+@@ -149,6 +174,7 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
+ 
+     private void updateContainerScheduling(ScheduledTick<T> tick) {
+         this.nextTickForContainer.put(ChunkPos.asLong(tick.pos()), tick.triggerTick());
++        this.water$noteScheduledTick(tick.triggerTick());
+     }
+ 
+     private void drainFromCurrentContainer(Queue<LevelChunkTicks<T>> containersToTick, LevelChunkTicks<T> levelChunkTicks, long gameTime, int maxAllowedTicks) {

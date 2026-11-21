@@ -1,0 +1,110 @@
+diff --git a/java/net/minecraft/server/dedicated/DedicatedServer.java b/java/net/minecraft/server/dedicated/DedicatedServer.java
+index 0e77c717d3481aae5d591a08eed1eb5f1439cdbf..327c0a9ba961a5aa5fecf510e73540d247477106 100644
+--- a/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -37,7 +37,6 @@ import net.minecraft.server.ServerInterface;
+ import net.minecraft.server.ServerLinks;
+ import net.minecraft.server.Services;
+ import net.minecraft.server.WorldStem;
+-import net.minecraft.server.gui.MinecraftServerGui;
+ import net.minecraft.server.jsonrpc.JsonRpcNotificationService;
+ import net.minecraft.server.jsonrpc.ManagementServer;
+ import net.minecraft.server.jsonrpc.internalapi.MinecraftApi;
+@@ -85,7 +84,6 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+     // private final RconConsoleSource rconConsoleSource; // CraftBukkit - remove field
+     private @Nullable RconThread rconThread;
+     public DedicatedServerSettings settings;
+-    private @Nullable MinecraftServerGui gui;
+     private final @Nullable ServerTextFilter serverTextFilter;
+     private @Nullable RemoteSampleLogger tickTimeLogger;
+     private boolean isTickTimeLoggingEnabled;
+@@ -118,7 +116,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+     }
+ 
+     private static Map<String, String> readCodeOfConducts() {
+-        Path path = Path.of("codeofconduct");
++        Path path = me.s0nd3r.watermc.bootstrap.ServerLayout.current().configDir().resolve("codeofconduct"); // WaterMc - config/codeofconduct
+         if (!Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+             throw new IllegalArgumentException("Code of Conduct folder does not exist: " + path);
+         } else {
+@@ -195,7 +193,6 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+             public void run() {
+                 if (!org.bukkit.craftbukkit.Main.useConsole) return; // CraftBukkit
+                 // Paper start - Use TerminalConsoleAppender
+-                if (DedicatedServer.this.gui == null || System.console() != null) // Purpur - GUI Improvements - has no GUI or has console (did not double-click)
+                 new com.destroystokyo.paper.console.PaperConsole(DedicatedServer.this).start();
+                 /*
+                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+@@ -257,7 +254,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         org.spigotmc.SpigotConfig.init((java.io.File) this.options.valueOf("spigot-settings"));
+         org.spigotmc.SpigotConfig.registerCommands();
+         // Spigot end
+-        io.papermc.paper.util.ObfHelper.INSTANCE.getClass(); // Paper - load mappings for stacktrace deobf and etc.
++        // WaterMc - Spigot<->Mojang mappings are no longer parsed here on every start: see ObfMappingsPreload after loadPlugins()
+         // Purpur start - Migrate Setting to reintroduce end void rings
+         try {
+             org.purpurmc.purpur.PurpurConfig.init((java.io.File) options.valueOf("purpur-settings"));
+@@ -296,10 +293,10 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         }
+         org.purpurmc.purpur.PurpurConfig.registerCommands();
+         */// Purpur end - Purpur config files // Purpur end - Migrate Setting to reintroduce end void rings
+-        org.dreeam.leaf.command.LeafCommands.registerCommands(this); // Leaf - Leaf commands
++        me.s0nd3r.watermc.core.command.WaterCommands.registerCommands(this); // Leaf - Leaf commands
+         // Leaf start - SparklyPaper - parallel world ticking
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
+-            serverLevelTickingSemaphore = new java.util.concurrent.Semaphore(org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.threads);
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
++            serverLevelTickingSemaphore = new java.util.concurrent.Semaphore(me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.threads);
+             DedicatedServer.LOGGER.info("Using {} permits for parallel world ticking", serverLevelTickingSemaphore.availablePermits());
+         }
+         // Leaf end - SparklyPaper - parallel world ticking
+@@ -379,6 +376,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+ 
+         // CraftBukkit start
+         this.server.loadPlugins();
++        me.s0nd3r.watermc.bootstrap.ObfMappingsPreload.scheduleIfNeeded(); // WaterMc - only Spigot-mapped plugins need the mappings
+         this.server.enablePlugins(org.bukkit.plugin.PluginLoadOrder.STARTUP);
+         // CraftBukkit end
+ 
+@@ -453,7 +451,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+ 
+             org.purpurmc.purpur.task.BossBarTask.startAll(); // Purpur - Implement TPSBar
+             if (org.purpurmc.purpur.PurpurConfig.beeCountPayload) org.purpurmc.purpur.task.BeehiveTask.instance().register(); // Purpur - Give bee counts in beehives to Purpur clients
+-            if (org.dreeam.leaf.config.modules.async.AsyncMobSpawning.enabled) mobSpawnExecutor.start(); // Pufferfish
++            if (me.s0nd3r.watermc.core.config.modules.async.AsyncMobSpawning.enabled) mobSpawnExecutor.start(); // Pufferfish
+ 
+             this.notificationManager().serverStarted();
+             return true;
+@@ -585,10 +583,6 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+             this.serverTextFilter.close();
+         }
+ 
+-        if (this.gui != null) {
+-            this.gui.close();
+-        }
+-
+         if (this.rconThread != null) {
+             this.rconThread.stopNonBlocking(); // Paper - don't wait for remote connections
+         }
+@@ -709,12 +703,6 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         return this.getMotd();
+     }
+ 
+-    public void showGui() {
+-        if (this.gui == null) {
+-            this.gui = MinecraftServerGui.showFrameFor(this);
+-        }
+-    }
+-
+     public int spawnProtectionRadius() {
+         return this.getProperties().spawnProtection.get();
+     }
+@@ -828,7 +816,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+ 
+     @Override
+     public boolean enforceSecureProfile() {
+-        if (!org.dreeam.leaf.config.modules.network.ChatMessageSignature.enabled) return false; // Leaf - Mirai - Configurable chat message signatures
++        if (!me.s0nd3r.watermc.core.config.modules.network.ChatMessageSignature.enabled) return false; // Leaf - Mirai - Configurable chat message signatures
+         DedicatedServerProperties properties = this.getProperties();
+         // Paper start - Add setting for proxy online mode status
+         return properties.enforceSecureProfile

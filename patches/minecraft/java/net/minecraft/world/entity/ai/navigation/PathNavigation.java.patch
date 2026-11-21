@@ -1,0 +1,43 @@
+diff --git a/java/net/minecraft/world/entity/ai/navigation/PathNavigation.java b/java/net/minecraft/world/entity/ai/navigation/PathNavigation.java
+index 0663cb18c289f16ea76a9c1790ef4e46e5ef4de7..13065bd20d1267ee230421e0d20e6f97fc6778be 100644
+--- a/java/net/minecraft/world/entity/ai/navigation/PathNavigation.java
++++ b/java/net/minecraft/world/entity/ai/navigation/PathNavigation.java
+@@ -162,7 +162,7 @@ public abstract class PathNavigation {
+         } else if (!this.canUpdatePath()) {
+             return null;
+             // Kaiiju start - petal - async path processing - catch early if it's still processing these positions let it keep processing
+-        } else if (this.path instanceof org.dreeam.leaf.async.path.AsyncPath asyncPath && !asyncPath.isProcessed() && asyncPath.hasSameProcessingPositions(targets)) {
++        } else if (this.path instanceof me.s0nd3r.watermc.core.async.path.AsyncPath asyncPath && !asyncPath.isProcessed() && asyncPath.hasSameProcessingPositions(targets)) {
+             return this.path;
+             // Kaiiju end - petal - async path processing
+         } else if (this.path != null && !this.path.isDone() && targets.contains(this.targetPos)) {
+@@ -193,11 +193,11 @@ public abstract class PathNavigation {
+             Path path = this.pathFinder.findPath(pathNavigationRegion, this.mob, targets, followRange, reachRange, this.maxVisitedNodesMultiplier);
+             profilerFiller.pop();
+             // Kaiiju start - petal - async path processing
+-            if (org.dreeam.leaf.config.modules.async.AsyncPathfinding.enabled) {
++            if (me.s0nd3r.watermc.core.config.modules.async.AsyncPathfinding.enabled) {
+                 // assign early a target position. most calls will only have 1 position
+                 if (!targets.isEmpty()) this.targetPos = targets.iterator().next();
+ 
+-                org.dreeam.leaf.async.path.AsyncPathProcessor.awaitProcessing(path, processedPath -> {
++                me.s0nd3r.watermc.core.async.path.AsyncPathProcessor.awaitProcessing(path, processedPath -> {
+                     // check that processing didn't take so long that we calculated a new path
+                     if (processedPath != this.path) return;
+ 
+@@ -477,9 +477,12 @@ public abstract class PathNavigation {
+         if (this.hasDelayedRecomputation) {
+             return false;
+         } else if (this.path != null && this.path.isProcessed() && !this.path.isDone() && this.path.getNodeCount() != 0) { // Kaiiju - petal - async path processing - Skip if not processed
+-            Node endNode = this.path.getEndNode();
+-            Vec3 vec3 = new Vec3((endNode.x + this.mob.getX()) / 2.0, (endNode.y + this.mob.getY()) / 2.0, (endNode.z + this.mob.getZ()) / 2.0);
+-            return pos.closerToCenterThan(vec3, this.path.getNodeCount() - this.path.getNextNodeIndex());
++            // WaterMc start - Leaf: optimize PathNavigation#shouldRecomputePath (no Vec3, one getNodeCount); the empty-path guard is kept
++            final int nodeCount = this.path.getNodeCount();
++            final Node endNode = this.path.getNode(nodeCount - 1);
++            final double distance = nodeCount - this.path.getNextNodeIndex();
++            return pos.distToCenterSqr((endNode.x + this.mob.getX()) / 2.0, (endNode.y + this.mob.getY()) / 2.0, (endNode.z + this.mob.getZ()) / 2.0) < distance * distance;
++            // WaterMc end
+         } else {
+             return false;
+         }

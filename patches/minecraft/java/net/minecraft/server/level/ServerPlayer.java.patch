@@ -1,0 +1,154 @@
+diff --git a/java/net/minecraft/server/level/ServerPlayer.java b/java/net/minecraft/server/level/ServerPlayer.java
+index 67c13021344c93049f218b9dd5a0fccba09be75d..169fb54e0e5115f18d82f019d2b1b343c5a97b93 100644
+--- a/java/net/minecraft/server/level/ServerPlayer.java
++++ b/java/net/minecraft/server/level/ServerPlayer.java
+@@ -1,8 +1,8 @@
+ package net.minecraft.server.level;
+ 
+-import com.google.common.cache.CacheBuilder;
+-import com.google.common.cache.CacheLoader;
+-import com.google.common.cache.LoadingCache;
++import me.s0nd3r.watermc.util.WaterCaches;
++import com.github.benmanes.caffeine.cache.CacheLoader;
++import com.github.benmanes.caffeine.cache.LoadingCache;
+ import com.google.common.hash.HashCode;
+ import com.google.common.net.InetAddresses;
+ import com.mojang.authlib.GameProfile;
+@@ -202,8 +202,11 @@ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
+ 
+ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patches.chunk_system.player.ChunkSystemServerPlayer { // Paper - rewrite chunk system
++    // WaterMc: allocated only after the optional particle budget is first used.
++    public me.s0nd3r.watermc.network.@Nullable ParticleBudget waterParticleBudget;
+     private static final Logger LOGGER = LogUtils.getLogger();
+     public long lastSave = MinecraftServer.currentTick; // Paper - Incremental chunk and player saving
++    public final me.s0nd3r.watermc.network.ExplosionPacketLimiter.PlayerState water$explosionState = new me.s0nd3r.watermc.network.ExplosionPacketLimiter.PlayerState(); // Water - Limit explosion packets per player per tick
+     private static final int NEUTRAL_MOB_DEATH_NOTIFICATION_RADII_XZ = 32;
+     private static final int NEUTRAL_MOB_DEATH_NOTIFICATION_RADII_Y = 10;
+     private static final int FLY_STAT_RECORDING_SPEED = 25;
+@@ -274,7 +277,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+     private CompoundTag shoulderEntityLeft = new CompoundTag();
+     private CompoundTag shoulderEntityRight = new CompoundTag();
+     public final ContainerSynchronizer containerSynchronizer = new ContainerSynchronizer() {
+-        private final LoadingCache<TypedDataComponent<?>, Integer> cache = CacheBuilder.newBuilder()
++        private final LoadingCache<TypedDataComponent<?>, Integer> cache = WaterCaches.newBuilder()
+             .maximumSize(256L)
+             .build(
+                 new CacheLoader<TypedDataComponent<?>, Integer>() {
+@@ -326,7 +329,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+ 
+         @Override
+         public RemoteSlot createSlot() {
+-            return new RemoteSlot.Synchronized(this.cache::getUnchecked);
++            return new RemoteSlot.Synchronized(this.cache::get);
+         }
+     };
+     private final ContainerListener containerListener = new ContainerListener() {
+@@ -433,6 +436,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+     // CraftBukkit end
+     public boolean didPlayerJoinEvent = false; // Gale - EMC - do not process chat/commands before player has joined
+     public boolean isRealPlayer; // Paper
++    public volatile me.s0nd3r.watermc.culling.@Nullable PlayerCullTracker waterCullTracker; // WaterMc - raytrace entity culling (DivineMC port)
+     public com.destroystokyo.paper.event.entity.@Nullable PlayerNaturallySpawnCreaturesEvent playerNaturallySpawnedEvent; // Paper - PlayerNaturallySpawnCreaturesEvent
+     public org.bukkit.event.player.PlayerQuitEvent.@Nullable QuitReason quitReason = null; // Paper - Add API for quit reason; there are a lot of changes to do if we change all methods leading to the event
+     private boolean tpsBar = false; // Purpur - Implement TPSBar
+@@ -787,7 +791,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+             }
+         }
+         // Purpur end - Ridables
+-        org.dreeam.leaf.protocol.Protocols.tickPlayer(this); // Leaf - Protocol core
++        me.s0nd3r.watermc.core.protocol.Protocols.tickPlayer(this); // Leaf - Protocol core
+     }
+ 
+     private void updatePlayerAttributes() {
+@@ -821,6 +825,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+ 
+     public void doTick() {
+         try {
++            me.s0nd3r.watermc.culling.EntityCullingManager.tickPlayer(this); // WaterMc - raytrace entity culling (DivineMC port), off by default
+             if (valid && !this.isSpectator() || !this.touchingUnloadedChunk()) { // Paper - don't tick dead players that are not in the world currently (pending respawn)
+                 super.tick();
+                 if (!this.containerMenu.stillValid(this)) {
+@@ -849,7 +854,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+             }
+ 
+             // Leaf start - Only tick items at hand
+-            if (org.dreeam.leaf.config.modules.opt.OptimizeItemTicking.onlyTickItemsInHand) {
++            if (me.s0nd3r.watermc.core.config.modules.opt.OptimizeItemTicking.onlyTickItemsInHand) {
+                 this.synchronizeSpecialItemUpdates(this.getMainHandItem());
+                 this.synchronizeSpecialItemUpdates(this.getOffhandItem());
+             } else {
+@@ -1090,7 +1095,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+     }
+ 
+     public void trackStartFallingPosition() {
+-        if (org.dreeam.leaf.config.modules.fixes.MCBugFix.mc270656) this.resetImpulseImpactIfNeeded(false); // Leaf - Fix MC-270656
++        if (me.s0nd3r.watermc.core.config.modules.fixes.MCBugFix.mc270656) this.resetImpulseImpactIfNeeded(false); // Leaf - Fix MC-270656
+         if (this.fallDistance > 0.0 && this.startingToFallPosition == null) {
+             this.startingToFallPosition = this.position();
+             if (this.currentImpulseImpactPos != null && this.currentImpulseImpactPos.y <= this.startingToFallPosition.y) {
+@@ -1194,7 +1199,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+         if (!keepInventory) {
+             for (ItemStack item : this.getInventory().getContents()) {
+                 if (!item.isEmpty() && !EnchantmentHelper.has(item, net.minecraft.world.item.enchantment.EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
+-                    loot.add(new DefaultDrop(item, stack -> this.drop(stack, org.dreeam.leaf.config.modules.gameplay.DeathItemDropKnockback.dropAround, false, false, null))); // Paper - Restore vanilla drops behavior; drop function taken from Inventory#dropAll (don't fire drop event) // Leaf - Add configurable death item drop knockback settings
++                    loot.add(new DefaultDrop(item, stack -> this.drop(stack, me.s0nd3r.watermc.core.config.modules.gameplay.DeathItemDropKnockback.dropAround, false, false, null))); // Paper - Restore vanilla drops behavior; drop function taken from Inventory#dropAll (don't fire drop event) // Leaf - Add configurable death item drop knockback settings
+                 }
+             }
+         }
+@@ -1591,10 +1596,10 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+                 // CraftBukkit end
+                 this.connection.resetPosition();
+                 teleportTransition.postTeleportTransition().onTransition(this);
+-                if (org.dreeam.leaf.config.modules.fixes.MCBugFix.mc270656) this.resetImpulseImpactIfNeeded(true); // Leaf - Fix MC-270656
++                if (me.s0nd3r.watermc.core.config.modules.fixes.MCBugFix.mc270656) this.resetImpulseImpactIfNeeded(true); // Leaf - Fix MC-270656
+                 return this;
+             } else {
+-                if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureOnlyTickThread("Cannot change dimension of a player off-main, from world[" + serverLevel.getWorld().getName() + "] to world[" + level.getWorld().getName() + "]"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
++                if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureOnlyTickThread("Cannot change dimension of a player off-main, from world[" + serverLevel.getWorld().getName() + "] to world[" + level.getWorld().getName() + "]"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
+                 this.isChangingDimension = true;
+                 LevelData levelData = level.getLevelData();
+                 this.connection.send(new ClientboundRespawnPacket(this.createCommonSpawnInfo(level), ClientboundRespawnPacket.KEEP_ALL_DATA));
+@@ -1638,7 +1643,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+                     this.stopUsingItem();
+                 }
+                 // Paper end - Reset shield blocking on dimension change
+-                if (org.dreeam.leaf.config.modules.fixes.MCBugFix.mc270656) this.resetImpulseImpactIfNeeded(true); // Leaf - Fix MC-270656
++                if (me.s0nd3r.watermc.core.config.modules.fixes.MCBugFix.mc270656) this.resetImpulseImpactIfNeeded(true); // Leaf - Fix MC-270656
+                 return this;
+             }
+         }
+@@ -1927,7 +1932,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+             } else {
+                 // CraftBukkit start
+                 // Leaf start - SparklyPaper - parallel world ticking (see: PARALLEL_NOTES.md - Opening an inventory after a world switch)
+-                if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && !hasTickedAtLeastOnceInNewWorld) {
++                if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && !hasTickedAtLeastOnceInNewWorld) {
+                     MinecraftServer.LOGGER.warn("Ignoring request to open container {} because we haven't ticked in the current world yet!", abstractContainerMenu, new Throwable());
+                     return OptionalInt.empty();
+                 }
+@@ -2021,7 +2026,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+     @Override
+     public void closeContainer(org.bukkit.event.inventory.InventoryCloseEvent.Reason reason) {
+         // Leaf start - SparklyPaper - parallel world ticking (debugging)
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.logContainerCreationStacktraces) {
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.logContainerCreationStacktraces) {
+             MinecraftServer.LOGGER.warn("Closing {} inventory that was created at", this.getBukkitEntity().getName(), this.containerMenu.containerCreationStacktrace);
+         }
+         // Leaf end - SparklyPaper - parallel world ticking (debugging)
+@@ -2425,6 +2430,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+     }
+     public org.bukkit.event.player.@Nullable PlayerGameModeChangeEvent setGameMode(GameType gameMode, org.bukkit.event.player.PlayerGameModeChangeEvent.Cause cause, net.kyori.adventure.text.@Nullable Component message) {
+         boolean isSpectator = this.isSpectator();
++        final GameType waterPreviousMode = this.gameMode.getGameModeForPlayer(); // WaterMc - security audit
+         org.bukkit.event.player.PlayerGameModeChangeEvent event = this.gameMode.changeGameModeForPlayer(gameMode, cause, message);
+         if (event == null) {
+             return null;
+@@ -2432,6 +2438,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+             return event; // need to return the event for the cancel message
+             // Paper end - Expand PlayerGameModeChangeEvent
+         } else {
++            me.s0nd3r.watermc.diagnostics.SecurityAudit.gameModeChanged(this.getScoreboardName(), waterPreviousMode.getName(), gameMode.getName(), cause.name()); // WaterMc - security audit
+             this.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, gameMode.getId()));
+             if (gameMode == GameType.SPECTATOR) {
+                 this.removeEntitiesOnShoulder();

@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/item/FallingBlockEntity.java b/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+index 419982ecea1e846c997db9d9b35958d1d8dcc0e2..26a9cca902b999b00ce1ec3aa835f3226c38cc54 100644
+--- a/java/net/minecraft/world/entity/item/FallingBlockEntity.java
++++ b/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+@@ -391,7 +391,7 @@ public class FallingBlockEntity extends Entity {
+     // Leaf start - PMC - Don't save falling block entity
+     @Override
+     public boolean shouldBeSaved() {
+-        return !org.dreeam.leaf.config.modules.opt.DontSaveEntity.dontSaveFallingBlock && super.shouldBeSaved();
++        return !me.s0nd3r.watermc.core.config.modules.opt.DontSaveEntity.dontSaveFallingBlock && super.shouldBeSaved();
+     }
+     // Leaf end - PMC - Don't save falling block entity
+ }

@@ -1,0 +1,21 @@
+round 1 leaf: 1.48 chunks/s
+round 1 water: 2.31 chunks/s
+round 2 water: 2.97 chunks/s
+round 2 leaf: 2.69 chunks/s
+{
+ "median_chunks_per_s": {
+  "leaf": 2.085,
+  "water": 2.64
+ },
+ "runs": {
+  "leaf": [
+   1.48,
+   2.69
+  ],
+  "water": [
+   2.31,
+   2.97
+  ]
+ }
+}
+EXIT 0

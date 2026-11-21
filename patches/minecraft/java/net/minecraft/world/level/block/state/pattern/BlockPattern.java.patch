@@ -1,0 +1,53 @@
+diff --git a/java/net/minecraft/world/level/block/state/pattern/BlockPattern.java b/java/net/minecraft/world/level/block/state/pattern/BlockPattern.java
+index e6480199995e44987238ca345b7de9f36c90f147..ccad329961d892717fb67bcb883569e26572844d 100644
+--- a/java/net/minecraft/world/level/block/state/pattern/BlockPattern.java
++++ b/java/net/minecraft/world/level/block/state/pattern/BlockPattern.java
+@@ -2,9 +2,9 @@ package net.minecraft.world.level.block.state.pattern;
+ 
+ import com.google.common.annotations.VisibleForTesting;
+ import com.google.common.base.MoreObjects;
+-import com.google.common.cache.CacheBuilder;
+-import com.google.common.cache.CacheLoader;
+-import com.google.common.cache.LoadingCache;
++import me.s0nd3r.watermc.util.WaterCaches;
++import com.github.benmanes.caffeine.cache.CacheLoader;
++import com.github.benmanes.caffeine.cache.LoadingCache;
+ import java.util.function.Predicate;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.core.Direction;
+@@ -61,7 +61,7 @@ public class BlockPattern {
+         for (int i = 0; i < this.width; i++) {
+             for (int i1 = 0; i1 < this.height; i1++) {
+                 for (int i2 = 0; i2 < this.depth; i2++) {
+-                    if (!this.pattern[i2][i1][i].test(cache.getUnchecked(translateAndRotate(pos, finger, thumb, i, i1, i2)))) {
++                    if (!this.pattern[i2][i1][i].test(cache.get(translateAndRotate(pos, finger, thumb, i, i1, i2)))) {
+                         return null;
+                     }
+                 }
+@@ -92,7 +92,7 @@ public class BlockPattern {
+     }
+ 
+     public static LoadingCache<BlockPos, BlockInWorld> createLevelCache(LevelReader level, boolean forceLoad) {
+-        return CacheBuilder.newBuilder().build(new BlockPattern.BlockCacheLoader(level, forceLoad));
++        return WaterCaches.newBuilder().build(new BlockPattern.BlockCacheLoader(level, forceLoad));
+     }
+ 
+     protected static BlockPos translateAndRotate(BlockPos pos, Direction finger, Direction thumb, int palmOffset, int thumbOffset, int fingerOffset) {
+@@ -110,7 +110,7 @@ public class BlockPattern {
+         }
+     }
+ 
+-    static class BlockCacheLoader extends CacheLoader<BlockPos, BlockInWorld> {
++    static class BlockCacheLoader implements CacheLoader<BlockPos, BlockInWorld> {
+         private final LevelReader level;
+         private final boolean loadChunks;
+ 
+@@ -172,7 +172,7 @@ public class BlockPattern {
+ 
+         public BlockInWorld getBlock(int palmOffset, int thumbOffset, int fingerOffset) {
+             return this.cache
+-                .getUnchecked(BlockPattern.translateAndRotate(this.frontTopLeft, this.getForwards(), this.getUp(), palmOffset, thumbOffset, fingerOffset));
++                .get(BlockPattern.translateAndRotate(this.frontTopLeft, this.getForwards(), this.getUp(), palmOffset, thumbOffset, fingerOffset));
+         }
+ 
+         @Override

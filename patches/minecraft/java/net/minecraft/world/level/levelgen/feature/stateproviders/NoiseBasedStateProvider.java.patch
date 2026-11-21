@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/levelgen/feature/stateproviders/NoiseBasedStateProvider.java b/java/net/minecraft/world/level/levelgen/feature/stateproviders/NoiseBasedStateProvider.java
+index bdd1b4ab758fc653df4adad7633ef430ebb89dbe..b3d512f81f4e73b4fb13a3310172b667c8c3850a 100644
+--- a/java/net/minecraft/world/level/levelgen/feature/stateproviders/NoiseBasedStateProvider.java
++++ b/java/net/minecraft/world/level/levelgen/feature/stateproviders/NoiseBasedStateProvider.java
+@@ -28,7 +28,7 @@ public abstract class NoiseBasedStateProvider extends BlockStateProvider {
+         this.seed = seed;
+         this.parameters = parameters;
+         this.scale = scale;
+-        this.noise = NormalNoise.create(new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(seed) : new LegacyRandomSource(seed)), parameters); // Leaf - Faster random generator
++        this.noise = NormalNoise.create(new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(seed) : new LegacyRandomSource(seed)), parameters); // Leaf - Faster random generator
+     }
+ 
+     protected double getNoiseValue(BlockPos pos, double delta) {

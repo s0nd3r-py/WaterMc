@@ -1,0 +1,56 @@
+diff --git a/java/net/minecraft/core/BlockPos.java b/java/net/minecraft/core/BlockPos.java
+index 78385f61668eff31df22dd618ddc90dc6ee8df6a..3c39a3fa9dc781d34c1147a169de9f7643c46c97 100644
+--- a/java/net/minecraft/core/BlockPos.java
++++ b/java/net/minecraft/core/BlockPos.java
+@@ -81,19 +81,19 @@ public class BlockPos extends Vec3i {
+     }
+ 
+     public static long offset(long pos, int dx, int dy, int dz) {
+-        return asLong((int) (pos >> 38) + dx, (int) ((pos << 52) >> 52) + dy, (int) ((pos << 26) >> 38) + dz); // Paper - simplify/inline
++        return me.s0nd3r.watermc.math.PackedPos.offset(pos, dx, dy, dz);
+     }
+ 
+     public static int getX(long packedPos) {
+-        return (int) (packedPos >> 38); // Paper - simplify/inline
++        return me.s0nd3r.watermc.math.PackedPos.x(packedPos);
+     }
+ 
+     public static int getY(long packedPos) {
+-        return (int) ((packedPos << 52) >> 52); // Paper - simplify/inline
++        return me.s0nd3r.watermc.math.PackedPos.y(packedPos);
+     }
+ 
+     public static int getZ(long packedPos) {
+-        return (int) ((packedPos << 26) >> 38); // Paper - simplify/inline
++        return me.s0nd3r.watermc.math.PackedPos.z(packedPos);
+     }
+ 
+     public static BlockPos of(long packedPos) {
+@@ -121,7 +121,7 @@ public class BlockPos extends Vec3i {
+     }
+ 
+     public static long asLong(int x, int y, int z) {
+-        return ((x & 67108863L) << 38) | ((y &  4095L)) | ((z & 67108863L) << 12); // Paper - inline constants and simplify
++        return me.s0nd3r.watermc.math.PackedPos.pack(x, y, z);
+     }
+ 
+     public static long getFlatIndex(long packedPos) {
+@@ -341,15 +341,15 @@ public class BlockPos extends Vec3i {
+     }
+ 
+     // JettPack start - lithium: cached iterate outwards
+-    private static final org.dreeam.leaf.util.cache.IterateOutwardsCache ITERATE_OUTWARDS_CACHE = new org.dreeam.leaf.util.cache.IterateOutwardsCache(50);
++    private static final me.s0nd3r.watermc.core.util.cache.IterateOutwardsCache ITERATE_OUTWARDS_CACHE = new me.s0nd3r.watermc.core.util.cache.IterateOutwardsCache(50);
+     private static final it.unimi.dsi.fastutil.longs.LongList HOGLIN_PIGLIN_CACHE = ITERATE_OUTWARDS_CACHE.getOrCompute(8, 4, 8);
+     // JettPack end - lithium: cached iterate outwards
+ 
+     public static Iterable<BlockPos> withinManhattan(BlockPos pos, int xSize, int ySize, int zSize) {
+         // JettPack start - lithium: cached iterate outwards
+-        if (pos != org.dreeam.leaf.util.cache.IterateOutwardsCache.POS_ZERO) {
++        if (pos != me.s0nd3r.watermc.core.util.cache.IterateOutwardsCache.POS_ZERO) {
+             final it.unimi.dsi.fastutil.longs.LongList positions = xSize == 8 && ySize == 4 && zSize == 8 ? HOGLIN_PIGLIN_CACHE : ITERATE_OUTWARDS_CACHE.getOrCompute(xSize, ySize, zSize);
+-            return new org.dreeam.leaf.util.cache.LongList2BlockPosMutableIterable(pos, positions);
++            return new me.s0nd3r.watermc.core.util.cache.LongList2BlockPosMutableIterable(pos, positions);
+         }
+         // JettPack end - lithium: cached iterate outwards
+         int i = xSize + ySize + zSize;

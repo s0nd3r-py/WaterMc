@@ -1,0 +1,74 @@
+diff --git a/java/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/java/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+index 4f6d6850c577a5113b0f939cd3b68437dd80526f..e9c881d5c96df1822988682077b31de0a4f60f23 100644
+--- a/java/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
++++ b/java/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+@@ -115,7 +115,7 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+         long now = System.nanoTime();
+         io.papermc.paper.util.KeepAlive.PendingKeepAlive pending = this.keepAlive.pendingKeepAlives.peek();
+         // Gale start - Purpur - send multiple keep-alive packets
+-        if (org.galemc.gale.configuration.GaleGlobalConfiguration.get().misc.keepalive.sendMultiple) {
++        if (me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().misc.keepalive.sendMultiple) {
+             if (this.keepAlivePending && !keepAlives.isEmpty() && keepAlives.contains(packet.getId())) {
+                 int ping = (int) (Util.getMillis() - packet.getId());
+                 int updatedLatency = (this.latency * 3 + ping) / 4;
+@@ -169,12 +169,12 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+     @Override
+     public void handleCustomPayload(ServerboundCustomPayloadPacket packet) {
+         // Leaves start - protocol
+-        if (packet.payload() instanceof org.leavesmc.leaves.protocol.core.LeavesCustomPayload leavesPayload) {
+-            org.leavesmc.leaves.protocol.core.LeavesProtocolManager.handlePayload(org.leavesmc.leaves.protocol.core.ProtocolUtils.createSelector(this), leavesPayload);
++        if (packet.payload() instanceof me.s0nd3r.watermc.integration.protocol.core.LeavesCustomPayload leavesPayload) {
++            me.s0nd3r.watermc.integration.protocol.core.LeavesProtocolManager.handlePayload(me.s0nd3r.watermc.integration.protocol.core.ProtocolUtils.createSelector(this), leavesPayload);
+             return;
+         }
+         if (packet.payload() instanceof net.minecraft.network.protocol.common.custom.DiscardedPayload(net.minecraft.resources.Identifier id, byte[] data)) {
+-            if (org.leavesmc.leaves.protocol.core.LeavesProtocolManager.handleBytebuf(org.leavesmc.leaves.protocol.core.ProtocolUtils.createSelector(this), id, io.netty.buffer.Unpooled.wrappedBuffer(data))) {
++            if (me.s0nd3r.watermc.integration.protocol.core.LeavesProtocolManager.handleBytebuf(me.s0nd3r.watermc.integration.protocol.core.ProtocolUtils.createSelector(this), id, io.netty.buffer.Unpooled.wrappedBuffer(data))) {
+                 return;
+             }
+         }
+@@ -189,7 +189,7 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+ 
+         // Leaf start - Protocol core
+         if (this instanceof ServerGamePacketListenerImpl gamePacketListener) {
+-            org.dreeam.leaf.protocol.Protocols.handle(gamePacketListener.player, discardedPayload);
++            me.s0nd3r.watermc.core.protocol.Protocols.handle(gamePacketListener.player, discardedPayload);
+         }
+         // Leaf end - Protocol core
+ 
+@@ -251,7 +251,7 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+         final String channel = new String(data, from, length, java.nio.charset.StandardCharsets.US_ASCII);
+         if (register) {
+             bridge.addChannel(channel);
+-            org.leavesmc.leaves.protocol.core.LeavesProtocolManager.handleMinecraftRegister(channel, org.leavesmc.leaves.protocol.core.ProtocolUtils.createSelector(this)); // Leaves - protocol
++            me.s0nd3r.watermc.integration.protocol.core.LeavesProtocolManager.handleMinecraftRegister(channel, me.s0nd3r.watermc.integration.protocol.core.ProtocolUtils.createSelector(this)); // Leaves - protocol
+         } else {
+             bridge.removeChannel(channel);
+         }
+@@ -308,7 +308,7 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+         long millis = Util.getMillis();
+         // Paper start - improve keepalives
+         // Gale start - Purpur - send multiple keep-alive packets
+-        if (org.galemc.gale.configuration.GaleGlobalConfiguration.get().misc.keepalive.sendMultiple) {
++        if (me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().misc.keepalive.sendMultiple) {
+             if (this.checkIfClosed(millis)) { // Paper - Disconnect State Fixes
+                 long currTime = System.nanoTime();
+                 if ((currTime - this.keepAlive.lastKeepAliveTx) >= java.util.concurrent.TimeUnit.SECONDS.toNanos(1L)) { // 1 second
+@@ -371,7 +371,7 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+ 
+     public void send(Packet<?> packet) {
+         // Leaf start - Mirai - Configurable chat message signatures
+-        if (!org.dreeam.leaf.config.modules.network.ChatMessageSignature.enabled) {
++        if (!me.s0nd3r.watermc.core.config.modules.network.ChatMessageSignature.enabled) {
+             if (packet instanceof net.minecraft.network.protocol.game.ClientboundPlayerChatPacket chat) {
+                 packet = new net.minecraft.network.protocol.game.ClientboundSystemChatPacket(
+                     chat.chatType().decorate(chat.unsignedContent() != null ? chat.unsignedContent() : Component.literal(chat.body().content())),
+@@ -387,7 +387,7 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+ 
+     public void send(Packet<?> packet, @Nullable ChannelFutureListener sendListener) {
+         // Leaf start - Mirai - Configurable chat message signatures
+-        if (!org.dreeam.leaf.config.modules.network.ChatMessageSignature.enabled) {
++        if (!me.s0nd3r.watermc.core.config.modules.network.ChatMessageSignature.enabled) {
+             if (packet instanceof net.minecraft.network.protocol.game.ClientboundPlayerChatPacket chat && sendListener != null) {
+                 this.send(chat);
+                 return;

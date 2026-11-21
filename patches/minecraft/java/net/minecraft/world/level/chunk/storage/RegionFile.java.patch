@@ -1,0 +1,31 @@
+diff --git a/java/net/minecraft/world/level/chunk/storage/RegionFile.java b/java/net/minecraft/world/level/chunk/storage/RegionFile.java
+index 1c103680cdee6f0f5ae2131444f6a07e61a2012f..f1aaeb46407653924ad5c0b3fb00680bf476b817 100644
+--- a/java/net/minecraft/world/level/chunk/storage/RegionFile.java
++++ b/java/net/minecraft/world/level/chunk/storage/RegionFile.java
+@@ -15,7 +15,6 @@ import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.nio.file.StandardCopyOption;
+ import java.nio.file.StandardOpenOption;
+-import net.minecraft.resources.Identifier;
+ import net.minecraft.util.Util;
+ import net.minecraft.util.profiling.jfr.JvmProfiler;
+ import net.minecraft.world.level.ChunkPos;
+@@ -664,17 +663,7 @@ public class RegionFile implements AutoCloseable, ca.spottedleaf.moonrise.patche
+ 
+     private @Nullable DataInputStream createChunkInputStream(ChunkPos chunkPos, byte versionByte, InputStream inputStream) throws IOException {
+         RegionFileVersion regionFileVersion = RegionFileVersion.fromId(versionByte);
+-        if (regionFileVersion == RegionFileVersion.VERSION_CUSTOM) {
+-            String utf = new DataInputStream(inputStream).readUTF();
+-            Identifier identifier = Identifier.tryParse(utf);
+-            if (identifier != null) {
+-                LOGGER.error("Unrecognized custom compression {}", identifier);
+-                return null;
+-            } else {
+-                LOGGER.error("Invalid custom compression id {}", utf);
+-                return null;
+-            }
+-        } else if (regionFileVersion == null) {
++        if (regionFileVersion == null) {
+             LOGGER.error("Chunk {} has invalid chunk stream version {}", chunkPos, versionByte);
+             return null;
+         } else {

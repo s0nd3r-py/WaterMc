@@ -1,0 +1,49 @@
+diff --git a/java/net/minecraft/server/PlayerAdvancements.java b/java/net/minecraft/server/PlayerAdvancements.java
+index 9f8dc80f279e2fa6e4c7a292c6239dc5fe9ee15f..4d3909f631ab5f583f154d39444d1bc7ff803885 100644
+--- a/java/net/minecraft/server/PlayerAdvancements.java
++++ b/java/net/minecraft/server/PlayerAdvancements.java
+@@ -54,7 +54,7 @@ public class PlayerAdvancements {
+     private final Map<AdvancementHolder, AdvancementProgress> progress = new LinkedHashMap<>();
+     private final Set<AdvancementHolder> visible = new HashSet<>();
+     // Leaf start - SparklyPaper - parallel world ticking
+-    private final Set<AdvancementHolder> progressChanged = org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled ? java.util.concurrent.ConcurrentHashMap.newKeySet() : new HashSet<>();
++    private final Set<AdvancementHolder> progressChanged = me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled ? java.util.concurrent.ConcurrentHashMap.newKeySet() : new HashSet<>();
+     private final Set<AdvancementNode> rootsToUpdate = new HashSet<>(); // Always managed on player tick thread
+     // Leaf end - SparklyPaper - parallel world ticking
+     private ServerPlayer player;
+@@ -130,7 +130,7 @@ public class PlayerAdvancements {
+ 
+     public void save() {
+         if (org.spigotmc.SpigotConfig.disableAdvancementSaving) return; // Spigot
+-        if (org.dreeam.leaf.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) return; // Leaf - Add read-only mode for Linear v2
++        if (me.s0nd3r.watermc.core.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) return; // Leaf - Add read-only mode for Linear v2
+         JsonElement jsonElement = this.codec.encodeStart(JsonOps.INSTANCE, this.asData()).getOrThrow();
+ 
+         try {
+@@ -149,7 +149,7 @@ public class PlayerAdvancements {
+             AdvancementHolder advancementHolder = advancementManager.get(path);
+             if (advancementHolder == null) {
+                 if (!path.getNamespace().equals(Identifier.DEFAULT_NAMESPACE)) return; // CraftBukkit
+-                if (org.galemc.gale.configuration.GaleGlobalConfiguration.get().logToConsole.ignoredAdvancements) LOGGER.warn("Ignored advancement '{}' in progress file {} - it doesn't exist anymore?", path, this.playerSavePath); // Gale - Purpur - do not log ignored advancements
++                if (me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().logToConsole.ignoredAdvancements) LOGGER.warn("Ignored advancement '{}' in progress file {} - it doesn't exist anymore?", path, this.playerSavePath); // Gale - Purpur - do not log ignored advancements
+             } else {
+                 this.startProgress(advancementHolder, progress);
+                 this.progressChanged.add(advancementHolder); // Leaf - SparklyPaper - parallel world ticking fix - Always add to non-concurrent set during load, flushDirty will handle sync
+@@ -170,7 +170,7 @@ public class PlayerAdvancements {
+ 
+     public boolean award(AdvancementHolder advancement, String criterionKey) {
+         // Leaves start - photographer can't get advancement
+-        if (player instanceof org.leavesmc.leaves.replay.ServerPhotographer) {
++        if (player instanceof me.s0nd3r.watermc.integration.replay.ServerPhotographer) {
+             return false;
+         }
+         // Leaves end - photographer can't get advancement
+@@ -272,7 +272,7 @@ public class PlayerAdvancements {
+     }
+ 
+     public void flushDirty(ServerPlayer player, boolean showAdvancements) {
+-        final boolean isConcurrent = org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled; // Leaf - SparklyPaper - parallel world ticking
++        final boolean isConcurrent = me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled; // Leaf - SparklyPaper - parallel world ticking
+         if (this.isFirstPacket || !this.rootsToUpdate.isEmpty() || !this.progressChanged.isEmpty()) {
+             Map<Identifier, AdvancementProgress> map = new HashMap<>();
+             Set<AdvancementHolder> set = new java.util.TreeSet<>(java.util.Comparator.comparing(adv -> adv.id().toString())); // Paper - Changed from HashSet to TreeSet ordered alphabetically.

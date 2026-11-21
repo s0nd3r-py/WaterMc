@@ -1,0 +1,55 @@
+diff --git a/java/net/minecraft/server/players/ProfileResolver.java b/java/net/minecraft/server/players/ProfileResolver.java
+index 3c1f233dd8acf755c7a1665412aa91dd34a62dc1..6e81e1ea87943c30fa05621919a7bec1b13d54f0 100644
+--- a/java/net/minecraft/server/players/ProfileResolver.java
++++ b/java/net/minecraft/server/players/ProfileResolver.java
+@@ -1,8 +1,8 @@
+ package net.minecraft.server.players;
+ 
+-import com.google.common.cache.CacheBuilder;
+-import com.google.common.cache.CacheLoader;
+-import com.google.common.cache.LoadingCache;
++import me.s0nd3r.watermc.util.WaterCaches;
++import com.github.benmanes.caffeine.cache.CacheLoader;
++import com.github.benmanes.caffeine.cache.LoadingCache;
+ import com.mojang.authlib.GameProfile;
+ import com.mojang.authlib.minecraft.MinecraftSessionService;
+ import com.mojang.authlib.yggdrasil.ProfileResult;
+@@ -26,7 +26,7 @@ public interface ProfileResolver {
+         final LoadingCache<UUID, Optional<GameProfile>> profileCacheById;
+ 
+         public Cached(final MinecraftSessionService sessionService, final UserNameToIdResolver resolver, final io.papermc.paper.profile.PaperFilledProfileCache paperCache) { // Paper - add paperCache
+-            this.profileCacheById = CacheBuilder.newBuilder()
++            this.profileCacheById = WaterCaches.newBuilder()
+                 .expireAfterAccess(Duration.ofMinutes(10L))
+                 .maximumSize(256L)
+                 .build(new CacheLoader<UUID, Optional<GameProfile>>() {
+@@ -42,25 +42,25 @@ public interface ProfileResolver {
+                         // Paper end - update paper cache
+                     }
+                 });
+-            this.profileCacheByName = CacheBuilder.newBuilder()
++            this.profileCacheByName = WaterCaches.newBuilder()
+                 .expireAfterAccess(Duration.ofMinutes(10L))
+                 .maximumSize(256L)
+                 .build(new CacheLoader<String, Optional<GameProfile>>() {
+                     @Override
+                     public Optional<GameProfile> load(String name) {
+-                        return resolver.get(name).flatMap(nameAndId -> Cached.this.profileCacheById.getUnchecked(nameAndId.id()));
++                        return resolver.get(name).flatMap(nameAndId -> Cached.this.profileCacheById.get(nameAndId.id()));
+                     }
+                 });
+         }
+ 
+         @Override
+         public Optional<GameProfile> fetchByName(String name) {
+-            return StringUtil.isValidPlayerName(name) ? this.profileCacheByName.getUnchecked(name) : Optional.empty();
++            return StringUtil.isValidPlayerName(name) ? this.profileCacheByName.get(name) : Optional.empty();
+         }
+ 
+         @Override
+         public Optional<GameProfile> fetchById(UUID id) {
+-            return this.profileCacheById.getUnchecked(id);
++            return this.profileCacheById.get(id);
+         }
+     }
+ }

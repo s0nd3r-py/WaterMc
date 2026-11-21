@@ -1,0 +1,20 @@
+diff --git a/java/net/minecraft/world/level/gameevent/GameEventDispatcher.java b/java/net/minecraft/world/level/gameevent/GameEventDispatcher.java
+index 092cadaf08335876bf118747dccba2fdfad81621..a1216606aa3957736ecf2d1d85a8ece044aab10f 100644
+--- a/java/net/minecraft/world/level/gameevent/GameEventDispatcher.java
++++ b/java/net/minecraft/world/level/gameevent/GameEventDispatcher.java
+@@ -22,6 +22,7 @@ public class GameEventDispatcher {
+     public void post(Holder<GameEvent> gameEvent, Vec3 pos, GameEvent.Context context) {
+         int notificationRadius = gameEvent.value().notificationRadius();
+         BlockPos blockPos = BlockPos.containing(pos);
++        if (org.bukkit.event.world.GenericGameEvent.getHandlerList().getRegisteredListeners().length != 0) { // WaterMc - Leaf: Skip firing GenericGameEvent if no listeners
+         // CraftBukkit start
+         org.bukkit.event.world.GenericGameEvent apiEvent = new org.bukkit.event.world.GenericGameEvent(
+             org.bukkit.craftbukkit.CraftGameEvent.minecraftHolderToBukkit(gameEvent), org.bukkit.craftbukkit.util.CraftLocation.toBukkit(blockPos, this.level),
+@@ -31,6 +32,7 @@ public class GameEventDispatcher {
+         }
+         notificationRadius = apiEvent.getRadius();
+         // CraftBukkit end
++        } // WaterMc - Leaf: Skip firing GenericGameEvent if no listeners
+         int sectionPosCoord = SectionPos.blockToSectionCoord(blockPos.getX() - notificationRadius);
+         int sectionPosCoord1 = SectionPos.blockToSectionCoord(blockPos.getY() - notificationRadius);
+         int sectionPosCoord2 = SectionPos.blockToSectionCoord(blockPos.getZ() - notificationRadius);

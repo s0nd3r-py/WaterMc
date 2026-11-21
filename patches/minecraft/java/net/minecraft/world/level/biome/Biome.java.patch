@@ -1,0 +1,20 @@
+diff --git a/java/net/minecraft/world/level/biome/Biome.java b/java/net/minecraft/world/level/biome/Biome.java
+index 1bfd7851cef198cfc06d6dbdf4fcd1e10b2834b6..4053f55c634b65244054a7dedd0dc2ff895dc3a5 100644
+--- a/java/net/minecraft/world/level/biome/Biome.java
++++ b/java/net/minecraft/world/level/biome/Biome.java
+@@ -58,12 +58,12 @@ public final class Biome {
+     );
+     public static final Codec<Holder<Biome>> CODEC = RegistryFileCodec.create(Registries.BIOME, DIRECT_CODEC);
+     public static final Codec<HolderSet<Biome>> LIST_CODEC = RegistryCodecs.homogeneousList(Registries.BIOME, DIRECT_CODEC);
+-    private static final PerlinSimplexNoise TEMPERATURE_NOISE = new PerlinSimplexNoise(new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(1234L) : new LegacyRandomSource(1234L)), ImmutableList.of(0)); // Leaf - Faster random generator
++    private static final PerlinSimplexNoise TEMPERATURE_NOISE = new PerlinSimplexNoise(new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(1234L) : new LegacyRandomSource(1234L)), ImmutableList.of(0)); // Leaf - Faster random generator
+     static final PerlinSimplexNoise FROZEN_TEMPERATURE_NOISE = new PerlinSimplexNoise(
+-        new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(3456L) : new LegacyRandomSource(3456L)), ImmutableList.of(-2, -1, 0) // Leaf - Faster random generator
++        new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(3456L) : new LegacyRandomSource(3456L)), ImmutableList.of(-2, -1, 0) // Leaf - Faster random generator
+     );
+     @Deprecated(forRemoval = true)
+-    public static final PerlinSimplexNoise BIOME_INFO_NOISE = new PerlinSimplexNoise(new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(2345L) : new LegacyRandomSource(2345L)), ImmutableList.of(0)); // Leaf - Faster random generator
++    public static final PerlinSimplexNoise BIOME_INFO_NOISE = new PerlinSimplexNoise(new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(2345L) : new LegacyRandomSource(2345L)), ImmutableList.of(0)); // Leaf - Faster random generator
+     private static final int TEMPERATURE_CACHE_SIZE = 1024;
+     public final Biome.ClimateSettings climateSettings;
+     private final BiomeGenerationSettings generationSettings;

@@ -1,0 +1,29 @@
+diff --git a/java/net/minecraft/util/profiling/Profiler.java b/java/net/minecraft/util/profiling/Profiler.java
+index 7bc414aeb7d07fba692c8c2256ffa26729dcbd94..c1c3630e967e457219e937013f7f9e6e47ab06cc 100644
+--- a/java/net/minecraft/util/profiling/Profiler.java
++++ b/java/net/minecraft/util/profiling/Profiler.java
+@@ -13,7 +13,15 @@ public final class Profiler {
+     private Profiler() {
+     }
+ 
++    // WaterMc start - an inactive per-tick profiler is not registered: otherwise ACTIVE_COUNT stays non-zero for the
++    // whole tick and every Profiler.get() pays a ThreadLocal lookup only to return InactiveProfiler (~1.5% of tick CPU
++    // in a 1500-mob profile). Behaviour is identical: get() returns the same inactive filler either way.
++    private static final Profiler.Scope NO_OP_SCOPE = () -> {
++    };
++    // WaterMc end
++
+     public static Profiler.Scope use(ProfilerFiller profiler) {
++        if (decorateFiller(profiler) == InactiveProfiler.INSTANCE) return NO_OP_SCOPE; // WaterMc
+         startUsing(profiler);
+         return Profiler::stopUsing;
+     }
+@@ -45,7 +53,7 @@ public final class Profiler {
+     }
+ 
+     public static ProfilerFiller get() {
+-        if (org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_PROFILER) return InactiveProfiler.INSTANCE; // Leaf - Configurable vanilla profiler
++        if (me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_PROFILER) return InactiveProfiler.INSTANCE; // Leaf - Configurable vanilla profiler
+         return ACTIVE_COUNT.get() == 0 ? getDefaultFiller() : Objects.requireNonNullElseGet(ACTIVE.get(), Profiler::getDefaultFiller);
+     }
+ 

@@ -1,0 +1,102 @@
+diff --git a/java/io/papermc/paper/util/PoiAccess.java b/java/io/papermc/paper/util/PoiAccess.java
+index f39294b1f83c4022be5ced4da781103a1eee2daf..7be502468ac6238b61e5f8b7d9509128dcb404e6 100644
+--- a/java/io/papermc/paper/util/PoiAccess.java
++++ b/java/io/papermc/paper/util/PoiAccess.java
+@@ -225,8 +225,10 @@ public final class PoiAccess {
+         final long centerKey = CoordinateUtils.getChunkSectionKey(centerX, centerY, centerZ);
+ 
+         final LongArrayFIFOQueue queue = new LongArrayFIFOQueue();
+-        final LongOpenHashSet seen = new LongOpenHashSet();
+-        seen.add(centerKey);
++        // WaterMc start - Leaf: Optimize PoiAccess visited section tracking (HaHaWTH, co-authored by MrlingXD, GPL-3.0-only)
++        final me.s0nd3r.watermc.core.util.map.SectionVisitSet seen = new me.s0nd3r.watermc.core.util.map.SectionVisitSet(lowerX, lowerY, lowerZ, upperX, upperY, upperZ);
++        seen.mark(centerX, centerY, centerZ);
++        // WaterMc end
+         queue.enqueue(centerKey);
+ 
+         while (!queue.isEmpty()) {
+@@ -253,27 +255,14 @@ public final class PoiAccess {
+                 continue;
+             }
+ 
+-            // queue all neighbours
+-            for (int dz = -1; dz <= 1; ++dz) {
+-                for (int dx = -1; dx <= 1; ++dx) {
+-                    for (int dy = -1; dy <= 1; ++dy) {
+-                        // -1 and 1 have the 1st bit set. so just add up the first bits, and it will tell us how many
+-                        // values are set. we only care about cardinal neighbours, so, we only care if one value is set
+-                        if ((dx & 1) + (dy & 1) + (dz & 1) != 1) {
+-                            continue;
+-                        }
+-
+-                        final int neighbourX = sectionX + dx;
+-                        final int neighbourY = sectionY + dy;
+-                        final int neighbourZ = sectionZ + dz;
+-
+-                        final long neighbourKey = CoordinateUtils.getChunkSectionKey(neighbourX, neighbourY, neighbourZ);
+-                        if (seen.add(neighbourKey)) {
+-                            queue.enqueue(neighbourKey);
+-                        }
+-                    }
+-                }
+-            }
++            // WaterMc start - Leaf: unrolled cardinal neighbours, same order as the old 3x3x3 loop (Z-, X-, Y-, Y+, X+, Z+); out-of-bounds sections are not queued
++            if (sectionZ > lowerZ && seen.mark(sectionX, sectionY, sectionZ - 1)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX, sectionY, sectionZ - 1));
++            if (sectionX > lowerX && seen.mark(sectionX - 1, sectionY, sectionZ)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX - 1, sectionY, sectionZ));
++            if (sectionY > lowerY && seen.mark(sectionX, sectionY - 1, sectionZ)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX, sectionY - 1, sectionZ));
++            if (sectionY < upperY && seen.mark(sectionX, sectionY + 1, sectionZ)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX, sectionY + 1, sectionZ));
++            if (sectionX < upperX && seen.mark(sectionX + 1, sectionY, sectionZ)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX + 1, sectionY, sectionZ));
++            if (sectionZ < upperZ && seen.mark(sectionX, sectionY, sectionZ + 1)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX, sectionY, sectionZ + 1));
++            // WaterMc end
+ 
+             final Optional<PoiSection> poiSectionOptional = load ? poiStorage.getOrLoad(key) : poiStorage.get(key);
+ 
+@@ -468,8 +457,10 @@ public final class PoiAccess {
+         final long centerKey = CoordinateUtils.getChunkSectionKey(centerX, centerY, centerZ);
+ 
+         final LongArrayFIFOQueue queue = new LongArrayFIFOQueue();
+-        final LongOpenHashSet seen = new LongOpenHashSet();
+-        seen.add(centerKey);
++        // WaterMc start - Leaf: Optimize PoiAccess visited section tracking (HaHaWTH, co-authored by MrlingXD, GPL-3.0-only)
++        final me.s0nd3r.watermc.core.util.map.SectionVisitSet seen = new me.s0nd3r.watermc.core.util.map.SectionVisitSet(lowerX, lowerY, lowerZ, upperX, upperY, upperZ);
++        seen.mark(centerX, centerY, centerZ);
++        // WaterMc end
+         queue.enqueue(centerKey);
+ 
+         while (!queue.isEmpty()) {
+@@ -497,27 +488,14 @@ public final class PoiAccess {
+                 continue;
+             }
+ 
+-            // queue all neighbours
+-            for (int dz = -1; dz <= 1; ++dz) {
+-                for (int dx = -1; dx <= 1; ++dx) {
+-                    for (int dy = -1; dy <= 1; ++dy) {
+-                        // -1 and 1 have the 1st bit set. so just add up the first bits, and it will tell us how many
+-                        // values are set. we only care about cardinal neighbours, so, we only care if one value is set
+-                        if ((dx & 1) + (dy & 1) + (dz & 1) != 1) {
+-                            continue;
+-                        }
+-
+-                        final int neighbourX = sectionX + dx;
+-                        final int neighbourY = sectionY + dy;
+-                        final int neighbourZ = sectionZ + dz;
+-
+-                        final long neighbourKey = CoordinateUtils.getChunkSectionKey(neighbourX, neighbourY, neighbourZ);
+-                        if (seen.add(neighbourKey)) {
+-                            queue.enqueue(neighbourKey);
+-                        }
+-                    }
+-                }
+-            }
++            // WaterMc start - Leaf: unrolled cardinal neighbours, same order as the old 3x3x3 loop (Z-, X-, Y-, Y+, X+, Z+); out-of-bounds sections are not queued
++            if (sectionZ > lowerZ && seen.mark(sectionX, sectionY, sectionZ - 1)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX, sectionY, sectionZ - 1));
++            if (sectionX > lowerX && seen.mark(sectionX - 1, sectionY, sectionZ)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX - 1, sectionY, sectionZ));
++            if (sectionY > lowerY && seen.mark(sectionX, sectionY - 1, sectionZ)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX, sectionY - 1, sectionZ));
++            if (sectionY < upperY && seen.mark(sectionX, sectionY + 1, sectionZ)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX, sectionY + 1, sectionZ));
++            if (sectionX < upperX && seen.mark(sectionX + 1, sectionY, sectionZ)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX + 1, sectionY, sectionZ));
++            if (sectionZ < upperZ && seen.mark(sectionX, sectionY, sectionZ + 1)) queue.enqueue(CoordinateUtils.getChunkSectionKey(sectionX, sectionY, sectionZ + 1));
++            // WaterMc end
+ 
+             final Optional<PoiSection> poiSectionOptional = load ? poiStorage.getOrLoad(key) : poiStorage.get(key);
+ 

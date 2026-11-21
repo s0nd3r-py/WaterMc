@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/chunk/ChunkAccess.java b/java/net/minecraft/world/level/chunk/ChunkAccess.java
+index 6f55d5bb180531028cf9c9a2ad67da4585a13ef1..8523419e2fcbe8d8b24f5bdd7ed67383b8a1378c 100644
+--- a/java/net/minecraft/world/level/chunk/ChunkAccess.java
++++ b/java/net/minecraft/world/level/chunk/ChunkAccess.java
+@@ -195,7 +195,7 @@ public abstract class ChunkAccess implements BiomeManager.NoiseBiomeSource, Ligh
+     public boolean isSlimeChunk() {
+         if (!hasComputedSlimeChunk) {
+             hasComputedSlimeChunk = true;
+-            slimeChunk = su.plo.matter.WorldgenCryptoRandom.seedSlimeChunk(chunkPos.x, chunkPos.z).nextInt(10) == 0;
++            slimeChunk = me.s0nd3r.watermc.seed.WorldgenCryptoRandom.seedSlimeChunk(chunkPos.x, chunkPos.z).nextInt(10) == 0;
+         }
+ 
+         return slimeChunk;

@@ -1,0 +1,38 @@
+diff --git a/java/net/minecraft/world/level/block/entity/SculkCatalystBlockEntity.java b/java/net/minecraft/world/level/block/entity/SculkCatalystBlockEntity.java
+index 70e84a9eb442d93c0d7e6ab5e8e0c788b168ed36..4d2de9a986de7b0b9cb92794b0bd98d9e10f05cd 100644
+--- a/java/net/minecraft/world/level/block/entity/SculkCatalystBlockEntity.java
++++ b/java/net/minecraft/world/level/block/entity/SculkCatalystBlockEntity.java
+@@ -27,13 +27,13 @@ import net.minecraft.world.level.storage.ValueInput;
+ import net.minecraft.world.level.storage.ValueOutput;
+ import net.minecraft.world.phys.Vec3;
+ 
+-public class SculkCatalystBlockEntity extends BlockEntity implements GameEventListener.Provider<SculkCatalystBlockEntity.CatalystListener>, net.caffeinemc.mods.lithium.common.block.entity.SleepingBlockEntity { // Leaves - Lithium Sleeping Block Entity
++public class SculkCatalystBlockEntity extends BlockEntity implements GameEventListener.Provider<SculkCatalystBlockEntity.CatalystListener>, me.s0nd3r.watermc.engine.common.block.entity.SleepingBlockEntity { // Leaves - Lithium Sleeping Block Entity
+     private final SculkCatalystBlockEntity.CatalystListener catalystListener;
+ 
+     public SculkCatalystBlockEntity(BlockPos pos, BlockState blockState) {
+         super(BlockEntityType.SCULK_CATALYST, pos, blockState);
+         this.catalystListener = new SculkCatalystBlockEntity.CatalystListener(blockState, new BlockPositionSource(pos));
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) this.catalystListener.getSculkSpreader().lithium$setGameEventCallback(this::wakeUpNow); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) this.catalystListener.getSculkSpreader().lithium$setGameEventCallback(this::wakeUpNow); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     // Paper start - Fix NPE in SculkBloomEvent world access
+@@ -49,7 +49,7 @@ public class SculkCatalystBlockEntity extends BlockEntity implements GameEventLi
+         sculkCatalyst.catalystListener.getSculkSpreader().updateCursors(level, pos, level.getRandom(), true);
+         org.bukkit.craftbukkit.event.CraftEventFactory.setSourceBlockOverrideRT(null); // CraftBukkit //  Leaf - SparklyPaper - parallel world ticking
+         // Leaves start - Lithium Sleeping Block Entity
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && sculkCatalyst.getListener().getSculkSpreader().getCursors().isEmpty()) {
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && sculkCatalyst.getListener().getSculkSpreader().getCursors().isEmpty()) {
+             sculkCatalyst.lithium$startSleeping();
+         }
+         // Leaves end - Lithium Sleeping Block Entity
+@@ -60,7 +60,7 @@ public class SculkCatalystBlockEntity extends BlockEntity implements GameEventLi
+         super.loadAdditional(input);
+         this.catalystListener.sculkSpreader.load(input);
+         // Leaves start - Lithium Sleeping Block Entity
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && !this.getListener().getSculkSpreader().getCursors().isEmpty()) {
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && !this.getListener().getSculkSpreader().getCursors().isEmpty()) {
+             this.wakeUpNow();
+         }
+         // Leaves end - Lithium Sleeping Block Entity

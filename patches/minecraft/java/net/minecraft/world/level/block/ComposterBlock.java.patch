@@ -1,0 +1,38 @@
+diff --git a/java/net/minecraft/world/level/block/ComposterBlock.java b/java/net/minecraft/world/level/block/ComposterBlock.java
+index d298eb6202196f80dede428b76ff349c59b2e38f..aaf9f5a8db57fda4140469ab6e91c2adcc777dbb 100644
+--- a/java/net/minecraft/world/level/block/ComposterBlock.java
++++ b/java/net/minecraft/world/level/block/ComposterBlock.java
+@@ -440,7 +440,7 @@ public class ComposterBlock extends Block implements WorldlyContainerHolder {
+         }
+     }
+ 
+-    public static class EmptyContainer extends SimpleContainer implements WorldlyContainer, net.caffeinemc.mods.lithium.common.hopper.BlockStateOnlyInventory { // Leaves - Lithium Sleeping Block Entity
++    public static class EmptyContainer extends SimpleContainer implements WorldlyContainer, me.s0nd3r.watermc.engine.common.hopper.BlockStateOnlyInventory { // Leaves - Lithium Sleeping Block Entity
+         public EmptyContainer(LevelAccessor levelAccessor, BlockPos blockPos) { // CraftBukkit
+             super(0);
+             this.bukkitOwner = new org.bukkit.craftbukkit.inventory.CraftBlockInventoryHolder(levelAccessor, blockPos, this); // CraftBukkit
+@@ -462,7 +462,7 @@ public class ComposterBlock extends Block implements WorldlyContainerHolder {
+         }
+     }
+ 
+-    public static class InputContainer extends SimpleContainer implements WorldlyContainer, net.caffeinemc.mods.lithium.common.hopper.BlockStateOnlyInventory { // Leaves - Lithium Sleeping Block Entity
++    public static class InputContainer extends SimpleContainer implements WorldlyContainer, me.s0nd3r.watermc.engine.common.hopper.BlockStateOnlyInventory { // Leaves - Lithium Sleeping Block Entity
+         private final BlockState state;
+         private final LevelAccessor level;
+         private final BlockPos pos;
+@@ -508,13 +508,13 @@ public class ComposterBlock extends Block implements WorldlyContainerHolder {
+                 }
+                 // Paper end - Add CompostItemEvent and EntityCompostItemEvent
+                 this.level.levelEvent(LevelEvent.COMPOSTER_FILL, this.pos, blockState != this.state ? 1 : 0);
+-                if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) this.changed = false; // Leaves - Lithium Sleeping Block Entity
++                if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) this.changed = false; // Leaves - Lithium Sleeping Block Entity
+                 this.removeItemNoUpdate(0);
+             }
+         }
+     }
+ 
+-    public static class OutputContainer extends SimpleContainer implements WorldlyContainer, net.caffeinemc.mods.lithium.common.hopper.BlockStateOnlyInventory { // Leaves - Lithium Sleeping Block Entity
++    public static class OutputContainer extends SimpleContainer implements WorldlyContainer, me.s0nd3r.watermc.engine.common.hopper.BlockStateOnlyInventory { // Leaves - Lithium Sleeping Block Entity
+         private final BlockState state;
+         private final LevelAccessor level;
+         private final BlockPos pos;

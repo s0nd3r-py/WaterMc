@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/block/entity/ChiseledBookShelfBlockEntity.java b/java/net/minecraft/world/level/block/entity/ChiseledBookShelfBlockEntity.java
+index 0f8cc2a8fd528e201b817852410c49c8311d14aa..eec97c7ee15211592cccc43462d6519f0ccdc397 100644
+--- a/java/net/minecraft/world/level/block/entity/ChiseledBookShelfBlockEntity.java
++++ b/java/net/minecraft/world/level/block/entity/ChiseledBookShelfBlockEntity.java
+@@ -22,7 +22,7 @@ import net.minecraft.world.level.storage.ValueInput;
+ import net.minecraft.world.level.storage.ValueOutput;
+ import org.slf4j.Logger;
+ 
+-public class ChiseledBookShelfBlockEntity extends BlockEntity implements ListBackedContainer, net.caffeinemc.mods.lithium.api.inventory.LithiumTransferConditionInventory { // Leaves - Lithium Sleeping Block Entity
++public class ChiseledBookShelfBlockEntity extends BlockEntity implements ListBackedContainer, me.s0nd3r.watermc.engine.api.inventory.LithiumTransferConditionInventory { // Leaves - Lithium Sleeping Block Entity
+     public static final int MAX_BOOKS_IN_STORAGE = 6;
+     private static final Logger LOGGER = LogUtils.getLogger();
+     private static final int DEFAULT_LAST_INTERACTED_SLOT = -1;

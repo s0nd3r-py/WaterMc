@@ -1,0 +1,51 @@
+diff --git a/java/net/minecraft/world/level/levelgen/WorldOptions.java b/java/net/minecraft/world/level/levelgen/WorldOptions.java
+index c05da7cfcd3d97a1716cb305be36ba9c94217b6f..1b420b84f9606dc77ccdbc4ac790e04d2a27d6de 100644
+--- a/java/net/minecraft/world/level/levelgen/WorldOptions.java
++++ b/java/net/minecraft/world/level/levelgen/WorldOptions.java
+@@ -11,12 +11,12 @@ import org.apache.commons.lang3.StringUtils;
+ public class WorldOptions {
+     // Leaf start - Matter - Secure Seed
+     private static final com.google.gson.Gson gson = new com.google.gson.Gson();
+-    private static final boolean isSecureSeedEnabled = org.dreeam.leaf.config.modules.misc.SecureSeed.enabled;
++    private static final boolean isSecureSeedEnabled = me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled;
+     public static final MapCodec<WorldOptions> CODEC = RecordCodecBuilder.mapCodec(
+         instance -> isSecureSeedEnabled
+             ? instance.group(
+                 Codec.LONG.fieldOf("seed").stable().forGetter(WorldOptions::seed),
+-                Codec.STRING.fieldOf("feature_seed").orElse(gson.toJson(su.plo.matter.Globals.createRandomWorldSeed())).stable().forGetter(WorldOptions::featureSeedSerialize),
++                Codec.STRING.fieldOf("feature_seed").orElse(gson.toJson(me.s0nd3r.watermc.seed.Globals.createRandomWorldSeed())).stable().forGetter(WorldOptions::featureSeedSerialize),
+                 Codec.BOOL.fieldOf("generate_features").orElse(true).stable().forGetter(WorldOptions::generateStructures),
+                 Codec.BOOL.fieldOf("bonus_chest").orElse(false).stable().forGetter(WorldOptions::generateBonusChest),
+                 Codec.STRING.lenientOptionalFieldOf("legacy_custom_options").stable().forGetter(worldOptions -> worldOptions.legacyCustomOptions)
+@@ -33,11 +33,11 @@ public class WorldOptions {
+     // Leaf end - Matter - Secure Seed
+     // Leaf start - Matter - Secure Seed
+     public static final WorldOptions DEMO_OPTIONS = isSecureSeedEnabled
+-            ? new WorldOptions((long) "North Carolina".hashCode(), su.plo.matter.Globals.createRandomWorldSeed(), true, true)
++            ? new WorldOptions((long) "North Carolina".hashCode(), me.s0nd3r.watermc.seed.Globals.createRandomWorldSeed(), true, true)
+             : new WorldOptions("North Carolina".hashCode(), true, true);
+     // Leaf end - Matter - Secure Seed
+     private final long seed;
+-    private long[] featureSeed = su.plo.matter.Globals.createRandomWorldSeed(); // Leaf - Matter - Secure Seed
++    private long[] featureSeed = me.s0nd3r.watermc.seed.Globals.createRandomWorldSeed(); // Leaf - Matter - Secure Seed
+     private final boolean generateStructures;
+     private final boolean generateBonusChest;
+     private final Optional<String> legacyCustomOptions;
+@@ -59,7 +59,7 @@ public class WorldOptions {
+     public static WorldOptions defaultWithRandomSeed() {
+         // Leaf start - Matter - Secure Seed
+         return isSecureSeedEnabled
+-                ? new WorldOptions(randomSeed(), su.plo.matter.Globals.createRandomWorldSeed(), true, false)
++                ? new WorldOptions(randomSeed(), me.s0nd3r.watermc.seed.Globals.createRandomWorldSeed(), true, false)
+                 : new WorldOptions(randomSeed(), true, false);
+         // Leaf end - Matter - Secure Seed
+     }
+@@ -123,7 +123,7 @@ public class WorldOptions {
+ 
+     public WorldOptions withSeed(OptionalLong seed) {
+         return isSecureSeedEnabled
+-                ? new WorldOptions(seed.orElse(randomSeed()), su.plo.matter.Globals.createRandomWorldSeed(), this.generateStructures, this.generateBonusChest, this.legacyCustomOptions)
++                ? new WorldOptions(seed.orElse(randomSeed()), me.s0nd3r.watermc.seed.Globals.createRandomWorldSeed(), this.generateStructures, this.generateBonusChest, this.legacyCustomOptions)
+                 : new WorldOptions(seed.orElse(randomSeed()), this.generateStructures, this.generateBonusChest, this.legacyCustomOptions);
+     }
+     // Leaf end - Matter - Secure Seed

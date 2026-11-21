@@ -1,0 +1,54 @@
+diff --git a/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java b/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
+index ba090c219a1cf4797a068b0dcf25481984a2f784..74590967a7ae0c36c03a18226e526a221c691609 100644
+--- a/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
++++ b/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
+@@ -15,9 +15,9 @@ import org.jspecify.annotations.Nullable;
+ 
+ public class AttributeMap implements java.util.function.Consumer<AttributeInstance> { // Leaf - optimize attribute
+     // Leaf start - optimize attribute
+-    public final Map<Holder<Attribute>, AttributeInstance> attributes = new org.dreeam.leaf.util.map.AttributeInstanceArrayMap();
+-    private final Set<AttributeInstance> attributesToSync = new org.dreeam.leaf.util.map.AttributeInstanceSet((org.dreeam.leaf.util.map.AttributeInstanceArrayMap) attributes);
+-    private final Set<AttributeInstance> attributesToUpdate = new org.dreeam.leaf.util.map.AttributeInstanceSet((org.dreeam.leaf.util.map.AttributeInstanceArrayMap) attributes);
++    public final Map<Holder<Attribute>, AttributeInstance> attributes = new me.s0nd3r.watermc.core.util.map.AttributeInstanceArrayMap();
++    private final Set<AttributeInstance> attributesToSync = new me.s0nd3r.watermc.core.util.map.AttributeInstanceSet((me.s0nd3r.watermc.core.util.map.AttributeInstanceArrayMap) attributes);
++    private final Set<AttributeInstance> attributesToUpdate = new me.s0nd3r.watermc.core.util.map.AttributeInstanceSet((me.s0nd3r.watermc.core.util.map.AttributeInstanceArrayMap) attributes);
+     // Leaf end - optimize attribute
+     private final AttributeSupplier supplier;
+     private final net.minecraft.world.entity.LivingEntity entity; // Purpur - Ridables
+@@ -35,9 +35,9 @@ public class AttributeMap implements java.util.function.Consumer<AttributeInstan
+     private void onAttributeModified(AttributeInstance instance) {
+         // Leaf start - optimize attribute
+         Attribute attribute = instance.getAttribute().value();
+-        ((org.dreeam.leaf.util.map.AttributeInstanceSet) this.attributesToUpdate).addAttribute(attribute);
++        ((me.s0nd3r.watermc.core.util.map.AttributeInstanceSet) this.attributesToUpdate).addAttribute(attribute);
+         if (attribute.isClientSyncable() && (entity == null || entity.shouldSendAttribute(attribute))) { // Purpur - Ridables
+-            ((org.dreeam.leaf.util.map.AttributeInstanceSet) this.attributesToSync).addAttribute(attribute);
++            ((me.s0nd3r.watermc.core.util.map.AttributeInstanceSet) this.attributesToSync).addAttribute(attribute);
+         }
+         // Leaf end - optimize attribute
+     }
+@@ -73,13 +73,13 @@ public class AttributeMap implements java.util.function.Consumer<AttributeInstan
+     }
+ 
+     public int[] getAttributesToUpdateIds() {
+-        int[] clone = ((org.dreeam.leaf.util.map.AttributeInstanceSet) attributesToUpdate).inner.toIntArray();
++        int[] clone = ((me.s0nd3r.watermc.core.util.map.AttributeInstanceSet) attributesToUpdate).inner.toIntArray();
+         this.attributesToUpdate.clear();
+         return clone;
+     }
+ 
+     public int[] getAttributesToSyncIds() {
+-        int[] clone = ((org.dreeam.leaf.util.map.AttributeInstanceSet) attributesToSync).inner.toIntArray();
++        int[] clone = ((me.s0nd3r.watermc.core.util.map.AttributeInstanceSet) attributesToSync).inner.toIntArray();
+         this.attributesToSync.clear();
+         return clone;
+     }
+@@ -96,7 +96,7 @@ public class AttributeMap implements java.util.function.Consumer<AttributeInstan
+ 
+     public List<net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket.AttributeSnapshot> getSyncableAttributesPacket() {
+         List<net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket.AttributeSnapshot> list = new ArrayList<>(attributes.size());
+-        if (attributes instanceof org.dreeam.leaf.util.map.AttributeInstanceArrayMap map) {
++        if (attributes instanceof me.s0nd3r.watermc.core.util.map.AttributeInstanceArrayMap map) {
+             for (AttributeInstance instance : map.elements()) {
+                 if (instance != null && instance.getAttribute().value().isClientSyncable() && (entity == null || entity.shouldSendAttribute(instance.getAttribute().value()))) { // Purpur - Ridables
+                     list.add(new net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket.AttributeSnapshot(

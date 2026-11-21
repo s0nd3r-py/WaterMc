@@ -1,0 +1,129 @@
+diff --git a/java/net/minecraft/world/entity/ai/Brain.java b/java/net/minecraft/world/entity/ai/Brain.java
+index 1cca7dab4cfb503d2f6e4bb80ac0e318fcd9aace..1ffe5d9fb12bbc42f948ec860469923a6df574b1 100644
+--- a/java/net/minecraft/world/entity/ai/Brain.java
++++ b/java/net/minecraft/world/entity/ai/Brain.java
+@@ -50,17 +50,18 @@ public class Brain<E extends LivingEntity> {
+     // Leaf start - Replace brain maps with optimized collection
+     private final Map<MemoryModuleType<?>, Optional<? extends ExpirableValue<?>>> memories = new it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap<>();
+     private final Map<SensorType<? extends Sensor<? super E>>, Sensor<? super E>> sensors = new it.unimi.dsi.fastutil.objects.Reference2ReferenceArrayMap<>();
++    public java.util.Collection<Sensor<? super E>> waterSensors() { return this.sensors.values(); } // WaterMc - parallel sensor phase
+     private final Map<Integer, Map<Activity, Set<BehaviorControl<? super E>>>> availableBehaviorsByPriority = new it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap<>();
+     private @Nullable EnvironmentAttribute<Activity> schedule;
+     public static final Map[] EMPTY_MAP_ARRAY = {};
+     public static final Set[] EMPTY_SET_ARRAY = {};
+-    public static final org.dreeam.leaf.util.map.BehaviorControlArraySet[] EMPTY_BEHAVIOR_ARRAY = {};
++    public static final me.s0nd3r.watermc.core.util.map.BehaviorControlArraySet[] EMPTY_BEHAVIOR_ARRAY = {};
+     private Map<Activity, Set<BehaviorControl<? super E>>>[] availableBehaviorsByPriorityArray = EMPTY_MAP_ARRAY;
+-    private org.dreeam.leaf.util.map.BehaviorControlArraySet<? super E>[] activeBehaviors = EMPTY_BEHAVIOR_ARRAY;
+-    private final Map<Activity, Set<Pair<MemoryModuleType<?>, MemoryStatus>>> activityRequirements = new org.dreeam.leaf.util.map.ActivityArrayMap<>(EMPTY_SET_ARRAY);
+-    private final Map<Activity, Set<MemoryModuleType<?>>> activityMemoriesToEraseWhenStopped = new org.dreeam.leaf.util.map.ActivityArrayMap<>(EMPTY_SET_ARRAY);
++    private me.s0nd3r.watermc.core.util.map.BehaviorControlArraySet<? super E>[] activeBehaviors = EMPTY_BEHAVIOR_ARRAY;
++    private final Map<Activity, Set<Pair<MemoryModuleType<?>, MemoryStatus>>> activityRequirements = new me.s0nd3r.watermc.core.util.map.ActivityArrayMap<>(EMPTY_SET_ARRAY);
++    private final Map<Activity, Set<MemoryModuleType<?>>> activityMemoriesToEraseWhenStopped = new me.s0nd3r.watermc.core.util.map.ActivityArrayMap<>(EMPTY_SET_ARRAY);
+     private Set<Activity> coreActivities = Set.of();
+-    private final Set<Activity> activeActivities = new org.dreeam.leaf.util.map.ActivityBitSet();
++    private final Set<Activity> activeActivities = new me.s0nd3r.watermc.core.util.map.ActivityBitSet();
+     // Leaf end - Replace brain maps with optimized collection
+     private Activity defaultActivity = Activity.IDLE;
+     private long lastScheduleUpdate = -9999L;
+@@ -187,8 +188,17 @@ public class Brain<E extends LivingEntity> {
+         return this.checkMemory(type, MemoryStatus.VALUE_PRESENT);
+     }
+ 
++    // Leaf/Lithium start - Reduce Brain memories lookup: bumped whenever a memory appears or disappears
++    private long waterMemoryModCount = 1L;
++
++    public long waterMemoryModCount() {
++        return this.waterMemoryModCount;
++    }
++    // Leaf/Lithium end - Reduce Brain memories lookup
++
+     public void clearMemories() {
+         this.memories.keySet().forEach(memoryModuleType -> this.memories.put((MemoryModuleType<?>)memoryModuleType, Optional.empty()));
++        this.waterMemoryModCount++; // Leaf/Lithium - Reduce Brain memories lookup
+         this.availableBehaviorsByPriorityArray = EMPTY_MAP_ARRAY; // Leaf - Replace brain maps with optimized collection
+         this.activeBehaviors = EMPTY_BEHAVIOR_ARRAY; // Leaf - Replace brain maps with optimized collection
+     }
+@@ -214,7 +224,12 @@ public class Brain<E extends LivingEntity> {
+             if (memory.isPresent() && this.isEmptyCollection(memory.get().getValue())) {
+                 this.eraseMemory(memoryType);
+             } else {
+-                this.memories.put(memoryType, memory);
++                // Leaf/Lithium start - Reduce Brain memories lookup (2No2Name, LGPL-3.0): count presence changes only
++                final Optional<? extends ExpirableValue<?>> old = this.memories.put(memoryType, memory);
++                if (old == null || old.isPresent() != memory.isPresent()) {
++                    this.waterMemoryModCount++;
++                }
++                // Leaf/Lithium end - Reduce Brain memories lookup
+             }
+         }
+     }
+@@ -403,8 +418,8 @@ public class Brain<E extends LivingEntity> {
+ 
+         for (Pair<Integer, ? extends BehaviorControl<? super E>> pair : tasks) {
+             this.availableBehaviorsByPriority
+-                .computeIfAbsent(pair.getFirst(), integer -> new org.dreeam.leaf.util.map.ActivityArrayMap<>((Set<BehaviorControl<? super E>>[]) EMPTY_SET_ARRAY)) // Leaf - Replace brain maps with optimized collection
+-                .computeIfAbsent(activity, activity1 -> new org.dreeam.leaf.util.map.BehaviorControlArraySet<>()) // Leaf - Replace brain maps with optimized collection
++                .computeIfAbsent(pair.getFirst(), integer -> new me.s0nd3r.watermc.core.util.map.ActivityArrayMap<>((Set<BehaviorControl<? super E>>[]) EMPTY_SET_ARRAY)) // Leaf - Replace brain maps with optimized collection
++                .computeIfAbsent(activity, activity1 -> new me.s0nd3r.watermc.core.util.map.BehaviorControlArraySet<>()) // Leaf - Replace brain maps with optimized collection
+                 .add((BehaviorControl<? super E>)pair.getSecond());
+         }
+         if (this.activeBehaviors != EMPTY_BEHAVIOR_ARRAY) this.activeBehaviors = EMPTY_BEHAVIOR_ARRAY; // Leaf - Replace brain maps with optimized collection
+@@ -430,6 +445,7 @@ public class Brain<E extends LivingEntity> {
+                 brain.memories.put(memoryModuleType, entry.getValue());
+             }
+         }
++        brain.waterMemoryModCount = this.waterMemoryModCount + 1; // Leaf/Lithium - Reduce Brain memories lookup: never reuse a count the old brain's behaviors cached
+ 
+         return brain;
+     }
+@@ -482,9 +498,9 @@ public class Brain<E extends LivingEntity> {
+             this.availableBehaviorsByPriorityArray = this.availableBehaviorsByPriority.values().toArray(EMPTY_MAP_ARRAY);
+         }
+         for (Map<Activity, Set<BehaviorControl<? super E>>> map : availableBehaviorsByPriorityArray) {
+-            var map1 = (org.dreeam.leaf.util.map.ActivityArrayMap<Set<BehaviorControl<? super E>>>) map;
++            var map1 = (me.s0nd3r.watermc.core.util.map.ActivityArrayMap<Set<BehaviorControl<? super E>>>) map;
+             for (int index = 0, size = map1.size(); index < size; index++) {
+-                var behaviorControls = (org.dreeam.leaf.util.map.BehaviorControlArraySet<? super E>) map1.v[index];
++                var behaviorControls = (me.s0nd3r.watermc.core.util.map.BehaviorControlArraySet<? super E>) map1.v[index];
+                 var behaviorControlsRaw = behaviorControls.raw();
+                 for (int i = 0, size1 = behaviorControls.size(); i < size1; i++) {
+                     BehaviorControl<? super E> behaviorControl = behaviorControlsRaw[i];
+@@ -505,21 +521,21 @@ public class Brain<E extends LivingEntity> {
+         if (this.availableBehaviorsByPriorityArray.length != this.availableBehaviorsByPriority.size()) {
+             this.availableBehaviorsByPriorityArray = this.availableBehaviorsByPriority.values().toArray(EMPTY_MAP_ARRAY);
+         }
+-        var aact = (org.dreeam.leaf.util.map.ActivityBitSet) this.activeActivities;
++        var aact = (me.s0nd3r.watermc.core.util.map.ActivityBitSet) this.activeActivities;
+         if (activeBehaviors == EMPTY_BEHAVIOR_ARRAY || aact.unsetDirty()) {
+             var list = it.unimi.dsi.fastutil.objects.ReferenceArrayList.wrap(activeBehaviors);
+             list.clear();
+             int activeSet = aact.bitSet();
+             for (Map<Activity, Set<BehaviorControl<? super E>>> map : availableBehaviorsByPriorityArray) {
+-                for (int index = 0; index < org.dreeam.leaf.util.RegistryTypeManager.ACTIVITY_SIZE; index++) {
++                for (int index = 0; index < me.s0nd3r.watermc.core.util.RegistryTypeManager.ACTIVITY_SIZE; index++) {
+                     if ((activeSet & (1 << index)) == 0) {
+                         continue;
+                     }
+-                    var ele = ((org.dreeam.leaf.util.map.ActivityArrayMap<Set<BehaviorControl<? super E>>>) map).getValue(index);
++                    var ele = ((me.s0nd3r.watermc.core.util.map.ActivityArrayMap<Set<BehaviorControl<? super E>>>) map).getValue(index);
+                     if (ele == null) {
+                         continue;
+                     }
+-                    list.add((org.dreeam.leaf.util.map.BehaviorControlArraySet<? super E>) ele);
++                    list.add((me.s0nd3r.watermc.core.util.map.BehaviorControlArraySet<? super E>) ele);
+                 }
+             }
+             activeBehaviors = it.unimi.dsi.fastutil.objects.ObjectArrays.setLength(list.elements(), list.size());
+@@ -547,9 +563,9 @@ public class Brain<E extends LivingEntity> {
+             this.availableBehaviorsByPriorityArray = this.availableBehaviorsByPriority.values().toArray(new Map[0]);
+         }
+         for (Map<Activity, Set<BehaviorControl<? super E>>> map : availableBehaviorsByPriorityArray) {
+-            var map1 = (org.dreeam.leaf.util.map.ActivityArrayMap<Set<BehaviorControl<? super E>>>) map;
++            var map1 = (me.s0nd3r.watermc.core.util.map.ActivityArrayMap<Set<BehaviorControl<? super E>>>) map;
+             for (int index = 0, size = map1.size(); index < size; index++) {
+-                var behaviorControls = (org.dreeam.leaf.util.map.BehaviorControlArraySet<? super E>) map1.v[index];
++                var behaviorControls = (me.s0nd3r.watermc.core.util.map.BehaviorControlArraySet<? super E>) map1.v[index];
+                 if (!behaviorControls.running()) {
+                     continue;
+                 }

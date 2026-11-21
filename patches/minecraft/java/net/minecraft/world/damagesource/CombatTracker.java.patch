@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/damagesource/CombatTracker.java b/java/net/minecraft/world/damagesource/CombatTracker.java
+index 634115b392c3f0baea9631aa096991cae8d2fc9f..e9892bef46c6cfd6467d8df43fea7fa5d1144919 100644
+--- a/java/net/minecraft/world/damagesource/CombatTracker.java
++++ b/java/net/minecraft/world/damagesource/CombatTracker.java
+@@ -34,7 +34,7 @@ public class CombatTracker {
+     public CombatTracker(LivingEntity mob) {
+         this.mob = mob;
+         this.paperCombatTracker = new io.papermc.paper.world.damagesource.PaperCombatTrackerWrapper(this); // Paper - Combat tracker API
+-        this.entries = org.dreeam.leaf.config.modules.fixes.MCBugFix.mc301114 ? new org.dreeam.leaf.util.list.EvictingRingList<>(org.dreeam.leaf.config.modules.fixes.MCBugFix.mc301114maxCombatEntries) : Lists.newArrayList(); // Leaf - Fix MC-301114 Combat Tracker memory leak
++        this.entries = me.s0nd3r.watermc.core.config.modules.fixes.MCBugFix.mc301114 ? new me.s0nd3r.watermc.core.util.list.EvictingRingList<>(me.s0nd3r.watermc.core.config.modules.fixes.MCBugFix.mc301114maxCombatEntries) : Lists.newArrayList(); // Leaf - Fix MC-301114 Combat Tracker memory leak
+     }
+ 
+     public void recordDamage(DamageSource source, float damage) {

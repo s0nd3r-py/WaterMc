@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/network/protocol/game/ClientboundLoginPacket.java b/java/net/minecraft/network/protocol/game/ClientboundLoginPacket.java
+index ba4ec05a9c9dfa958fdfa4a68ee85bcd9c379883..f493ff1b49352830178b4dd0afa035ee0eebd32b 100644
+--- a/java/net/minecraft/network/protocol/game/ClientboundLoginPacket.java
++++ b/java/net/minecraft/network/protocol/game/ClientboundLoginPacket.java
+@@ -55,7 +55,7 @@ public record ClientboundLoginPacket(
+         buffer.writeBoolean(this.showDeathScreen);
+         buffer.writeBoolean(this.doLimitedCrafting);
+         this.commonPlayerSpawnInfo.write(buffer);
+-        buffer.writeBoolean(!org.dreeam.leaf.config.modules.network.ChatMessageSignature.enabled || this.enforcesSecureChat); // Leaf - Mirai - Configurable chat message signatures
++        buffer.writeBoolean(!me.s0nd3r.watermc.core.config.modules.network.ChatMessageSignature.enabled || this.enforcesSecureChat); // Leaf - Mirai - Configurable chat message signatures
+     }
+ 
+     @Override

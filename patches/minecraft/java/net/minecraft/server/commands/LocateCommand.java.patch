@@ -1,0 +1,82 @@
+diff --git a/java/net/minecraft/server/commands/LocateCommand.java b/java/net/minecraft/server/commands/LocateCommand.java
+index 1e2bb8a9e447db6a98b8ffdf110ca7ace51ec997..e8e157f2bab3f148b55981cd257d13e9300d5331 100644
+--- a/java/net/minecraft/server/commands/LocateCommand.java
++++ b/java/net/minecraft/server/commands/LocateCommand.java
+@@ -99,7 +99,51 @@ public class LocateCommand {
+             .map(resourceKey -> structureRegistry.get((ResourceKey<Structure>)resourceKey).map(holder -> HolderSet.direct(holder)), structureRegistry::get);
+     }
+ 
++    // WaterMc start - async /locate (idea: DivineMC, BX-Team, GPL-3.0), restricted to safe cases
++    // Only a player or the console without a result callback (no /execute store, not a command block or function):
++    // the command returns 0 at once and the answer is sent from the main thread when the search finishes.
++    private static boolean waterLocateAsync(CommandSourceStack source) {
++        return me.s0nd3r.watermc.core.config.modules.async.AsyncLocate.enabled
++            && source.callback() == net.minecraft.commands.CommandResultCallback.EMPTY
++            && (source.getEntity() instanceof net.minecraft.server.level.ServerPlayer || source.source instanceof net.minecraft.server.MinecraftServer);
++    }
++
++    private interface WaterLocateSearch {
++        int run() throws CommandSyntaxException;
++    }
++
++    private static int waterRunLocate(CommandSourceStack source, WaterLocateSearch search) throws CommandSyntaxException {
++        if (!waterLocateAsync(source)) {
++            return search.run();
++        }
++        io.papermc.paper.util.MCUtil.scheduleAsyncTask(() -> {
++            try {
++                search.run();
++            } catch (CommandSyntaxException ex) {
++                source.getServer().execute(() -> source.sendFailure(net.minecraft.network.chat.ComponentUtils.fromMessage(ex.getRawMessage())));
++            } catch (Throwable t) {
++                LOGGER.error("Async /locate failed", t);
++                source.getServer().execute(() -> source.sendFailure(Component.literal("Locate failed: " + t)));
++            }
++        });
++        return 0;
++    }
++    // WaterMc end
++
++    /** Messages go out from the main thread (they are also broadcast to operators). */
++    private static int waterShow(CommandSourceStack source, java.util.function.IntSupplier show) {
++        if (ca.spottedleaf.moonrise.common.util.TickThread.isTickThread()) { // synchronous path (main or a world thread): unchanged behaviour
++            return show.getAsInt();
++        }
++        source.getServer().execute(show::getAsInt);
++        return 0;
++    }
++
+     private static int locateStructure(CommandSourceStack source, ResourceOrTagKeyArgument.Result<Structure> structure) throws CommandSyntaxException {
++        return waterRunLocate(source, () -> locateStructure0(source, structure)); // WaterMc - async /locate
++    }
++
++    private static int locateStructure0(CommandSourceStack source, ResourceOrTagKeyArgument.Result<Structure> structure) throws CommandSyntaxException { // WaterMc - async /locate
+         Registry<Structure> registry = source.getLevel().registryAccess().lookupOrThrow(Registries.STRUCTURE);
+         HolderSet<Structure> holderSet = (HolderSet<Structure>)getHolders(structure, registry)
+             .orElseThrow(() -> ERROR_STRUCTURE_INVALID.create(structure.asPrintable()));
+@@ -111,11 +155,15 @@ public class LocateCommand {
+         if (pair == null) {
+             throw ERROR_STRUCTURE_NOT_FOUND.create(structure.asPrintable());
+         } else {
+-            return showLocateResult(source, structure, blockPos, pair, "commands.locate.structure.success", false, stopwatch.elapsed());
++            return waterShow(source, () -> showLocateResult(source, structure, blockPos, pair, "commands.locate.structure.success", false, stopwatch.elapsed())); // WaterMc - async /locate
+         }
+     }
+ 
+     private static int locateBiome(CommandSourceStack source, ResourceOrTagArgument.Result<Biome> biome) throws CommandSyntaxException {
++        return waterRunLocate(source, () -> locateBiome0(source, biome)); // WaterMc - async /locate
++    }
++
++    private static int locateBiome0(CommandSourceStack source, ResourceOrTagArgument.Result<Biome> biome) throws CommandSyntaxException { // WaterMc - async /locate
+         BlockPos blockPos = BlockPos.containing(source.getPosition());
+         Stopwatch stopwatch = Stopwatch.createStarted(Util.TICKER);
+         Pair<BlockPos, Holder<Biome>> pair = source.getLevel().findClosestBiome3d(biome, blockPos, 6400, 32, 64);
+@@ -123,7 +171,7 @@ public class LocateCommand {
+         if (pair == null) {
+             throw ERROR_BIOME_NOT_FOUND.create(biome.asPrintable());
+         } else {
+-            return showLocateResult(source, biome, blockPos, pair, "commands.locate.biome.success", true, stopwatch.elapsed());
++            return waterShow(source, () -> showLocateResult(source, biome, blockPos, pair, "commands.locate.biome.success", true, stopwatch.elapsed())); // WaterMc - async /locate
+         }
+     }
+ 

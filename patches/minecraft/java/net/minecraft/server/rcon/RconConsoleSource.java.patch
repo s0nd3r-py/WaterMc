@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/server/rcon/RconConsoleSource.java b/java/net/minecraft/server/rcon/RconConsoleSource.java
+index bb39dc18fd21cfe866ad542407e50b70ba73d7eb..a63c7420af87e736a1d7a51333c048638c917b7e 100644
+--- a/java/net/minecraft/server/rcon/RconConsoleSource.java
++++ b/java/net/minecraft/server/rcon/RconConsoleSource.java
+@@ -12,7 +12,7 @@ import net.minecraft.world.phys.Vec3;
+ public class RconConsoleSource implements CommandSource {
+     private static final String RCON = "Rcon";
+     private static final Component RCON_COMPONENT = Component.literal("Rcon");
+-    private final StringBuffer buffer = new StringBuffer();
++    private final StringBuilder buffer = new StringBuilder(); // WaterMc - commands run on the main thread; RCON reads after the blocking task completes
+     private final MinecraftServer server;
+     // CraftBukkit start
+     public final java.net.SocketAddress socketAddress;

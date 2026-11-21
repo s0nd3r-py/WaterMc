@@ -1,0 +1,182 @@
+diff --git a/java/net/minecraft/world/entity/LivingEntity.java b/java/net/minecraft/world/entity/LivingEntity.java
+index 3b83547dcfa6286b4e03b41583429a50a0a3744e..142598f506f2a3ccf0698cf6a0082418b1886458 100644
+--- a/java/net/minecraft/world/entity/LivingEntity.java
++++ b/java/net/minecraft/world/entity/LivingEntity.java
+@@ -154,7 +154,7 @@ import org.bukkit.event.entity.EntityRegainHealthEvent;
+ import org.bukkit.event.entity.EntityResurrectEvent;
+ // CraftBukkit end
+ 
+-public abstract class LivingEntity extends Entity implements Attackable, WaypointTransmitter, net.caffeinemc.mods.lithium.common.world.in_world_tracking.MaybeInLevelObject { // Leaf - Lithium - equipment tracking
++public abstract class LivingEntity extends Entity implements Attackable, WaypointTransmitter, me.s0nd3r.watermc.engine.common.world.in_world_tracking.MaybeInLevelObject { // Leaf - Lithium - equipment tracking
+     private static final Logger LOGGER = LogUtils.getLogger();
+     private static final String TAG_ACTIVE_EFFECTS = "active_effects";
+     public static final String TAG_ATTRIBUTES = "attributes";
+@@ -304,6 +304,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+         this.craftAttributes = new org.bukkit.craftbukkit.attribute.CraftAttributeMap(this.attributes); // CraftBukkit
+         // CraftBukkit - this.setHealth(this.getMaxHealth()) inlined and simplified to skip the instanceof check for Player, as getBukkitEntity() is not initialized in constructor
+         this.entityData.set(LivingEntity.DATA_HEALTH_ID, this.getMaxHealth());
++        this.waterRefreshHealthCache(); // WaterMc
+         this.equipment = this.createEquipment();
+         this.blocksBuilding = true;
+         this.reapplyPosition();
+@@ -1021,7 +1022,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+             }
+ 
+             List<ParticleOptions> list = this.entityData.get(DATA_EFFECT_PARTICLES);
+-            if (!org.dreeam.leaf.config.modules.opt.ReduceUselessPackets.disableUselessParticles && !list.isEmpty()) { // Leaf - Disable Useless Particles
++            if (!me.s0nd3r.watermc.core.config.modules.opt.ReduceUselessPackets.disableUselessParticles && !list.isEmpty()) { // Leaf - Disable Useless Particles
+                 boolean flag = this.entityData.get(DATA_EFFECT_AMBIENCE_ID);
+                 int i = this.isInvisible() ? 15 : 4;
+                 int i1 = flag ? 5 : 1;
+@@ -1398,7 +1399,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+         int[] attributesToUpdate = this.getAttributes().getAttributesToUpdateIds();
+ 
+         for (int attribute : attributesToUpdate) {
+-            this.onAttributeUpdated(org.dreeam.leaf.util.RegistryTypeManager.ATTRIBUTE[attribute]);
++            this.onAttributeUpdated(me.s0nd3r.watermc.core.util.RegistryTypeManager.ATTRIBUTE[attribute]);
+         }
+         // Leaf end - optimize attribute
+     }
+@@ -1459,9 +1460,23 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+             return (float) player.getBukkitEntity().getHealth();
+         }
+         // CraftBukkit end
++        if (this.waterHealthCached) return this.waterHealth; // WaterMc - primitive copy of DATA_HEALTH_ID
+         return this.entityData.get(DATA_HEALTH_ID);
+     }
+ 
++    // WaterMc start - health cache
++    // isAlive() -> getHealth() is called from every targeting check; reading SynchedEntityData walks
++    // entity -> itemsById -> DataItem -> boxed Float and was ~4.5% of tick CPU in a 1500-mob profile.
++    // The copy is refreshed after every write to DATA_HEALTH_ID (setHealth, constructor, CraftPlayer, sync callback).
++    private float waterHealth;
++    private boolean waterHealthCached;
++
++    public final void waterRefreshHealthCache() {
++        this.waterHealth = this.entityData.get(DATA_HEALTH_ID);
++        this.waterHealthCached = true;
++    }
++    // WaterMc end
++
+     public void setHealth(float health, boolean bypassCap) { // Leaf - Fix MC-17876
+         // Paper start - Check for NaN
+         if (Float.isNaN(health)) { health = getMaxHealth(); if (this.valid) {
+@@ -1481,10 +1496,12 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+ 
+             //player.updateScaledHealth(false); // Leaf - Fix sprint glitch - commented out
+             this.entityData.set(LivingEntity.DATA_HEALTH_ID, player.getScaledHealth()); // Leaf - Fix sprint glitch
++            this.waterRefreshHealthCache(); // WaterMc
+             return;
+         }
+         // CraftBukkit end
+         this.entityData.set(DATA_HEALTH_ID, bypassCap ? this.leaf$sanitizeHealth(health) : Mth.clamp(health, 0.0F, this.getMaxHealth())); // Leaf - Fix MC-17876
++        this.waterRefreshHealthCache(); // WaterMc
+     }
+ 
+     // Leaf start - Fix MC-17876
+@@ -2239,7 +2256,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+ 
+     // Leaf start - Configurable player knockback zombie
+     private boolean canKnockback(@Nullable Entity attacker, LivingEntity target) {
+-        if (!org.dreeam.leaf.config.modules.gameplay.Knockback.canPlayerKnockbackZombie) {
++        if (!me.s0nd3r.watermc.core.config.modules.gameplay.Knockback.canPlayerKnockbackZombie) {
+             if (attacker instanceof ServerPlayer && target.getType() == EntityType.ZOMBIE) { // Player -> Zombie
+                 return false;
+             } else if (attacker instanceof Projectile projectile && projectile.getOwner() instanceof ServerPlayer && target.getType() == EntityType.ZOMBIE) { // Player -> projectile -> Zombie
+@@ -2353,10 +2370,10 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+             }
+             // Gale end - don't load chunks to activate climbing entities
+             final int flags = inBlockState.tagFlag;
+-            if (this.isFallFlying() && (flags & org.dreeam.leaf.util.BlockMasks.CAN_GLIDE_THROUGH_TAG) != 0) {
++            if (this.isFallFlying() && (flags & me.s0nd3r.watermc.core.util.BlockMasks.CAN_GLIDE_THROUGH_TAG) != 0) {
+                 return 0;
+-            } else if ((flags & org.dreeam.leaf.util.BlockMasks.CLIMBABLE_TAG) != 0
+-                || ((flags & org.dreeam.leaf.util.BlockMasks.TRAP_DOOR_CL) != 0 && this.trapdoorUsableAsLadder(blockPos, inBlockState))) {
++            } else if ((flags & me.s0nd3r.watermc.core.util.BlockMasks.CLIMBABLE_TAG) != 0
++                || ((flags & me.s0nd3r.watermc.core.util.BlockMasks.TRAP_DOOR_CL) != 0 && this.trapdoorUsableAsLadder(blockPos, inBlockState))) {
+                 this.lastClimbablePos = Optional.of(blockPos);
+                 return 1;
+             } else {
+@@ -2882,7 +2899,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+                 this.swapHandItems();
+                 break;
+             case 60:
+-                if (!org.dreeam.leaf.config.modules.opt.ReduceUselessPackets.disableUselessParticles) this.makePoofParticles(); // Leaf - Disable Useless Particles
++                if (!me.s0nd3r.watermc.core.config.modules.opt.ReduceUselessPackets.disableUselessParticles) this.makePoofParticles(); // Leaf - Disable Useless Particles
+                 break;
+             case 65:
+                 this.breakItem(this.getItemBySlot(EquipmentSlot.BODY));
+@@ -3952,7 +3969,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+             this.checkAutoSpinAttack(boundingBox, this.getBoundingBox());
+         }
+ 
+-        if (!org.dreeam.leaf.config.modules.gameplay.OnlyPlayerPushable.enabled) this.pushEntities(); // Leaf - Only player pushable
++        if (!me.s0nd3r.watermc.core.config.modules.gameplay.OnlyPlayerPushable.enabled) this.pushEntities(); // Leaf - Only player pushable
+         profilerFiller.pop();
+         // Paper start - Add EntityMoveEvent
+         // Purpur start - Ridables
+@@ -4107,7 +4124,23 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+         // Paper end - don't run getEntities if we're not going to use its result
+         // Leaf start - Only player pushable
+         final AABB box = this.getBoundingBox();
+-        List<Entity> pushableEntities = org.dreeam.leaf.config.modules.gameplay.OnlyPlayerPushable.enabled
++        // WaterMc start - stop the neighbour scan once enough entities are found (see me.s0nd3r.watermc.world.PushQuery)
++        final boolean waterLimited = !me.s0nd3r.watermc.core.config.modules.gameplay.OnlyPlayerPushable.enabled && me.s0nd3r.watermc.world.PushQuery.ENABLED;
++        boolean waterTruncated = false;
++        final List<Entity> pushableEntities;
++        if (waterLimited) {
++            final int waterLimit = me.s0nd3r.watermc.world.PushQuery.limit(i, this.level().paperConfig().collisions.maxEntityCollisions);
++            final java.util.function.Predicate<Entity> pushable = EntitySelector.pushableBy(this);
++            pushableEntities = new java.util.ArrayList<>();
++            ((ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemLevel) this.level()).moonrise$getEntityLookup().getEntities(this, box, pushableEntities, pushable, waterLimit);
++            waterTruncated = me.s0nd3r.watermc.world.PushQuery.truncated(pushableEntities.size(), waterLimit);
++            if (!waterTruncated) {
++                // same tail as Level#getEntities (ender dragon parts); a truncated list never reaches the tail
++                ca.spottedleaf.moonrise.common.PlatformHooks.get().addToGetEntities(this.level(), this, box, pushable, pushableEntities);
++            }
++        } else
++        // WaterMc end
++        pushableEntities = me.s0nd3r.watermc.core.config.modules.gameplay.OnlyPlayerPushable.enabled
+             ? getNearbyPushablePlayers(this, box, EntitySelector.pushableBy(this))
+             : this.level().getPushableEntities(this, box);
+         // Leaf end - Only player pushable
+@@ -4115,15 +4148,11 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+             if (this.level() instanceof ServerLevel serverLevel) {
+                 // Paper - don't run getEntities if we're not going to use its result; moved up
+                 if (i > 0 && pushableEntities.size() > i - 1 && this.random.nextInt(4) == 0) {
+-                    int i1 = 0;
+-
+-                    for (Entity entity : pushableEntities) {
+-                        if (!entity.isPassenger()) {
+-                            i1++;
+-                        }
+-                    }
++                    // WaterMc - identical decision; falls back to the full scan only when the truncated list cannot decide
++                    final boolean crammed = me.s0nd3r.watermc.world.PushQuery.crammed(pushableEntities, waterTruncated,
++                        () -> this.level().getPushableEntities(this, box), Entity::isPassenger, i);
+ 
+-                    if (i1 > i - 1) {
++                    if (crammed) {
+                         this.hurtServer(serverLevel, this.damageSources().cramming(), 6.0F);
+                     }
+                 }
+@@ -4420,9 +4449,9 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+             }
+ 
+             if (randomizeMotion) {
+-                float f = this.random.nextFloat() * (float) org.dreeam.leaf.config.modules.gameplay.DeathItemDropKnockback.horizontalForce; // Leaf - Add configurable death item drop knockback settings
++                float f = this.random.nextFloat() * (float) me.s0nd3r.watermc.core.config.modules.gameplay.DeathItemDropKnockback.horizontalForce; // Leaf - Add configurable death item drop knockback settings
+                 float f1 = this.random.nextFloat() * (float) (Math.PI * 2);
+-                itemEntity.setDeltaMovement(-Mth.sin(f1) * f, (float) org.dreeam.leaf.config.modules.gameplay.DeathItemDropKnockback.verticalForce, Mth.cos(f1) * f); // Leaf - Add configurable death item drop knockback settings
++                itemEntity.setDeltaMovement(-Mth.sin(f1) * f, (float) me.s0nd3r.watermc.core.config.modules.gameplay.DeathItemDropKnockback.verticalForce, Mth.cos(f1) * f); // Leaf - Add configurable death item drop knockback settings
+             } else {
+                 float f = 0.3F;
+                 float f1 = Mth.sin(this.getXRot() * (float) (Math.PI / 180.0));
+@@ -4502,6 +4531,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+     @Override
+     public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
+         super.onSyncedDataUpdated(key);
++        if (DATA_HEALTH_ID.equals(key)) this.waterRefreshHealthCache(); // WaterMc - any other write path
+         if (SLEEPING_POS_ID.equals(key)) {
+             if (this.level().isClientSide()) {
+                 this.getSleepingPos().ifPresent(this::setPosToBed);

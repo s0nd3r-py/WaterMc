@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/gameevent/vibrations/VibrationSystem.java b/java/net/minecraft/world/level/gameevent/vibrations/VibrationSystem.java
+index 8ee5ec279acde39c6137dc72bafa1aa1d6184fd3..da0679ff431c0cb4944ac21e9b38ac133a2b8989 100644
+--- a/java/net/minecraft/world/level/gameevent/vibrations/VibrationSystem.java
++++ b/java/net/minecraft/world/level/gameevent/vibrations/VibrationSystem.java
+@@ -181,7 +181,7 @@ public interface VibrationSystem {
+         }
+     }
+ 
+-    public static class Listener implements GameEventListener, net.caffeinemc.mods.lithium.common.block.entity.sleeping_sculk.GameEventListenerWithCallback { // Leaves - Lithium Sleeping Block Entity
++    public static class Listener implements GameEventListener, me.s0nd3r.watermc.engine.common.block.entity.sleeping_sculk.GameEventListenerWithCallback { // Leaves - Lithium Sleeping Block Entity
+         private final VibrationSystem system;
+ 
+         public Listener(VibrationSystem system) {

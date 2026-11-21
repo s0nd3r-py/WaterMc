@@ -1,0 +1,33 @@
+diff --git a/java/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java b/java/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java
+index 499cad369242f9ad724b3251538d62d8dc8d2ec8..5a55f0146430c38e235f2367730b09888b56c80c 100644
+--- a/java/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java
++++ b/java/ca/spottedleaf/moonrise/common/misc/NearbyPlayers.java
+@@ -164,8 +164,8 @@ public final class NearbyPlayers {
+         private int nonEmptyLists;
+         private long updateCount;
+ 
+-        public final it.unimi.dsi.fastutil.objects.ReferenceSet<ServerPlayer> playersTracking = org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled ? it.unimi.dsi.fastutil.objects.ReferenceSets.synchronize(new it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet<>(1)) : null; // Leaf - Multithreaded tracker
+-        public final java.util.concurrent.atomic.AtomicLong trackingUpdateCountAtomic = org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled ? new java.util.concurrent.atomic.AtomicLong(0) : null; // Leaf - Multithreaded tracker
++        public final it.unimi.dsi.fastutil.objects.ReferenceSet<ServerPlayer> playersTracking = me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled ? it.unimi.dsi.fastutil.objects.ReferenceSets.synchronize(new it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet<>(1)) : null; // Leaf - Multithreaded tracker
++        public final java.util.concurrent.atomic.AtomicLong trackingUpdateCountAtomic = me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled ? new java.util.concurrent.atomic.AtomicLong(0) : null; // Leaf - Multithreaded tracker
+         public TrackedChunk(final long chunkKey, final NearbyPlayers nearbyPlayers) {
+             this.chunkKey = chunkKey;
+             this.nearbyPlayers = nearbyPlayers;
+@@ -194,7 +194,7 @@ public final class NearbyPlayers {
+ 
+             final int idx = type.ordinal();
+             // Leaf start - Multithreaded tracker
+-            if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled && idx == NearbyMapType.VIEW_DISTANCE.ordinal()) {
++            if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled && idx == NearbyMapType.VIEW_DISTANCE.ordinal()) {
+                 this.trackingUpdateCountAtomic.getAndIncrement();
+                 this.playersTracking.add(player);
+             }
+@@ -218,7 +218,7 @@ public final class NearbyPlayers {
+ 
+             final int idx = type.ordinal();
+             // Leaf start - Multithreaded tracker
+-            if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled && type == NearbyMapType.VIEW_DISTANCE) {
++            if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled && type == NearbyMapType.VIEW_DISTANCE) {
+                 this.trackingUpdateCountAtomic.getAndIncrement();
+                 this.playersTracking.remove(player);
+             }

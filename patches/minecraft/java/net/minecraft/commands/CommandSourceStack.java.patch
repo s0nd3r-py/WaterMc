@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/commands/CommandSourceStack.java b/java/net/minecraft/commands/CommandSourceStack.java
+index 6bc333c6c173e775f6afb4f1d18c5298aa1f7679..6b767cb12ec612f4d4f84a8f9fe116137cb7541b 100644
+--- a/java/net/minecraft/commands/CommandSourceStack.java
++++ b/java/net/minecraft/commands/CommandSourceStack.java
+@@ -599,7 +599,7 @@ public class CommandSourceStack implements ExecutionCommandSource<CommandSourceS
+ 
+     @Override
+     public Collection<String> getOnlinePlayerNames() {
+-        return this.entity instanceof ServerPlayer sourcePlayer && !(sourcePlayer instanceof org.leavesmc.leaves.replay.ServerPhotographer) && !sourcePlayer.getBukkitEntity().hasPermission("paper.bypass-visibility.tab-completion") ? this.getServer().getPlayerList().getPlayers().stream().filter(serverPlayer -> sourcePlayer.getBukkitEntity().canSee(serverPlayer.getBukkitEntity())).map(serverPlayer -> serverPlayer.getGameProfile().name()).toList() : Lists.newArrayList(this.server.getPlayerNames()); // Paper - Make CommandSourceStack respect hidden players // Leaves - only real player
++        return this.entity instanceof ServerPlayer sourcePlayer && !(sourcePlayer instanceof me.s0nd3r.watermc.integration.replay.ServerPhotographer) && !sourcePlayer.getBukkitEntity().hasPermission("paper.bypass-visibility.tab-completion") ? this.getServer().getPlayerList().getPlayers().stream().filter(serverPlayer -> sourcePlayer.getBukkitEntity().canSee(serverPlayer.getBukkitEntity())).map(serverPlayer -> serverPlayer.getGameProfile().name()).toList() : Lists.newArrayList(this.server.getPlayerNames()); // Paper - Make CommandSourceStack respect hidden players // Leaves - only real player
+     }
+ 
+     @Override

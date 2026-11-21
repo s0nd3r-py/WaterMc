@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/levelgen/DensityFunctions.java b/java/net/minecraft/world/level/levelgen/DensityFunctions.java
+index 138c3f7b871d64019613955547b5e770f7aec436..f10099104b3d35e7386ff35de99ec2506f27f604 100644
+--- a/java/net/minecraft/world/level/levelgen/DensityFunctions.java
++++ b/java/net/minecraft/world/level/levelgen/DensityFunctions.java
+@@ -524,7 +524,7 @@ public final class DensityFunctions {
+         // Paper end - Perf: Optimize end generation
+ 
+         public EndIslandDensityFunction(long seed) {
+-            RandomSource randomSource = org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(seed) : new LegacyRandomSource(seed); // Leaf - Faster random generator
++            RandomSource randomSource = me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(seed) : new LegacyRandomSource(seed); // Leaf - Faster random generator
+             randomSource.consumeCount(17292);
+             this.islandNoise = new SimplexNoise(randomSource);
+         }

@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/world/entity/ai/navigation/FlyingPathNavigation.java b/java/net/minecraft/world/entity/ai/navigation/FlyingPathNavigation.java
+index acdaba39f78c499cee08fdb0a65ed9dd7754730b..f171ee1f1efb4b0dd87bc45df56389468ef5f67b 100644
+--- a/java/net/minecraft/world/entity/ai/navigation/FlyingPathNavigation.java
++++ b/java/net/minecraft/world/entity/ai/navigation/FlyingPathNavigation.java
+@@ -16,7 +16,7 @@ public class FlyingPathNavigation extends PathNavigation {
+     }
+ 
+     // Kaiiju start - petal - async path processing
+-    private static final org.dreeam.leaf.async.path.NodeEvaluatorGenerator nodeEvaluatorGenerator = (org.dreeam.leaf.async.path.NodeEvaluatorFeatures nodeEvaluatorFeatures) -> {
++    private static final me.s0nd3r.watermc.core.async.path.NodeEvaluatorGenerator nodeEvaluatorGenerator = (me.s0nd3r.watermc.core.async.path.NodeEvaluatorFeatures nodeEvaluatorFeatures) -> {
+         FlyNodeEvaluator nodeEvaluator = new FlyNodeEvaluator();
+         nodeEvaluator.setCanPassDoors(nodeEvaluatorFeatures.canPassDoors());
+         nodeEvaluator.setCanFloat(nodeEvaluatorFeatures.canFloat());
+@@ -30,7 +30,7 @@ public class FlyingPathNavigation extends PathNavigation {
+     protected PathFinder createPathFinder(int maxVisitedNodes) {
+         this.nodeEvaluator = new FlyNodeEvaluator();
+         // Kaiiju start - petal - async path processing
+-        if (org.dreeam.leaf.config.modules.async.AsyncPathfinding.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.AsyncPathfinding.enabled) {
+             return new PathFinder(this.nodeEvaluator, maxVisitedNodes, nodeEvaluatorGenerator);
+         }
+         // Kaiiju end - petal - async path processing

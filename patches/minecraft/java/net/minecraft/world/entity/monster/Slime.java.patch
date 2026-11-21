@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/monster/Slime.java b/java/net/minecraft/world/entity/monster/Slime.java
+index d5182d0d3e50602d9887a87c3b0fe10b9d49a689..d0b008bc98f7d12acefd8c3a019e66aca08c4aba 100644
+--- a/java/net/minecraft/world/entity/monster/Slime.java
++++ b/java/net/minecraft/world/entity/monster/Slime.java
+@@ -431,7 +431,7 @@ public class Slime extends Mob implements Enemy {
+ 
+             ChunkPos chunkPos = new ChunkPos(pos);
+             // Leaf start - Matter - Secure Seed
+-            boolean flag = level.getMinecraftWorld().paperConfig().entities.spawning.allChunksAreSlimeChunks || org.dreeam.leaf.config.modules.misc.SecureSeed.enabled
++            boolean flag = level.getMinecraftWorld().paperConfig().entities.spawning.allChunksAreSlimeChunks || me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled
+                 ? level.getChunk(chunkPos.x, chunkPos.z).isSlimeChunk()
+                 : WorldgenRandom.seedSlimeChunk(chunkPos.x, chunkPos.z, ((WorldGenLevel) level).getSeed(), level.getMinecraftWorld().spigotConfig.slimeSeed).nextInt(10) == 0; // Paper
+             // Leaf end - Matter - Secure Seed

@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/Container.java b/java/net/minecraft/world/Container.java
+index e7ce25e83c0045b01905dac385cfd2f13e327880..583037cbb8d385b3f0b40c55c587557cbd2d8436 100644
+--- a/java/net/minecraft/world/Container.java
++++ b/java/net/minecraft/world/Container.java
+@@ -16,7 +16,7 @@ import net.minecraft.world.level.Level;
+ import net.minecraft.world.level.block.entity.BlockEntity;
+ import org.jspecify.annotations.Nullable;
+ 
+-public interface Container extends Clearable, SlotProvider, Iterable<ItemStack>, net.caffeinemc.mods.lithium.api.inventory.LithiumCooldownReceivingInventory, net.caffeinemc.mods.lithium.api.inventory.LithiumTransferConditionInventory { // Leaves - Lithium Sleeping Block Entity
++public interface Container extends Clearable, SlotProvider, Iterable<ItemStack>, me.s0nd3r.watermc.engine.api.inventory.LithiumCooldownReceivingInventory, me.s0nd3r.watermc.engine.api.inventory.LithiumTransferConditionInventory { // Leaves - Lithium Sleeping Block Entity
+     float DEFAULT_DISTANCE_BUFFER = 4.0F;
+ 
+     int getContainerSize();

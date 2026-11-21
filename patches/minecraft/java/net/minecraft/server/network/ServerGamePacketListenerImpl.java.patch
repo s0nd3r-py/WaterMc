@@ -1,0 +1,101 @@
+diff --git a/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+index 2a107ee7ad68a2098306ed12c4e5b774d825adfd..31bab8b7c261de369598e2f35aec4214cd2c5c26 100644
+--- a/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -332,10 +332,10 @@ public class ServerGamePacketListenerImpl
+         this.chatMessageChain = new FutureChain(server.chatExecutor); // CraftBukkit - async chat
+         this.tickEndEvent = new io.papermc.paper.event.packet.ClientTickEndEvent(player.getBukkitEntity()); // Paper - add client tick end event
+         this.playerGameConnection =  new io.papermc.paper.connection.PaperPlayerGameConnection(this); // Paper
+-        this.exchangeTarget = new org.leavesmc.leaves.protocol.syncmatica.exchange.ExchangeTarget(this); // Leaves - Syncmatica Protocol
++        this.exchangeTarget = new me.s0nd3r.watermc.integration.protocol.syncmatica.exchange.ExchangeTarget(this); // Leaves - Syncmatica Protocol
+     }
+ 
+-    public final org.leavesmc.leaves.protocol.syncmatica.exchange.ExchangeTarget exchangeTarget; // Leaves - Syncmatica Protocol
++    public final me.s0nd3r.watermc.integration.protocol.syncmatica.exchange.ExchangeTarget exchangeTarget; // Leaves - Syncmatica Protocol
+ 
+     // Paper start - configuration phase API
+     @Override
+@@ -1315,7 +1315,7 @@ public class ServerGamePacketListenerImpl
+     @Override
+     public void handleEditBook(ServerboundEditBookPacket packet) {
+         // Gale start - Pufferfish - make book writing configurable
+-        if (!(org.galemc.gale.configuration.GaleGlobalConfiguration.get().gameplayMechanics.enableBookWriting || this.player.getBukkitEntity().hasPermission(org.bukkit.craftbukkit.util.permissions.CraftDefaultPermissions.writeBooks) || this.player.getBukkitEntity().hasPermission("pufferfish.usebooks"))) {
++        if (!(me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().gameplayMechanics.enableBookWriting || this.player.getBukkitEntity().hasPermission(org.bukkit.craftbukkit.util.permissions.CraftDefaultPermissions.writeBooks) || this.player.getBukkitEntity().hasPermission("pufferfish.usebooks"))) {
+             return;
+         }
+         // Gale end - Pufferfish - make book writing configurable
+@@ -1704,6 +1704,39 @@ public class ServerGamePacketListenerImpl
+                                         this.lastPitch = prevPitch;
+                                         this.hasMoved = true;
+                                     }
++                                    // WaterMc start - zero-allocation path when nobody listens to PlayerMoveEvent (same side effects, no Location objects)
++                                    if (!me.s0nd3r.watermc.event.WaterEvents.hasPlayerMoveListeners()) {
++                                        final double waterToX = packet.hasPos ? packet.x : this.player.getX();
++                                        final double waterToY = packet.hasPos ? packet.y : this.player.getY();
++                                        final double waterToZ = packet.hasPos ? packet.z : this.player.getZ();
++                                        final float waterToYaw = packet.hasRot ? packet.yRot : this.player.getBukkitYaw();
++                                        final float waterToPitch = packet.hasRot ? packet.xRot : this.player.getXRot();
++                                        final double waterFromX = this.lastPosX;
++                                        final double waterFromY = this.lastPosY;
++                                        final double waterFromZ = this.lastPosZ;
++                                        final float waterFromYaw = this.lastYaw;
++                                        final float waterFromPitch = this.lastPitch;
++                                        final double waterDelta = Mth.square(waterFromX - waterToX) + Mth.square(waterFromY - waterToY) + Mth.square(waterFromZ - waterToZ);
++                                        final float waterDeltaAngle = Math.abs(waterFromYaw - waterToYaw) + Math.abs(waterFromPitch - waterToPitch);
++                                        if ((waterDelta > 1f / 256 || waterDeltaAngle > 10f) && !this.player.isImmobile()) {
++                                            this.lastPosX = waterToX;
++                                            this.lastPosY = waterToY;
++                                            this.lastPosZ = waterToZ;
++                                            this.lastYaw = waterToYaw;
++                                            this.lastPitch = waterToPitch;
++                                            if (Mth.floor(waterToX) != Mth.floor(waterFromX) || Mth.floor(waterToY) != Mth.floor(waterFromY) || Mth.floor(waterToZ) != Mth.floor(waterFromZ) || waterToYaw != waterFromYaw || waterToPitch != waterFromPitch) this.player.resetLastActionTime(); // Purpur - AFK API
++                                            // Mirrors "!from.equals(getCraftPlayer().getLocation()) && justTeleported" (Location.equals compares raw bits)
++                                            if (this.justTeleported && !(Double.doubleToLongBits(waterFromX) == Double.doubleToLongBits(this.player.getX())
++                                                && Double.doubleToLongBits(waterFromY) == Double.doubleToLongBits(this.player.getY())
++                                                && Double.doubleToLongBits(waterFromZ) == Double.doubleToLongBits(this.player.getZ())
++                                                && Float.floatToIntBits(waterFromYaw) == Float.floatToIntBits(this.player.getBukkitYaw())
++                                                && Float.floatToIntBits(waterFromPitch) == Float.floatToIntBits(this.player.getXRot()))) {
++                                                this.justTeleported = false;
++                                                return;
++                                            }
++                                        }
++                                    } else {
++                                    // WaterMc end
+                                     Location from = new Location(player.getWorld(), this.lastPosX, this.lastPosY, this.lastPosZ, this.lastYaw, this.lastPitch); // Get the Players previous Event location.
+                                     Location to = player.getLocation().clone(); // Start off the To location as the Players current location.
+ 
+@@ -1758,6 +1791,7 @@ public class ServerGamePacketListenerImpl
+                                             return;
+                                         }
+                                     }
++                                    } // WaterMc - end of PlayerMoveEvent listener path
+                                     // Paper end
+                                     this.player.absSnapTo(d, d1, d2, f, f1);
+                                     boolean isAutoSpinAttack = this.player.isAutoSpinAttack();
+@@ -2168,7 +2202,7 @@ public class ServerGamePacketListenerImpl
+                     Vec3 vec3 = location.subtract(Vec3.atCenterOf(blockPos));
+                     // Leaf start - Remove UseItemOnPacket Too Far check
+                     //double d = 1.0000001;
+-                    final double maxDistance = org.dreeam.leaf.config.modules.gameplay.ConfigurableMaxUseItemDistance.maxUseItemDistance;
++                    final double maxDistance = me.s0nd3r.watermc.core.config.modules.gameplay.ConfigurableMaxUseItemDistance.maxUseItemDistance;
+                     if (maxDistance <= 0
+                         || (Math.abs(vec3.x()) < maxDistance && Math.abs(vec3.y()) < maxDistance && Math.abs(vec3.z()) < maxDistance)
+                     ) {
+@@ -2603,7 +2637,7 @@ public class ServerGamePacketListenerImpl
+     // Leaf start - Improve Purpur AFK system
+     public static final Map<java.util.UUID, Long> afkCooldown = new it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap<>();
+     private boolean performAfkCooldown(String command) {
+-        if (!org.dreeam.leaf.config.modules.gameplay.AfkCommand.enabled || !"afk".equals(command)) {
++        if (!me.s0nd3r.watermc.core.config.modules.gameplay.AfkCommand.enabled || !"afk".equals(command)) {
+             return false;
+         }
+ 
+@@ -2704,7 +2738,7 @@ public class ServerGamePacketListenerImpl
+         // CraftBukkit start
+         String rawMessage = message.signedContent();
+         if (rawMessage.isEmpty()) {
+-            if (org.galemc.gale.configuration.GaleGlobalConfiguration.get().logToConsole.chat.emptyMessageWarning) LOGGER.warn("{} tried to send an empty message", this.player.getScoreboardName()); // Gale - do not log empty message warnings
++            if (me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().logToConsole.chat.emptyMessageWarning) LOGGER.warn("{} tried to send an empty message", this.player.getScoreboardName()); // Gale - do not log empty message warnings
+         } else if (this.getCraftPlayer().isConversing()) {
+             final String conversationInput = rawMessage;
+             this.server.processQueue.add(() -> ServerGamePacketListenerImpl.this.getCraftPlayer().acceptConversationInput(conversationInput));

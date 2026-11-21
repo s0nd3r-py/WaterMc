@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/chunk/status/ChunkStep.java b/java/net/minecraft/world/level/chunk/status/ChunkStep.java
+index df291819a7797428bf258787239667534bb6c094..871010a25b52804111c8784e532de1a4babcef34 100644
+--- a/java/net/minecraft/world/level/chunk/status/ChunkStep.java
++++ b/java/net/minecraft/world/level/chunk/status/ChunkStep.java
+@@ -60,7 +60,7 @@ public final class ChunkStep implements ca.spottedleaf.moonrise.patches.chunk_sy
+     }
+ 
+     public CompletableFuture<ChunkAccess> apply(WorldGenContext worldGenContext, StaticCache2D<GenerationChunkHolder> cache, ChunkAccess chunk) {
+-        su.plo.matter.Globals.setupGlobals(worldGenContext.level()); // Leaf - Matter - Secure Seed
++        me.s0nd3r.watermc.seed.Globals.setupGlobals(worldGenContext.level()); // Leaf - Matter - Secure Seed
+         if (chunk.getPersistedStatus().isBefore(this.targetStatus)) {
+             ProfiledDuration profiledDuration = JvmProfiler.INSTANCE
+                 .onChunkGenerate(chunk.getPos(), worldGenContext.level().dimension(), this.targetStatus.getName());

@@ -1,0 +1,52 @@
+diff --git a/java/net/minecraft/server/Services.java b/java/net/minecraft/server/Services.java
+index d2482e1e981ecd04a2650308407f109d427d0384..a3f9b3228e7b50b204f32996c91a9609cda661cd 100644
+--- a/java/net/minecraft/server/Services.java
++++ b/java/net/minecraft/server/Services.java
+@@ -19,7 +19,7 @@ public record Services(
+     UserNameToIdResolver nameToIdCache,
+     ProfileResolver profileResolver
+     , @javax.annotation.Nullable PaperServices paper // Paper
+-    , @javax.annotation.Nullable org.galemc.gale.configuration.GaleConfigurations galeConfigurations // Gale - Gale configuration
++    , @javax.annotation.Nullable me.s0nd3r.watermc.tuning.configuration.TuningConfigurations galeConfigurations // Gale - Gale configuration
+ ) {
+     public static final String USERID_CACHE_FILE = "usercache.json";
+ 
+@@ -34,7 +34,7 @@ public record Services(
+         this(sessionService, servicesKeySet, profileRepository, nameToIdCache, profileResolver, null, null);
+     }
+     public Services(MinecraftSessionService sessionService, ServicesKeySet servicesKeySet, GameProfileRepository profileRepository, UserNameToIdResolver nameToIdCache, ProfileResolver profileResolver, @javax.annotation.Nullable PaperServices paper) throws Exception {
+-        this(sessionService, servicesKeySet, profileRepository, nameToIdCache, profileResolver, paper, org.galemc.gale.configuration.GaleConfigurations.setup(paper.configurations().getGlobalConfigFile()));
++        this(sessionService, servicesKeySet, profileRepository, nameToIdCache, profileResolver, paper, me.s0nd3r.watermc.tuning.configuration.TuningConfigurations.setup(paper.configurations().getGlobalConfigFile()));
+     }
+     // Gale end - Gale configuration
+ 
+@@ -45,7 +45,7 @@ public record Services(
+     // Paper end - add paper configuration files
+     // Gale start - Gale configuration
+     @Override
+-    public org.galemc.gale.configuration.GaleConfigurations galeConfigurations() {
++    public me.s0nd3r.watermc.tuning.configuration.TuningConfigurations galeConfigurations() {
+         return java.util.Objects.requireNonNull(this.galeConfigurations);
+     }
+     // Gale end - Gale configuration
+@@ -55,8 +55,9 @@ public record Services(
+         GameProfileRepository gameProfileRepository = authenticationService.createProfileRepository();
+         UserNameToIdResolver userNameToIdResolver = new CachedUserNameToIdResolver(gameProfileRepository, userCacheFile); // Paper
+         // Paper start - load paper config files from cli options
+-        final java.nio.file.Path legacyConfigPath = ((File) optionSet.valueOf("paper-settings")).toPath();
+-        final java.nio.file.Path configDirPath = ((File) optionSet.valueOf("paper-settings-directory")).toPath();
++        final java.nio.file.Path legacyConfigPath = java.nio.file.Path.of("paper.yml"); // WaterMc - legacy paper.yml is only read for migration
++        final Object paperSettings = optionSet.valueOf("paper-settings"); // WaterMc - --paper-settings is the Paper config directory
++        final java.nio.file.Path configDirPath = paperSettings instanceof File dir ? dir.toPath() : me.s0nd3r.watermc.bootstrap.ServerLayout.current().configDir();
+         io.papermc.paper.configuration.PaperConfigurations paperConfigurations = io.papermc.paper.configuration.PaperConfigurations.setup(legacyConfigPath, configDirPath, profileRepository.toPath(), (File) optionSet.valueOf("spigot-settings"));
+         PaperServices paperServices = new PaperServices(
+             paperConfigurations,
+@@ -64,7 +65,7 @@ public record Services(
+         );
+         ProfileResolver profileResolver = new ProfileResolver.Cached(minecraftSessionService, userNameToIdResolver, paperServices.filledProfileCache());
+         // Gale start - Gale configuration
+-        org.galemc.gale.configuration.GaleConfigurations galeConfigurations = org.galemc.gale.configuration.GaleConfigurations.setup(configDirPath);
++        me.s0nd3r.watermc.tuning.configuration.TuningConfigurations galeConfigurations = me.s0nd3r.watermc.tuning.configuration.TuningConfigurations.setup(configDirPath);
+         return new Services(minecraftSessionService, authenticationService.getServicesKeySet(), gameProfileRepository, userNameToIdResolver, profileResolver, paperServices, galeConfigurations);
+         // Gale end - Gale configuration
+         // Paper end - load paper config files from cli options

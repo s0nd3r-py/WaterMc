@@ -1,0 +1,17 @@
+diff --git a/java/net/minecraft/world/level/levelgen/feature/GeodeFeature.java b/java/net/minecraft/world/level/levelgen/feature/GeodeFeature.java
+index 19d4efd66e5287104a85da708ca061038e1b8d72..a40265bbceb09b463645ebc95f257782d38f7d99 100644
+--- a/java/net/minecraft/world/level/levelgen/feature/GeodeFeature.java
++++ b/java/net/minecraft/world/level/levelgen/feature/GeodeFeature.java
+@@ -42,9 +42,9 @@ public class GeodeFeature extends Feature<GeodeConfiguration> {
+         List<Pair<BlockPos, Integer>> list = Lists.newLinkedList();
+         int i2 = geodeConfiguration.distributionPoints.sample(randomSource);
+         // Leaf start - Matter - Secure Seed
+-        WorldgenRandom worldgenRandom = org.dreeam.leaf.config.modules.misc.SecureSeed.enabled
+-                ? new su.plo.matter.WorldgenCryptoRandom(0, 0, su.plo.matter.Globals.Salt.GEODE_FEATURE, 0)
+-                : new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(worldGenLevel.getSeed()) : new LegacyRandomSource(worldGenLevel.getSeed())); // Leaf - Faster random generator
++        WorldgenRandom worldgenRandom = me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled
++                ? new me.s0nd3r.watermc.seed.WorldgenCryptoRandom(0, 0, me.s0nd3r.watermc.seed.Globals.Salt.GEODE_FEATURE, 0)
++                : new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(worldGenLevel.getSeed()) : new LegacyRandomSource(worldGenLevel.getSeed())); // Leaf - Faster random generator
+         // Leaf end - Matter - Secure Seed
+         NormalNoise normalNoise = NormalNoise.create(worldgenRandom, -4, 1.0);
+         List<BlockPos> list1 = Lists.newLinkedList();

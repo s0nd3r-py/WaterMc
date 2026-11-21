@@ -1,0 +1,76 @@
+diff --git a/java/net/minecraft/world/level/levelgen/feature/EndPodiumFeature.java b/java/net/minecraft/world/level/levelgen/feature/EndPodiumFeature.java
+index 4372f9abd26922a2381a9f4eb54e5a06c4e97a45..7d70a02fc6f6f7b11f9d0fca1d0067a9c43339d0 100644
+--- a/java/net/minecraft/world/level/levelgen/feature/EndPodiumFeature.java
++++ b/java/net/minecraft/world/level/levelgen/feature/EndPodiumFeature.java
+@@ -29,6 +29,7 @@ public class EndPodiumFeature extends Feature<NoneFeatureConfiguration> {
+     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+         BlockPos blockPos = context.origin();
+         WorldGenLevel worldGenLevel = context.level();
++        java.util.Set<BlockPos> cancelledBlocks = this.active ? new java.util.HashSet<>() : java.util.Set.of(); // Leaf - propagate block destruction cancellation
+ 
+         for (BlockPos blockPos1 : BlockPos.betweenClosed(
+             new BlockPos(blockPos.getX() - 4, blockPos.getY() - 1, blockPos.getZ() - 4),
+@@ -41,43 +42,56 @@ public class EndPodiumFeature extends Feature<NoneFeatureConfiguration> {
+                         this.setBlock(worldGenLevel, blockPos1, Blocks.BEDROCK.defaultBlockState());
+                     } else if (blockPos1.getY() < blockPos.getY()) {
+                         if (this.active) {
+-                            this.dropPreviousAndSetBlock(worldGenLevel, blockPos1, Blocks.END_STONE);
++                            this.dropPreviousAndSetBlock(worldGenLevel, blockPos1, Blocks.END_STONE, cancelledBlocks); // Leaf - propagate block destruction cancellation
+                         } else {
+                             this.setBlock(worldGenLevel, blockPos1, Blocks.END_STONE.defaultBlockState());
+                         }
+                     }
+                 } else if (blockPos1.getY() > blockPos.getY()) {
+                     if (this.active) {
+-                        this.dropPreviousAndSetBlock(worldGenLevel, blockPos1, Blocks.AIR);
++                        this.dropPreviousAndSetBlock(worldGenLevel, blockPos1, Blocks.AIR, cancelledBlocks); // Leaf - propagate block destruction cancellation
+                     } else {
+                         this.setBlock(worldGenLevel, blockPos1, Blocks.AIR.defaultBlockState());
+                     }
+                 } else if (!flag) {
+                     this.setBlock(worldGenLevel, blockPos1, Blocks.BEDROCK.defaultBlockState());
+                 } else if (this.active) {
+-                    this.dropPreviousAndSetBlock(worldGenLevel, new BlockPos(blockPos1), Blocks.END_PORTAL);
++                    this.dropPreviousAndSetBlock(worldGenLevel, new BlockPos(blockPos1), Blocks.END_PORTAL, cancelledBlocks); // Leaf - propagate block destruction cancellation
+                 } else {
+                     this.setBlock(worldGenLevel, new BlockPos(blockPos1), Blocks.AIR.defaultBlockState());
+                 }
+             }
+         }
+ 
++        // Leaf start - propagate block destruction cancellation
+         for (int i = 0; i < 4; i++) {
+-            this.setBlock(worldGenLevel, blockPos.above(i), Blocks.BEDROCK.defaultBlockState());
++            BlockPos pillarPos = blockPos.above(i);
++            if (!cancelledBlocks.contains(pillarPos)) {
++                this.setBlock(worldGenLevel, pillarPos, Blocks.BEDROCK.defaultBlockState());
++            }
+         }
+ 
+         BlockPos blockPos2 = blockPos.above(2);
+ 
+         for (Direction direction : Direction.Plane.HORIZONTAL.faces) { // Pluto - Expose Direction$Plane's faces
+-            this.setBlock(worldGenLevel, blockPos2.relative(direction), Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, direction));
++            BlockPos torchPos = blockPos2.relative(direction);
++            if (!cancelledBlocks.contains(torchPos)) {
++                this.setBlock(worldGenLevel, torchPos, Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, direction));
++            }
+         }
++        // Leaf end - propagate block destruction cancellation
+ 
+         return true;
+     }
+ 
+-    private void dropPreviousAndSetBlock(WorldGenLevel level, BlockPos pos, Block block) {
++    private void dropPreviousAndSetBlock(WorldGenLevel level, BlockPos pos, Block block, java.util.Set<BlockPos> cancelledBlocks) { // Leaf - propagate block destruction cancellation
+         if (!level.getBlockState(pos).is(block)) {
+-            level.destroyBlock(pos, true, null);
++            // Leaf start - propagate block destruction cancellation
++            if (level.destroyBlockWithResult(pos, true, null, Block.UPDATE_LIMIT).isCancelled()) {
++                cancelledBlocks.add(pos.immutable());
++                return;
++            }
++            // Leaf end - propagate block destruction cancellation
+             this.setBlock(level, pos, block.defaultBlockState());
+         }
+     }

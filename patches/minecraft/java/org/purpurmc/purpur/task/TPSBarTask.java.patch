@@ -1,0 +1,13 @@
+diff --git a/java/org/purpurmc/purpur/task/TPSBarTask.java b/java/org/purpurmc/purpur/task/TPSBarTask.java
+index b65c839e45402c618020c77fe63b89bd19cc7d96..9e43bae4be9639dd1a22141a664c3013d955fbcb 100644
+--- a/java/org/purpurmc/purpur/task/TPSBarTask.java
++++ b/java/org/purpurmc/purpur/task/TPSBarTask.java
+@@ -29,7 +29,7 @@ public class TPSBarTask extends BossBarTask {
+     @Override
+     void updateBossBar(BossBar bossbar, Player player) {
+         // SparklyPaper start - track world's MSPT
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
+             // Get player's current world
+             net.minecraft.server.level.ServerLevel serverLevel = ((org.bukkit.craftbukkit.CraftWorld) player.getWorld()).getHandle();
+ 

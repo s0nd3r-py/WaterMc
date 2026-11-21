@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/server/dedicated/ServerWatchdog.java b/java/net/minecraft/server/dedicated/ServerWatchdog.java
+index 6fe30fdeafc82b532574ed6a7c662a9b3adeabcc..70bde752d7fd259c25d769b264d8e15265008dd9 100644
+--- a/java/net/minecraft/server/dedicated/ServerWatchdog.java
++++ b/java/net/minecraft/server/dedicated/ServerWatchdog.java
+@@ -56,7 +56,7 @@ public class ServerWatchdog implements Runnable {
+                         .collect(Collectors.joining(",\n"))
+                 );
+                 Bootstrap.realStdoutPrintln("Crash report:\n" + crashReport.getFriendlyReport(ReportType.CRASH));
+-                Path path = this.server.getServerDirectory().resolve("crash-reports").resolve("crash-" + Util.getFilenameFormattedDateTime() + "-server.txt");
++                Path path = this.server.getServerDirectory().resolve("logs").resolve("crash-reports") /* WaterMc - logs/crash-reports */.resolve("crash-" + Util.getFilenameFormattedDateTime() + "-server.txt");
+                 if (crashReport.saveToFile(path, ReportType.CRASH)) {
+                     LOGGER.error("This crash report has been saved to: {}", path.toAbsolutePath());
+                 } else {

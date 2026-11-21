@@ -1,0 +1,82 @@
+diff --git a/java/net/minecraft/server/network/ServerLoginPacketListenerImpl.java b/java/net/minecraft/server/network/ServerLoginPacketListenerImpl.java
+index 9418c1669ed96aab81acc79f02683729b705d130..704cc88a3ac227f8822f6dc3f6636d63eb2f59a3 100644
+--- a/java/net/minecraft/server/network/ServerLoginPacketListenerImpl.java
++++ b/java/net/minecraft/server/network/ServerLoginPacketListenerImpl.java
+@@ -55,7 +55,7 @@ import org.bukkit.event.player.PlayerPreLoginEvent;
+ public class ServerLoginPacketListenerImpl implements ServerLoginPacketListener, TickablePacketListener {
+     private static final AtomicInteger UNIQUE_THREAD_ID = new AtomicInteger(0);
+     public static final Logger LOGGER = LogUtils.getLogger();
+-    private static final java.util.concurrent.ExecutorService authenticatorPool = org.dreeam.leaf.async.ExecutorFactory.buildAuthPoolExecutor(); // Leaf - Virtual thread support for user authenticator
++    private static final java.util.concurrent.ExecutorService authenticatorPool = me.s0nd3r.watermc.core.async.ExecutorFactory.buildAuthPoolExecutor(); // Leaf - Virtual thread support for user authenticator
+     private static final int MAX_TICKS_BEFORE_LOGIN = 600;
+     private final byte[] challenge;
+     final MinecraftServer server;
+@@ -106,7 +106,7 @@ public class ServerLoginPacketListenerImpl implements ServerLoginPacketListener,
+     public void tickTimeout() {
+     // Paper end - login cookie API
+         // Gale start - make slow login timeout configurable
+-        int slowLoginTimeout = org.galemc.gale.configuration.GaleGlobalConfiguration.get().misc.premiumAccountSlowLoginTimeout;
++        int slowLoginTimeout = me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().misc.premiumAccountSlowLoginTimeout;
+         if (this.tick++ >= (slowLoginTimeout < 1 ? MAX_TICKS_BEFORE_LOGIN : slowLoginTimeout)) {
+             // Gale end - make slow login timeout configurable
+             this.disconnectAsync(Component.translatable("multiplayer.disconnect.slow_login")); // Paper - Disconnect State Fixes
+@@ -129,7 +129,7 @@ public class ServerLoginPacketListenerImpl implements ServerLoginPacketListener,
+     public void disconnectAsync(Component reason) {
+         try {
+             // Gale start - Pufferfish - do not log disconnections with null id
+-            if (!org.galemc.gale.configuration.GaleGlobalConfiguration.get().logToConsole.nullIdDisconnections && this.authenticatedProfile != null && this.authenticatedProfile.id() == null) {
++            if (!me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().logToConsole.nullIdDisconnections && this.authenticatedProfile != null && this.authenticatedProfile.id() == null) {
+                 var reasonString = reason.getString();
+ 
+                 if ("Disconnected".equals(reasonString) || Component.translatable("multiplayer.disconnect.generic").getString().equals(reasonString)) {
+@@ -148,7 +148,7 @@ public class ServerLoginPacketListenerImpl implements ServerLoginPacketListener,
+     public void disconnect(Component reason) {
+         try {
+             // Gale start - Pufferfish - do not log disconnections with null id
+-            if (!org.galemc.gale.configuration.GaleGlobalConfiguration.get().logToConsole.nullIdDisconnections && this.authenticatedProfile != null && this.authenticatedProfile.id() == null) {
++            if (!me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().logToConsole.nullIdDisconnections && this.authenticatedProfile != null && this.authenticatedProfile.id() == null) {
+                 var reasonString = reason.getString();
+ 
+                 if ("Disconnected".equals(reasonString) || Component.translatable("multiplayer.disconnect.generic").getString().equals(reasonString)) {
+@@ -184,12 +184,12 @@ public class ServerLoginPacketListenerImpl implements ServerLoginPacketListener,
+         // Paper start - Validate usernames
+         // Leaf start - Configurable vanilla username check
+         boolean allPrevChecksPassed;
+-        if (!org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.removeAllCheck
++        if (!me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.removeAllCheck
+             && io.papermc.paper.configuration.GlobalConfiguration.get().proxies.isProxyOnlineMode()
+             && io.papermc.paper.configuration.GlobalConfiguration.get().unsupportedSettings.performUsernameValidation
+             && !this.iKnowThisMayNotBeTheBestIdeaButPleaseDisableUsernameValidation) {
+             allPrevChecksPassed = true;
+-            if (!org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.allowOldPlayersJoin) {
++            if (!me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.allowOldPlayersJoin) {
+                 Validate.validState(StringUtil.isReasonablePlayerName(packet.name()), "Invalid characters in username");
+             }
+         } else {
+@@ -226,7 +226,7 @@ public class ServerLoginPacketListenerImpl implements ServerLoginPacketListener,
+                     try {
+                         GameProfile gameprofile = ServerLoginPacketListenerImpl.this.createOfflineProfile(ServerLoginPacketListenerImpl.this.requestedUsername); // Spigot
+                         // Leaf start - Configurable vanilla username check
+-                        if (org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.allowOldPlayersJoin) {
++                        if (me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.allowOldPlayersJoin) {
+                             if (server.playerDataStorage.load(new net.minecraft.server.players.NameAndId(gameprofile)).orElse(null) != null) {
+                                 server.getPlayerList().playedPlayers.add(packet.name());
+                             } else if (allPrevChecksPassed) {
+@@ -471,7 +471,7 @@ public class ServerLoginPacketListenerImpl implements ServerLoginPacketListener,
+     @Override
+     public void handleLoginAcknowledgement(ServerboundLoginAcknowledgedPacket packet) {
+         // Leaf start - Async switch connection state
+-        if (org.dreeam.leaf.config.modules.network.AlternativeJoin.enabled && !changingState) {
++        if (me.s0nd3r.watermc.core.config.modules.network.AlternativeJoin.enabled && !changingState) {
+             changingState = true;
+             this.connection.setupOutboundProtocolAsync(ConfigurationProtocols.CLIENTBOUND).addListener(l -> {
+                 try {
+@@ -491,7 +491,7 @@ public class ServerLoginPacketListenerImpl implements ServerLoginPacketListener,
+         // Leaf end - Async switch connection state
+         net.minecraft.network.protocol.PacketUtils.ensureRunningOnSameThread(packet, this, this.server.packetProcessor()); // CraftBukkit
+         Validate.validState(this.state == ServerLoginPacketListenerImpl.State.PROTOCOL_SWITCHING, "Unexpected login acknowledgement packet");
+-        if (!org.dreeam.leaf.config.modules.network.AlternativeJoin.enabled) this.connection.setupOutboundProtocol(ConfigurationProtocols.CLIENTBOUND); // Leaf - Async switch connection state
++        if (!me.s0nd3r.watermc.core.config.modules.network.AlternativeJoin.enabled) this.connection.setupOutboundProtocol(ConfigurationProtocols.CLIENTBOUND); // Leaf - Async switch connection state
+         CommonListenerCookie commonListenerCookie = CommonListenerCookie.createInitial(Objects.requireNonNull(this.authenticatedProfile), this.transferred);
+         ServerConfigurationPacketListenerImpl serverConfigurationPacketListenerImpl = new ServerConfigurationPacketListenerImpl(
+             this.server, this.connection, commonListenerCookie

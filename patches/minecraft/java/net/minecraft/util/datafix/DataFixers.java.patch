@@ -1,0 +1,41 @@
+diff --git a/java/net/minecraft/util/datafix/DataFixers.java b/java/net/minecraft/util/datafix/DataFixers.java
+index 79685009e9ba6463ad27f45b70bed9b2b922ccda..0fd48ba9d2c8d3f4b0031aa5260d1c0e6fec70ad 100644
+--- a/java/net/minecraft/util/datafix/DataFixers.java
++++ b/java/net/minecraft/util/datafix/DataFixers.java
+@@ -396,14 +396,17 @@ import net.minecraft.util.datafix.schemas.V99;
+ public class DataFixers {
+     private static final BiFunction<Integer, Schema, Schema> SAME = Schema::new;
+     private static final BiFunction<Integer, Schema, Schema> SAME_NAMESPACED = NamespacedSchema::new;
+-    private static final Result DATA_FIXER = createFixerUpper();
++    private static final DataFixer DATA_FIXER = new me.s0nd3r.watermc.bootstrap.LazyDataFixer(() -> FixerHolder.RESULT.fixer());
++    private static final class FixerHolder {
++        private static final Result RESULT = createFixerUpper();
++    }
+     public static final int BLENDING_VERSION = 4295;
+ 
+     private DataFixers() {
+     }
+ 
+     public static DataFixer getDataFixer() {
+-        return DATA_FIXER.fixer();
++        return DATA_FIXER;
+     }
+ 
+     private static Result createFixerUpper() {
+@@ -413,13 +416,13 @@ public class DataFixers {
+     }
+ 
+     public static CompletableFuture<?> optimize(Set<TypeReference> references) {
+-        if (references.isEmpty()) {
++        if (references.isEmpty() || !Boolean.getBoolean("watermc.eager-dfu")) {
+             return CompletableFuture.completedFuture(null);
+         } else {
+-            Executor singleThreadExecutor = Executors.newSingleThreadExecutor(
++            java.util.concurrent.ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(
+                 new ThreadFactoryBuilder().setNameFormat("Datafixer Bootstrap").setDaemon(true).setPriority(1).build()
+             );
+-            return DATA_FIXER.optimize(references, singleThreadExecutor);
++            return FixerHolder.RESULT.optimize(references, singleThreadExecutor).whenComplete((result, failure) -> singleThreadExecutor.shutdown());
+         }
+     }
+ 

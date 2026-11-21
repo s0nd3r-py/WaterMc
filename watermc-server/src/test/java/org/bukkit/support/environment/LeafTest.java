@@ -1,0 +1,22 @@
+package org.bukkit.support.environment;
+
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.bukkit.support.extension.LeafExtension;
+import org.bukkit.support.extension.VanillaFeatureExtension;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Indicates that a class or method should be tested when tested Leaf JUnit tests.
+ * All Minecraft feature flags set will be used.
+ */
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Tag("LeafTest")
+@ExtendWith({LeafExtension.class})
+public @interface LeafTest {
+}

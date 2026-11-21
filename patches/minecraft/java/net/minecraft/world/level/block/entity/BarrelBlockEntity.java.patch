@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/world/level/block/entity/BarrelBlockEntity.java b/java/net/minecraft/world/level/block/entity/BarrelBlockEntity.java
+index f8cb1e67934a6c4abf5f4bc57d3f24928acab1eb..f2a347e1a713b940ff7336766afd913c917cb133 100644
+--- a/java/net/minecraft/world/level/block/entity/BarrelBlockEntity.java
++++ b/java/net/minecraft/world/level/block/entity/BarrelBlockEntity.java
+@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
+ import net.minecraft.world.level.storage.ValueInput;
+ import net.minecraft.world.level.storage.ValueOutput;
+ 
+-public class BarrelBlockEntity extends RandomizableContainerBlockEntity implements net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker, net.caffeinemc.mods.lithium.api.inventory.LithiumInventory { // Leaves - Lithium Sleeping Block Entity
++public class BarrelBlockEntity extends RandomizableContainerBlockEntity implements me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker, me.s0nd3r.watermc.engine.api.inventory.LithiumInventory { // Leaves - Lithium Sleeping Block Entity
+     // CraftBukkit start - add fields and methods
+     public java.util.List<org.bukkit.entity.HumanEntity> transaction = new java.util.ArrayList<>();
+     private int maxStack = MAX_STACK;
+@@ -140,7 +140,7 @@ public class BarrelBlockEntity extends RandomizableContainerBlockEntity implemen
+     @Override
+     protected void setItems(NonNullList<ItemStack> items) {
+         this.items = items;
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) this.lithium$emitStackListReplaced(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) this.lithium$emitStackListReplaced(); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     @Override

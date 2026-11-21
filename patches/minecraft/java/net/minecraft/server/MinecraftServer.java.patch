@@ -1,0 +1,224 @@
+diff --git a/java/net/minecraft/server/MinecraftServer.java b/java/net/minecraft/server/MinecraftServer.java
+index 0033300feb485f08ab6dd5cd910426dceec35ae8..e69cd4ae18444b7ddb54048d344e71b047a3db4c 100644
+--- a/java/net/minecraft/server/MinecraftServer.java
++++ b/java/net/minecraft/server/MinecraftServer.java
+@@ -304,13 +304,13 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+     public volatile boolean abnormalExit; // Paper - Improved watchdog support
+     public volatile Thread shutdownThread; // Paper - Improved watchdog support
+     public final io.papermc.paper.configuration.PaperConfigurations paperConfigurations; // Paper - add paper configuration files
+-    public final org.galemc.gale.configuration.GaleConfigurations galeConfigurations; // Gale - Gale configuration
++    public final me.s0nd3r.watermc.tuning.configuration.TuningConfigurations galeConfigurations; // Gale - Gale configuration
+     public boolean isIteratingOverLevels = false; // Paper - Throw exception on world create while being ticked
+     private final Set<String> pluginsBlockingSleep = new java.util.HashSet<>(); // Paper - API to allow/disallow tick sleeping
+     public static final long SERVER_INIT = System.nanoTime(); // Paper - Lag compensation
+     public boolean lagging = false; // Purpur - Lagging threshold
+     protected boolean upnp = false; // Purpur - UPnP Port Forwarding
+-    public gg.pufferfish.pufferfish.util.AsyncExecutor mobSpawnExecutor = new gg.pufferfish.pufferfish.util.AsyncExecutor("Leaf Async Mob Spawn Thread"); // Pufferfish - optimize mob spawning // Leaf - Fix Pufferfish and Purpur patches - Unify thread name
++    public me.s0nd3r.watermc.runtime.util.AsyncExecutor mobSpawnExecutor = new me.s0nd3r.watermc.runtime.util.AsyncExecutor("WaterMc Async Mob Spawn Thread"); // Pufferfish - optimize mob spawning // Leaf - Fix Pufferfish and Purpur patches - Unify thread name
+     public java.util.concurrent.Semaphore serverLevelTickingSemaphore = null; // Leaf - SparklyPaper - parallel world ticking
+     // Paper start - improve tick loop
+     public final ca.spottedleaf.moonrise.common.time.TickData tickTimes1s  = new ca.spottedleaf.moonrise.common.time.TickData(java.util.concurrent.TimeUnit.SECONDS.toNanos(1L));
+@@ -474,7 +474,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         // give all worlds a fair chance at by targeting them all.
+         // if we execute too many tasks, that's fine - we have logic to correctly handle overuse of allocated time.
+         // Leaf start - SparklyPaper - parallel world ticking - only mid-tick the level for the current thread
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && Thread.currentThread() instanceof ca.spottedleaf.moonrise.common.util.TickThread.ServerLevelTickThread levelThread) {
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && Thread.currentThread() instanceof ca.spottedleaf.moonrise.common.util.TickThread.ServerLevelTickThread levelThread) {
+             return this.pwt$tickLevelMidTickTasks(levelThread.currentTickingServerLevel);
+         } else {
+             boolean executed = false;
+@@ -657,7 +657,12 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         ProfiledDuration profiledDuration = JvmProfiler.INSTANCE.onWorldLoadedStarted();
+         // Paper start - rework world loading process
+         io.papermc.paper.world.PaperWorldLoader loader = io.papermc.paper.world.PaperWorldLoader.create(this, levelId);
+-        loader.loadInitialWorlds();
++        ca.spottedleaf.moonrise.common.util.MoonriseCommon.beginStartupBoost(); // WaterMc - all cores generate spawn chunks while the main thread waits
++        try {
++            loader.loadInitialWorlds();
++        } finally {
++            ca.spottedleaf.moonrise.common.util.MoonriseCommon.endStartupBoost(); // WaterMc
++        }
+         // Paper end - rework world loading process
+         if (profiledDuration != null) {
+             profiledDuration.finish(true);
+@@ -688,6 +693,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         }
+         // Paper end - Configurable player collision; Handle collideRule team for player collision toggle
+         this.server.enablePlugins(org.bukkit.plugin.PluginLoadOrder.POSTWORLD);
++        try { me.s0nd3r.watermc.script.bukkit.BukkitScripts.start(); } catch (Throwable t) { LOGGER.error("Failed to start WaterMc scripts", t); } // WaterMc - built-in scripts (after plugins, before help/command sync); never blocks startup
+         this.server.spark.registerCommandBeforePlugins(this.server); // Paper - spark
+         this.server.spark.enableAfterPlugins(this.server); // Paper - spark
+         if (io.papermc.paper.plugin.PluginInitializerManager.instance().pluginRemapper != null) io.papermc.paper.plugin.PluginInitializerManager.instance().pluginRemapper.pluginsEnabled(); // Paper - Remap plugins
+@@ -1006,7 +1012,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             serverLevel.save(null, flush, SharedConstants.DEBUG_DONT_SAVE_WORLD || serverLevel.noSave && !force, close); // Paper - add close param
+             // Leaf start - SparklyPaper - parallel world ticking - Shutdown handling for async reads
+             // Only prepare shutdown if 'close' is true, indicating this save is part of server shutdown
+-            if (close && org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
++            if (close && me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
+                 serverLevel.prepareShutdown();
+             }
+             // Leaf end - SparklyPaper - parallel world ticking - Shutdown handling for async reads
+@@ -1033,6 +1039,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         try {
+             this.isSaving = true;
+             this.getPlayerList().saveAll(); // Paper - Incremental chunk and player saving; diff on change
++            if (flush) me.s0nd3r.watermc.storage.PersistenceBarrier.beforeWorldFlush(30L, java.util.concurrent.TimeUnit.SECONDS); // WaterMc - player data durable before chunks are flushed
+             var4 = this.saveAllChunks(suppressLogs, flush, force);
+         } finally {
+             this.isSaving = false;
+@@ -1094,6 +1101,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         this.getConnection().stop();
+         this.isSaving = true;
+         if (this.playerList != null) {
++            try { me.s0nd3r.watermc.script.bukkit.BukkitScripts.stop(); } catch (Throwable t) { LOGGER.error("Failed to stop WaterMc scripts", t); } // WaterMc - run "on unload" and persist $variables; must never skip saving players/worlds
+             LOGGER.info("Saving players");
+             this.playerList.saveAll();
+             this.playerList.removeAll(this.isRestarting); // Paper
+@@ -1125,6 +1133,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         }
+         // Paper end - rewrite chunk system
+ 
++        LOGGER.info("Waiting for player data writes before saving worlds"); // WaterMc
++        me.s0nd3r.watermc.storage.PersistenceBarrier.beforeWorldFlush(60L, java.util.concurrent.TimeUnit.SECONDS); // WaterMc - anti-dupe: players before chunks
+         this.saveAllChunks(false, true, false, true); // Paper - rewrite chunk system
+ 
+         this.isSaving = false;
+@@ -1145,6 +1155,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             this.services().nameToIdCache().save(false); // Paper - Perf: Async GameProfileCache saving
+         }
+         // Spigot end
++        me.s0nd3r.watermc.storage.WaterRecordLog.flushAll(30L, java.util.concurrent.TimeUnit.SECONDS); // WaterMc - data/*.wdb durable
+         // Paper start - rewrite chunk system
+         LOGGER.info("Waiting for all RegionFile I/O tasks to complete...");
+         ca.spottedleaf.moonrise.patches.chunk_system.io.MoonriseRegionFileIO.flush((MinecraftServer)(Object)this);
+@@ -1155,7 +1166,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         // Paper end - rewrite chunk system
+         // Paper start - Improved watchdog support - move final shutdown items here
+         Util.shutdownExecutors();
+-        org.dreeam.leaf.async.ShutdownExecutors.shutdown(this); // Leaf
++        me.s0nd3r.watermc.core.async.ShutdownExecutors.shutdown(this); // Leaf
+         this.onServerExit();
+         // Paper end - Improved watchdog support - move final shutdown items here
+     }
+@@ -1304,7 +1315,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+                 // wait for unpark or deadline
+                 final long toWait = deadline - now;
+                 if (toWait > 0L) {
+-                    LockSupport.parkNanos("waiting for tick or tasks", toWait);
++                    me.s0nd3r.watermc.util.TickWait.pause("waiting for tick or tasks", toWait);
+                     if (isLoggingEnabled) {
+                         this.idleTimeNanos += Util.getNanos() - now;
+                     }
+@@ -1351,7 +1362,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             org.spigotmc.WatchdogThread.tick();
+             // Paper end
+             org.spigotmc.WatchdogThread.hasStarted = true; // Paper
+-            org.dreeam.leaf.config.LeafConfig.regSparkExtraConfig(); // Leaf - Leaf config
++            me.s0nd3r.watermc.core.config.WaterConfig.regSparkExtraConfig(); // Leaf - Leaf config
+             net.minecraft.world.level.block.Blocks.initPathType(); // Leaf - Cache block state tags
+             // Paper start - Add onboarding message for initial server start
+             if (io.papermc.paper.configuration.GlobalConfiguration.isFirstStart) {
+@@ -1431,7 +1442,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+                 // Paper - improve tick loop - done above
+ 
+-                try (Profiler.Scope scope = org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_PROFILER ? null : Profiler.use(this.createProfiler())) { // Leaf - Configurable vanilla profiler
++                try (Profiler.Scope scope = me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_PROFILER ? null : Profiler.use(this.createProfiler())) { // Leaf - Configurable vanilla profiler
+                     this.processPacketsAndTick(flag);
+                     ProfilerFiller profilerFiller = Profiler.get();
+                     profilerFiller.push("nextTickWait");
+@@ -1457,7 +1468,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             LOGGER.error("Encountered an unexpected exception", var69);
+             CrashReport crashReport = constructOrExtractCrashReport(var69);
+             this.fillSystemReport(crashReport.getSystemReport());
+-            Path path = this.getServerDirectory().resolve("crash-reports").resolve("crash-" + Util.getFilenameFormattedDateTime() + "-server.txt");
++            Path path = this.getServerDirectory().resolve("logs").resolve("crash-reports") /* WaterMc - logs/crash-reports */.resolve("crash-" + Util.getFilenameFormattedDateTime() + "-server.txt");
+             if (crashReport.saveToFile(path, ReportType.CRASH)) {
+                 LOGGER.error("This crash report has been saved to: {}", path.toAbsolutePath());
+             } else {
+@@ -1708,8 +1719,9 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+         this.server.spark.tickStart(); // Paper - spark
+         new com.destroystokyo.paper.event.server.ServerTickStartEvent(this.tickCount+1).callEvent(); // Paper - Server Tick Events
+-        if (org.dreeam.leaf.config.modules.misc.LagCompensation.enabled) org.dreeam.leaf.misc.LagCompensation.TPSCalculator.onTick(); // Leaf - TT20 - Lag compensation - tick hook
++        if (me.s0nd3r.watermc.core.config.modules.misc.LagCompensation.enabled) me.s0nd3r.watermc.core.misc.LagCompensation.TPSCalculator.onTick(); // Leaf - TT20 - Lag compensation - tick hook
+         this.tickCount++;
++        me.s0nd3r.watermc.world.DynamicDistance.tick(this); // WaterMc - dynamic view/simulation distance
+         this.tickRateManager.tick();
+         this.tickChildren(hasTimeLeft);
+         if (nanos - this.lastServerStatus >= STATUS_EXPIRE_TIME_NANOS) {
+@@ -1758,6 +1770,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         this.tickTimesNanos[i1] = l;
+         this.smoothedTickTimeMillis = this.smoothedTickTimeMillis * 0.8F + (float)l / (float)TimeUtil.NANOSECONDS_PER_MILLISECOND * 0.19999999F;
+         this.logTickMethodTime(nanos);
++        me.s0nd3r.watermc.diagnostics.PluginWatchdog.endTick(); // WaterMc - plugin watchdog
++        me.s0nd3r.watermc.diagnostics.WaterMetrics.onTickEnd(this); // WaterMc - metrics snapshot
+         profilerFiller.pop();
+     }
+ 
+@@ -1945,7 +1959,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+                 profilerFiller.push("tick");
+ 
+-                if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
++                if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
+                     serverLevelTickingSemaphore.acquire();
+                     tasks.add(
+                         serverLevel.tickExecutor.submit(() -> {
+@@ -1981,14 +1995,14 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         // Leaf end - SparklyPaper - parallel world ticking
+         this.isIteratingOverLevels = false; // Paper - Throw exception on world create while being ticked
+ 
+-        if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled) { for (ServerLevel world : getAllLevels()) { world.leaf$asyncTracker.onTickEnd(); } } // Leaf - Multithreaded tracker
++        if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled) { for (ServerLevel world : getAllLevels()) { world.leaf$asyncTracker.onTickEnd(); } } // Leaf - Multithreaded tracker
+ 
+         profilerFiller.popPush("connection");
+         this.tickConnection();
+         profilerFiller.popPush("players");
+         this.playerList.tick();
+         profilerFiller.popPush("debugSubscribers");
+-        if (!org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_DEBUG_FEATURE) this.debugSubscribers.tick(); // Leaf - Reduce debug subscribers overhead
++        if (!me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_DEBUG_FEATURE) this.debugSubscribers.tick(); // Leaf - Reduce debug subscribers overhead
+         if (this.tickRateManager.runsNormally()) {
+             profilerFiller.popPush("gameTests");
+             GameTestTicker.SINGLETON.tick();
+@@ -1996,8 +2010,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+         profilerFiller.popPush("server gui refresh");
+ 
+-        org.leavesmc.leaves.protocol.core.LeavesProtocolManager.handleTick(tickCount); // Leaves - protocol
+-        org.dreeam.leaf.protocol.Protocols.tickServer(this); // Leaf - Protocol core
++        me.s0nd3r.watermc.integration.protocol.core.LeavesProtocolManager.handleTick(tickCount); // Leaves - protocol
++        me.s0nd3r.watermc.core.protocol.Protocols.tickServer(this); // Leaf - Protocol core
+ 
+         for (Runnable runnable : this.tickables) {
+             runnable.run();
+@@ -2081,8 +2095,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         Map<ResourceKey<Level>, ServerLevel> oldLevels = this.levels;
+         Map<ResourceKey<Level>, ServerLevel> newLevels = Maps.newLinkedHashMap(oldLevels);
+         newLevels.remove(level.dimension());
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) level.tickExecutor.shutdown(); // Leaf - SparklyPaper - parallel world ticking (We remove it in here instead of ServerLevel.close() because ServerLevel.close() is never called!)
+-        if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled) { level.leaf$asyncTracker.onTickEnd(); } // Leaf - Multithreaded tracker
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) level.tickExecutor.shutdown(); // Leaf - SparklyPaper - parallel world ticking (We remove it in here instead of ServerLevel.close() because ServerLevel.close() is never called!)
++        if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled) { level.leaf$asyncTracker.onTickEnd(); } // Leaf - Multithreaded tracker
+         this.levels = Collections.unmodifiableMap(newLevels);
+     }
+     // CraftBukkit end
+@@ -2111,7 +2125,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+     @DontObfuscate
+     public String getServerModName() {
+-        return org.dreeam.leaf.config.modules.misc.ServerBrand.serverModName; // Paper // Leaf - Configurable server mod name
++        return me.s0nd3r.watermc.core.config.modules.misc.ServerBrand.serverModName; // Paper // Leaf - Configurable server mod name
+     }
+ 
+     public SystemReport fillSystemReport(SystemReport systemReport) {
+@@ -2993,7 +3007,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         }
+     }
+ 
+-    public final java.util.concurrent.ExecutorService chatExecutor = org.dreeam.leaf.async.ExecutorFactory.buildChatExecutor(); // Leaf - Virtual thread support for chat executor
++    public final java.util.concurrent.ExecutorService chatExecutor = me.s0nd3r.watermc.core.async.ExecutorFactory.buildChatExecutor(); // Leaf - Virtual thread support for chat executor
+     public final ChatDecorator improvedChatDecorator = new io.papermc.paper.adventure.ImprovedChatDecorator(this); // Paper - adventure
+ 
+     public ChatDecorator getChatDecorator() {

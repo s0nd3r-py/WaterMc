@@ -1,0 +1,197 @@
+diff --git a/java/net/minecraft/world/entity/ai/goal/MoveToBlockGoal.java b/java/net/minecraft/world/entity/ai/goal/MoveToBlockGoal.java
+index 7e70c7bee633c54497d1cd2854dd60f4fb5ff160..a460ae91a35b4051c077a18bcd6faf9248d9fa07 100644
+--- a/java/net/minecraft/world/entity/ai/goal/MoveToBlockGoal.java
++++ b/java/net/minecraft/world/entity/ai/goal/MoveToBlockGoal.java
+@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos;
+ import net.minecraft.world.entity.PathfinderMob;
+ import net.minecraft.world.level.LevelReader;
+ 
+-public abstract class MoveToBlockGoal extends Goal {
++public abstract class MoveToBlockGoal extends Goal implements me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.LithiumMoveToBlockGoal { // Leaf - Lithium - optimize non-POI block searches
+     private static final int GIVE_UP_TICKS = 1200;
+     private static final int STAY_TICKS = 1200;
+     private static final int INTERVAL_TICKS = 200;
+@@ -132,5 +132,183 @@ public abstract class MoveToBlockGoal extends Goal {
+         return false;
+     }
+ 
++    // Leaf start - Lithium - optimize non-POI block searches
++    /**
++     * Finds the nearest block matching the predicates.
++     * <p>
++     * Side effect: The matching block position is stored in the blockPos field.
++     *
++     * @return Whether a matching block was found.
++     */
++    @Override
++    public boolean lithium$findNearestBlock(
++        final java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> requiredBlock,
++        final java.util.function.BiPredicate<net.minecraft.world.level.chunk.ChunkAccess, BlockPos.MutableBlockPos> lithium$isValidTarget,
++        final boolean shouldChunkLoad
++    ) {
++        // Center of the search starts 1 block below the mob's block position
++        BlockPos center = this.mob.blockPosition().offset(0, -1, 0);
++
++        // Range is +-(searchRange - 1), +-verticalSearchRange, +-(searchRange - 1)
++        // Cache ChunkAccesses - getting them is surprisingly expensive - and track whether subchunks have the block
++        final LevelReader levelReader = this.mob.level();
++        me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.CheckAndCacheBlockChecker checker = new me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.CheckAndCacheBlockChecker(
++            center, this.searchRange - 1, this.verticalSearchRange, levelReader, requiredBlock, shouldChunkLoad
++        );
++        it.unimi.dsi.fastutil.longs.LongArrayList sortedChunksMaybeWithBlock = new it.unimi.dsi.fastutil.longs.LongArrayList(checker.getChunkSize());
++        checker.initializeChunks(sortedChunksMaybeWithBlock::addLast);
++
++        if (checker.shouldStop()) {
++            return false; // No chunks with the target block - return early
++        }
++
++        final int minY = me.s0nd3r.watermc.engine.common.util.Pos.BlockCoord.getMinY(levelReader);
++        final int maxY = me.s0nd3r.watermc.engine.common.util.Pos.BlockCoord.getMaxYInclusive(levelReader);
++
++        // Prefer chunk aware search because it also cuts iterations inside "empty" chunk sections
++        if (!checker.hasUnloadedPossibleChunks()) {
++            return this.lithium$chunkAwareSearch(center, lithium$isValidTarget, checker, sortedChunksMaybeWithBlock, minY, maxY);
++        }
++
++        // Use vanilla search because unordered search may observably alter chunk-loading behavior
++        return this.lithium$vanillaOrderSearch(center, lithium$isValidTarget, checker, minY, maxY);
++    }
++
++    private boolean lithium$vanillaOrderSearch(
++        final BlockPos center,
++        final java.util.function.BiPredicate<net.minecraft.world.level.chunk.ChunkAccess, BlockPos.MutableBlockPos> lithium$isValidTarget,
++        final me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.CheckAndCacheBlockChecker checker,
++        final int minY,
++        final int maxY
++    ) {
++        BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos();
++        BlockPos.MutableBlockPos scratchPos = new BlockPos.MutableBlockPos(); // WaterMc
++        final int centerY = center.getY();
++
++        for (int layer = this.verticalSearchStart; layer <= this.verticalSearchRange; layer = layer > 0 ? -layer : 1 - layer) {
++            final int y = centerY + layer;
++
++            // Layer outside of build limit - skip
++            // Note: this is likely to be hit because farms where this lags tend to be built at world floor
++            if (y < minY || y > maxY) {
++                continue;
++            }
++
++            for (int ring = 0; ring < this.searchRange; ring++) {
++                for (int dX = 0; dX <= ring; dX = dX > 0 ? -dX : 1 - dX) {
++                    for (int dZ = dX < ring && dX > -ring ? ring : 0; dZ <= ring; dZ = dZ > 0 ? -dZ : 1 - dZ) {
++                        currentPos.setWithOffset(center, dX, layer, dZ);
++                        if (this.mob.isWithinHome(currentPos) && checker.checkPosition(currentPos)) {
++                            // ChunkAccess is always loaded at this point
++                            net.minecraft.world.level.chunk.ChunkAccess chunkAccess = checker.getCachedChunkAccess(currentPos);
++                            if (lithium$isValidTarget.test(chunkAccess, scratchPos.set(currentPos))) { // WaterMc - the target check may move the pos it gets (Lithium/Leaf passed currentPos itself)
++                                this.blockPos = currentPos;
++                                this.mob.movingTarget = currentPos == BlockPos.ZERO ? null : currentPos.immutable(); // Paper
++                                return true;
++                            }
++                        }
++                    }
++                }
++            }
++        }
++
++        return false;
++    }
++
++    private boolean lithium$chunkAwareSearch(
++        final BlockPos center,
++        final java.util.function.BiPredicate<net.minecraft.world.level.chunk.ChunkAccess, BlockPos.MutableBlockPos> lithium$isValidTarget,
++        final me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.CheckAndCacheBlockChecker checker,
++        final it.unimi.dsi.fastutil.longs.LongArrayList sortedChunksMaybeWithBlock,
++        final int minY,
++        final int maxY
++    ) {
++        // Sort chunks by lowest sort order - has the earliest searched position
++        // Note: In this search order, the closest point normally is also the closest point in the search
++        sortedChunksMaybeWithBlock.sort(
++            (chunkLong0, chunkLong1) -> me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.NonPOISearchDistances.MoveToBlockGoalDistances.getMinimumSortOrderOfChunk(center, chunkLong0)
++                - me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.NonPOISearchDistances.MoveToBlockGoalDistances.getMinimumSortOrderOfChunk(center, chunkLong1)
++        );
++
++        java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> requiredBlock = checker.blockStatePredicate;
++        final int minSectionY = checker.minSectionY;
++
++        BlockPos.MutableBlockPos foundPos = new BlockPos.MutableBlockPos();
++        BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos();
++
++        // Same layer order as vanilla - saves iterations if targets are found in the first layer
++        for (int layer = this.verticalSearchStart; layer <= this.verticalSearchRange; layer = layer > 0 ? -layer : 1 - layer) {
++            final int y = center.getY() + layer;
++
++            // Layer outside of build limit - skip
++            // Note: this is likely to be hit because farms where this lags tend to be built at world floor
++            if (y < minY || y > maxY) {
++                continue;
++            }
++
++            final int chunkY = net.minecraft.core.SectionPos.blockToSectionCoord(y);
++            final int ySectionIndex = chunkY - minSectionY;
++
++            int closestFound = Integer.MAX_VALUE;
++            int ringMax = this.searchRange - 1;
++
++            // Iterate through slices of chunks that may have the target blockState
++            for (long chunkPos : sortedChunksMaybeWithBlock) {
++                final int chunkX = net.minecraft.world.level.ChunkPos.getX(chunkPos);
++                final int chunkZ = net.minecraft.world.level.ChunkPos.getZ(chunkPos);
++
++                // Break since no subsequent chunks can be closer
++                if (closestFound < me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.NonPOISearchDistances.MoveToBlockGoalDistances.getMinimumSortOrderOfChunk(center, chunkX, chunkZ)) {
++                    break;
++                }
++
++                // Skip if the current subchunk does not have the block
++                if (!checker.checkCachedSection(chunkX, chunkY, chunkZ)) {
++                    continue;
++                }
++
++                net.minecraft.world.level.chunk.ChunkAccess chunkAccess = checker.getCachedChunkAccess(chunkPos);
++                // If ChunkSection may have close enough targets, iterate layer in Paletted Container (x then z) order
++                final int chunkBlockX = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkX);
++                int xMin = Math.max(center.getX() - ringMax, chunkBlockX);
++                int xMax = Math.min(center.getX() + ringMax, chunkBlockX + 15);
++                final int chunkBlockZ = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkZ);
++                int zMin = Math.max(center.getZ() - ringMax, chunkBlockZ);
++                int zMax = Math.min(center.getZ() + ringMax, chunkBlockZ + 15);
++                net.minecraft.world.level.chunk.LevelChunkSection levelChunkSection = chunkAccess.getSections()[ySectionIndex];
++                for (int z = zMin; z <= zMax; z++) {
++                    for (int x = xMin; x <= xMax; x++) {
++                        int dX = x - center.getX();
++                        int dZ = z - center.getZ();
++                        int ring = me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.NonPOISearchDistances.MoveToBlockGoalDistances.getRing(dX, dZ);
++                        int currentDistance = me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.NonPOISearchDistances.MoveToBlockGoalDistances.getVanillaSortOrderInt(ring, dX, dZ);
++                        if (currentDistance < closestFound
++                            && this.mob.isWithinHome(currentPos.set(x, y, z))
++                            && requiredBlock.test(levelChunkSection.getBlockState(x & 15, y & 15, z & 15))
++                            && lithium$isValidTarget.test(chunkAccess, currentPos)) {
++                            // Constrain search size when we find a valid target
++                            ringMax = ring;
++                            xMin = Math.max(center.getX() - ringMax, chunkBlockX);
++                            xMax = Math.min(center.getX() + ringMax, chunkBlockX + 15);
++                            zMax = Math.min(center.getZ() + ringMax, chunkBlockZ + 15);
++                            foundPos.set(x, y, z);
++                            closestFound = currentDistance;
++                        }
++                    }
++                }
++            }
++
++            if (closestFound < Integer.MAX_VALUE) {
++                // Vanilla uses the mutable pos, no need to create immutable copy
++                this.blockPos = foundPos;
++                this.mob.movingTarget = foundPos == BlockPos.ZERO ? null : foundPos.immutable(); // Paper
++                return true;
++            }
++        }
++
++        return false;
++    }
++    // Leaf end - Lithium - optimize non-POI block searches
++
+     protected abstract boolean isValidTarget(LevelReader level, BlockPos pos);
+ }

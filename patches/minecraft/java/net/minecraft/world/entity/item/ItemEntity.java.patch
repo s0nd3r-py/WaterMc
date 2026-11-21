@@ -1,0 +1,80 @@
+diff --git a/java/net/minecraft/world/entity/item/ItemEntity.java b/java/net/minecraft/world/entity/item/ItemEntity.java
+index 66120153a2f722f6e698ffda09e320e5f82d1dfc..5e8336dba2b7b1597bad76dee9e1a0f3297eba7a 100644
+--- a/java/net/minecraft/world/entity/item/ItemEntity.java
++++ b/java/net/minecraft/world/entity/item/ItemEntity.java
+@@ -35,7 +35,7 @@ import net.minecraft.world.level.storage.ValueOutput;
+ import net.minecraft.world.phys.Vec3;
+ import org.jspecify.annotations.Nullable;
+ 
+-public class ItemEntity extends Entity implements TraceableEntity, net.caffeinemc.mods.lithium.common.util.change_tracking.ChangePublisher<ItemEntity>, net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.CountChangeSubscriber<ItemStack> { // Leaves - Lithium Sleeping Block Entity
++public class ItemEntity extends Entity implements TraceableEntity, me.s0nd3r.watermc.engine.common.util.change_tracking.ChangePublisher<ItemEntity>, me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.CountChangeSubscriber<ItemStack> { // Leaves - Lithium Sleeping Block Entity
+     private static final EntityDataAccessor<ItemStack> DATA_ITEM = SynchedEntityData.defineId(ItemEntity.class, EntityDataSerializers.ITEM_STACK);
+     private static final float FLOAT_HEIGHT = 0.1F;
+     public static final float EYE_HEIGHT = 0.2125F;
+@@ -288,7 +288,7 @@ public class ItemEntity extends Entity implements TraceableEntity, net.caffeinem
+     private void tryToMerge(ItemEntity itemEntity, ItemStack item, ItemStack item1) {
+         // Leaf end - Skip item merge checks for full stacks
+         if (Objects.equals(this.target, itemEntity.target) && areMergable(item, item1)) {
+-            if (org.dreeam.leaf.config.modules.gameplay.UseSpigotItemMergingMech.enabled || item1.getCount() < item.getCount()) { // Leaf - KeYi - Configurable spigot item merging mechanism
++            if (me.s0nd3r.watermc.core.config.modules.gameplay.UseSpigotItemMergingMech.enabled || item1.getCount() < item.getCount()) { // Leaf - KeYi - Configurable spigot item merging mechanism
+                 merge(this, item, itemEntity, item1);
+             } else {
+                 merge(itemEntity, item1, this, item);
+@@ -530,7 +530,7 @@ public class ItemEntity extends Entity implements TraceableEntity, net.caffeinem
+ 
+     public void setItem(ItemStack stack) {
+         // Leaves start - Lithium Sleeping Block Entity
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && this.subscriber != null) {
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && this.subscriber != null) {
+             ItemStack oldStack = this.getItem();
+             if (oldStack != stack) {
+                 if (!oldStack.isEmpty()) {
+@@ -631,7 +631,7 @@ public class ItemEntity extends Entity implements TraceableEntity, net.caffeinem
+     }
+ 
+     // Leaves start - Lithium Sleeping Block Entity
+-    private net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<ItemEntity> subscriber;
++    private me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<ItemEntity> subscriber;
+     //Stores the data of the subscriber, unless the subscriber is a Multi which stores the data in a list, in which case this variable stores 0
+     private int subscriberData;
+ 
+@@ -643,12 +643,12 @@ public class ItemEntity extends Entity implements TraceableEntity, net.caffeinem
+     }
+ 
+     @Override
+-    public void lithium$subscribe(net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<ItemEntity> subscriber, int subscriberData) {
++    public void lithium$subscribe(me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<ItemEntity> subscriber, int subscriberData) {
+         if (this.subscriber == null) {
+             this.startTrackingChanges();
+         }
+-        this.subscriber = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.combine(this.subscriber, this.subscriberData, subscriber, subscriberData);
+-        if (this.subscriber instanceof net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.Multi<?>) {
++        this.subscriber = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.combine(this.subscriber, this.subscriberData, subscriber, subscriberData);
++        if (this.subscriber instanceof me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.Multi<?>) {
+             this.subscriberData = 0;
+         } else {
+             this.subscriberData = subscriberData;
+@@ -656,10 +656,10 @@ public class ItemEntity extends Entity implements TraceableEntity, net.caffeinem
+     }
+ 
+     @Override
+-    public int lithium$unsubscribe(net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<ItemEntity> subscriber) {
+-        int retval = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.dataOf(this.subscriber, subscriber, this.subscriberData);
+-        this.subscriberData = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.dataWithout(this.subscriber, subscriber, this.subscriberData);
+-        this.subscriber = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.without(this.subscriber, subscriber);
++    public int lithium$unsubscribe(me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<ItemEntity> subscriber) {
++        int retval = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.dataOf(this.subscriber, subscriber, this.subscriberData);
++        this.subscriberData = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.dataWithout(this.subscriber, subscriber, this.subscriberData);
++        this.subscriber = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.without(this.subscriber, subscriber);
+ 
+         if (this.subscriber == null) {
+             ItemStack stack = this.getItem();
+@@ -696,7 +696,7 @@ public class ItemEntity extends Entity implements TraceableEntity, net.caffeinem
+             throw new IllegalStateException("Received notification from an unexpected publisher");
+         }
+ 
+-        if (this.subscriber instanceof net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.CountChangeSubscriber<ItemEntity> countChangeSubscriber) {
++        if (this.subscriber instanceof me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.CountChangeSubscriber<ItemEntity> countChangeSubscriber) {
+             countChangeSubscriber.lithium$notifyCount(this, this.subscriberData, newCount);
+         }
+     }

@@ -1,0 +1,40 @@
+diff --git a/java/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java b/java/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
+index 0a6fbbe4097ea3619f5b2601d38ac13543642e31..a9340f89f6e936c9a38f73a4cc54f2d65c09eedd 100644
+--- a/java/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
++++ b/java/ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader.java
+@@ -345,7 +345,7 @@ public final class RegionizedPlayerChunkLoader {
+         private boolean canGenerateChunks = true;
+ 
+         private final ArrayDeque<ChunkHolderManager.TicketOperation<?, ?>> delayedTicketOps = new ArrayDeque<>();
+-        private final LongOpenHashSet sentChunks = org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled ? new org.dreeam.leaf.util.map.SyncLongOpenHashSet() : new LongOpenHashSet(); // Leaf - Multithreaded tracker
++        private final LongOpenHashSet sentChunks = me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled ? new me.s0nd3r.watermc.core.util.map.SyncLongOpenHashSet() : new LongOpenHashSet(); // Leaf - Multithreaded tracker
+ 
+         private static final byte CHUNK_TICKET_STAGE_NONE           = 0;
+         private static final byte CHUNK_TICKET_STAGE_LOADING        = 1;
+@@ -396,7 +396,7 @@ public final class RegionizedPlayerChunkLoader {
+         private final LongHeapPriorityQueue loadQueue = new LongHeapPriorityQueue(CLOSEST_MANHATTAN_DIST);
+ 
+         private volatile boolean removed;
+-        private final org.dreeam.leaf.async.chunk.AsyncChunkSender asyncSender = org.dreeam.leaf.config.modules.async.AsyncChunkSend.enabled ? new org.dreeam.leaf.async.chunk.AsyncChunkSender() : null; // Leaf - async chunk sender
++        private final me.s0nd3r.watermc.core.async.chunk.AsyncChunkSender asyncSender = me.s0nd3r.watermc.core.config.modules.async.AsyncChunkSend.enabled ? new me.s0nd3r.watermc.core.async.chunk.AsyncChunkSender() : null; // Leaf - async chunk sender
+ 
+         public PlayerChunkLoaderData(final ServerLevel world, final ServerPlayer player) {
+             this.world = world;
+@@ -425,7 +425,7 @@ public final class RegionizedPlayerChunkLoader {
+                 PlatformHooks.get().onChunkWatch(this.world, chunk, this.player);
+                 PlayerChunkSender.sendChunk(this.player.connection, this.world, chunk);
+                 // Leaf start - Multithreaded tracker
+-                if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled) {
++                if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled) {
+                     ca.spottedleaf.moonrise.common.misc.NearbyPlayers.TrackedChunk trackedChunk = chunk.moonrise$getChunkHolder().holderData.nearbyPlayers;
+                     if (trackedChunk != null) {
+                         trackedChunk.trackingUpdateCountAtomic.getAndIncrement();
+@@ -467,7 +467,7 @@ public final class RegionizedPlayerChunkLoader {
+                 }
+                 // Paper end - PlayerChunkLoadEvent
+                 // Leaf start - Multithreaded tracker
+-                if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled) {
++                if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled) {
+                     ca.spottedleaf.moonrise.common.misc.NearbyPlayers.TrackedChunk trackedChunk = chunk.moonrise$getChunkHolder().holderData.nearbyPlayers;
+                     if (trackedChunk != null) {
+                         trackedChunk.trackingUpdateCountAtomic.getAndIncrement();

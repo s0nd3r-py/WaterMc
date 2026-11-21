@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/vehicle/minecart/NewMinecartBehavior.java b/java/net/minecraft/world/entity/vehicle/minecart/NewMinecartBehavior.java
+index d8af30d57cfe7b3e7ee8620aaaf20b0d7849fe6d..fe072f053268aa37e362665c27a8fc2f2303041f 100644
+--- a/java/net/minecraft/world/entity/vehicle/minecart/NewMinecartBehavior.java
++++ b/java/net/minecraft/world/entity/vehicle/minecart/NewMinecartBehavior.java
+@@ -42,7 +42,7 @@ public class NewMinecartBehavior extends MinecartBehavior {
+     public NewMinecartBehavior(AbstractMinecart minecart) {
+         super(minecart);
+         // Leaf start - Multithreaded tracker
+-        if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled) {
+             lerpSteps = it.unimi.dsi.fastutil.objects.ObjectLists.synchronize(new it.unimi.dsi.fastutil.objects.ObjectArrayList<>());
+         } else {
+             lerpSteps = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>();

@@ -1,0 +1,39 @@
+{
+  "baseline": "D:\\water-mc\\run\\functional-particles-native-off-1\\versions\\1.21.11\\watermc-1.21.11.jar",
+  "current": "watermc-server\\build\\libs\\watermc-1.21.11.jar",
+  "baseline_server_sha256": "06c6abbd99e613c710e88f184b9aa26914de346a1090b5813d12fb599212babe",
+  "current_server_sha256": "5882a7d57f03fe29f147c4b6fb87a7eb01ffaa68b57b87cf381a1fddabc3a2dc",
+  "added": [],
+  "removed": [
+    "org/watermc/network/ExplosionPacketLimiter$Pending.class"
+  ],
+  "changed": [
+    "ca/spottedleaf/dataconverter/minecraft/versions/V1955$1.class",
+    "ca/spottedleaf/dataconverter/minecraft/versions/V1955$2.class",
+    "ca/spottedleaf/dataconverter/minecraft/versions/V2527$1.class",
+    "ca/spottedleaf/dataconverter/minecraft/versions/V4658$1.class",
+    "ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader$PlayerChunkLoaderData$1.class",
+    "ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader$PlayerChunkLoaderData$2.class",
+    "ca/spottedleaf/moonrise/patches/chunk_system/player/RegionizedPlayerChunkLoader$PlayerChunkLoaderData$3.class",
+    "io/papermc/paper/configuration/PaperConfigurations$1.class",
+    "net/minecraft/nbt/SnbtGrammar$1.class",
+    "net/minecraft/nbt/SnbtGrammar$2.class",
+    "net/minecraft/nbt/SnbtGrammar$3.class",
+    "net/minecraft/nbt/SnbtGrammar$4.class",
+    "net/minecraft/nbt/SnbtGrammar$5.class",
+    "net/minecraft/server/commands/DebugCommand$TraceCustomExecutor$1.class",
+    "net/minecraft/server/level/ServerLevel$1.class",
+    "net/minecraft/server/level/ServerLevel$EntityCallbacks.class",
+    "net/minecraft/server/level/ServerLevel.class",
+    "net/minecraft/world/inventory/BrewingStandMenu$1.class",
+    "net/minecraft/world/ticks/LevelTicks.class",
+    "org/bukkit/craftbukkit/CraftOfflinePlayer$1.class",
+    "org/bukkit/craftbukkit/inventory/CraftItemStack$3.class",
+    "org/dreeam/leaf/config/modules/water/ExplosionPacketCoalescing.class",
+    "org/watermc/network/ExplosionPacketLimiter$PlayerState.class",
+    "org/watermc/network/ExplosionPacketLimiter.class"
+  ],
+  "unchanged_class_count": 10501,
+  "historical_report": true,
+  "superseded_for_current_artifact_by": "docs/final-distribution-verification-2026-11-12.json"
+}

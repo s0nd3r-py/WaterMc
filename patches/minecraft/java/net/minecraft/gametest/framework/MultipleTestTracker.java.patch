@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/gametest/framework/MultipleTestTracker.java b/java/net/minecraft/gametest/framework/MultipleTestTracker.java
+index 16391760e5247cf357e04e53c6cc7527ca12bf05..57f3a01d7252b6d65876bb0cbe9a31892affe5ee 100644
+--- a/java/net/minecraft/gametest/framework/MultipleTestTracker.java
++++ b/java/net/minecraft/gametest/framework/MultipleTestTracker.java
+@@ -89,7 +89,7 @@ public class MultipleTestTracker {
+     }
+ 
+     public String getProgressBar() {
+-        StringBuffer stringBuffer = new StringBuffer();
++        StringBuilder stringBuffer = new StringBuilder();
+         stringBuffer.append('[');
+         this.tests.forEach(testInfo -> {
+             if (!testInfo.hasStarted()) {

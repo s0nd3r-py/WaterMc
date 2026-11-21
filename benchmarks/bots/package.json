@@ -1,0 +1,13 @@
+{
+  "name": "watermc-benchmark-clients",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Протокольные клиенты для проверок WaterMc 1.21.11",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "minecraft-protocol": "1.68.0"
+  }
+}

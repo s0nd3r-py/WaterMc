@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/ai/goal/target/NearestAttackableTargetGoal.java b/java/net/minecraft/world/entity/ai/goal/target/NearestAttackableTargetGoal.java
+index bfa2781704a7b1ed4f000b8c5c5ef31d55924bd0..26957b6cf134be41eea348b9a429df5733f4f9a4 100644
+--- a/java/net/minecraft/world/entity/ai/goal/target/NearestAttackableTargetGoal.java
++++ b/java/net/minecraft/world/entity/ai/goal/target/NearestAttackableTargetGoal.java
+@@ -35,7 +35,7 @@ public class NearestAttackableTargetGoal<T extends LivingEntity> extends TargetG
+     ) {
+         super(mob, mustSee, mustReach);
+         this.targetType = targetType;
+-        this.randomInterval = org.dreeam.leaf.config.modules.opt.EntityGoal.chanceTarget > 0 && interval <= 10 ? reducedTickDelay(org.dreeam.leaf.config.modules.opt.EntityGoal.chanceTarget) : reducedTickDelay(interval); // Leaf - configurable goal update interval
++        this.randomInterval = me.s0nd3r.watermc.core.config.modules.opt.EntityGoal.chanceTarget > 0 && interval <= 10 ? reducedTickDelay(me.s0nd3r.watermc.core.config.modules.opt.EntityGoal.chanceTarget) : reducedTickDelay(interval); // Leaf - configurable goal update interval
+         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
+         this.targetConditions = TargetingConditions.forCombat().range(this.getFollowDistance()).selector(selector);
+     }

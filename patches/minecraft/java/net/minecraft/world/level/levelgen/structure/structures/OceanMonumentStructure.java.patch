@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/levelgen/structure/structures/OceanMonumentStructure.java b/java/net/minecraft/world/level/levelgen/structure/structures/OceanMonumentStructure.java
+index 661c26c4b981d504988c7498be45a5ddacaf90d8..4640c7289551da4967110635846d7cb2ee0e9147 100644
+--- a/java/net/minecraft/world/level/levelgen/structure/structures/OceanMonumentStructure.java
++++ b/java/net/minecraft/world/level/levelgen/structure/structures/OceanMonumentStructure.java
+@@ -56,7 +56,7 @@ public class OceanMonumentStructure extends Structure {
+         if (piecesContainer.isEmpty()) {
+             return piecesContainer;
+         } else {
+-            WorldgenRandom worldgenRandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(RandomSupport.generateUniqueSeed()) : new LegacyRandomSource(RandomSupport.generateUniqueSeed())); // Leaf - Faster random generator
++            WorldgenRandom worldgenRandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(RandomSupport.generateUniqueSeed()) : new LegacyRandomSource(RandomSupport.generateUniqueSeed())); // Leaf - Faster random generator
+             worldgenRandom.setLargeFeatureSeed(seed, chunkPos.x, chunkPos.z);
+             StructurePiece structurePiece = piecesContainer.pieces().get(0);
+             BoundingBox boundingBox = structurePiece.getBoundingBox();

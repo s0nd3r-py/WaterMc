@@ -1,0 +1,53 @@
+diff --git a/java/net/minecraft/world/level/NaturalSpawner.java b/java/net/minecraft/world/level/NaturalSpawner.java
+index 51f1241df3d8462634d161aa33a53fc468c65f52..0f076ba8bf8abd63f0a2aab1bdcffdf143ed4914 100644
+--- a/java/net/minecraft/world/level/NaturalSpawner.java
++++ b/java/net/minecraft/world/level/NaturalSpawner.java
+@@ -165,9 +165,9 @@ public final class NaturalSpawner {
+             final boolean canSpawn;
+             int maxSpawns = Integer.MAX_VALUE;
+             // Leaf start - throttle mob spawning
+-            if (org.dreeam.leaf.config.modules.opt.ThrottleNaturalMobSpawning.enabled) {
+-                int spawnChance = org.dreeam.leaf.config.modules.opt.ThrottleNaturalMobSpawning.spawnChance[mobCategory.ordinal()];
+-                long failedAttempt = org.dreeam.leaf.config.modules.opt.ThrottleNaturalMobSpawning.failedAttempts[mobCategory.ordinal()];
++            if (me.s0nd3r.watermc.core.config.modules.opt.ThrottleNaturalMobSpawning.enabled) {
++                int spawnChance = me.s0nd3r.watermc.core.config.modules.opt.ThrottleNaturalMobSpawning.spawnChance[mobCategory.ordinal()];
++                long failedAttempt = me.s0nd3r.watermc.core.config.modules.opt.ThrottleNaturalMobSpawning.failedAttempts[mobCategory.ordinal()];
+                 if (failedAttempt >= 0L
+                     && chunk.failedSpawnAttempts[mobCategory.ordinal()] >= failedAttempt
+                     && (level.random.nextInt() & Integer.MAX_VALUE) >= spawnChance) {
+@@ -513,7 +513,7 @@ public final class NaturalSpawner {
+     private static Optional<MobSpawnSettings.SpawnerData> getRandomSpawnMobAt(
+         ServerLevel level, StructureManager structureManager, ChunkGenerator generator, MobCategory category, RandomSource random, BlockPos pos
+     ) {
+-        Holder<Biome> biome = org.dreeam.leaf.config.modules.opt.OptimizeBiome.mobSpawn ? level.getBiomeCached(null, pos) : level.getBiome(pos); // Leaf - cache getBiome
++        Holder<Biome> biome = me.s0nd3r.watermc.core.config.modules.opt.OptimizeBiome.mobSpawn ? level.getBiomeCached(null, pos) : level.getBiome(pos); // Leaf - cache getBiome
+         return category == MobCategory.WATER_AMBIENT && biome.is(BiomeTags.REDUCED_WATER_AMBIENT_SPAWNS) && random.nextFloat() < 0.98F
+             ? Optional.empty()
+             : mobsAt(level, structureManager, generator, category, pos, biome).getRandom(random);
+@@ -530,7 +530,7 @@ public final class NaturalSpawner {
+     ) {
+         return isInNetherFortressBounds(pos, level, category, structureManager)
+             ? NetherFortressStructure.FORTRESS_ENEMIES
+-            : generator.getMobsAt(biome != null ? biome : (org.dreeam.leaf.config.modules.opt.OptimizeBiome.mobSpawn ? level.getBiomeCached(null, pos) : level.getBiome(pos)), structureManager, category, pos); // Leaf - cache getBiome
++            : generator.getMobsAt(biome != null ? biome : (me.s0nd3r.watermc.core.config.modules.opt.OptimizeBiome.mobSpawn ? level.getBiomeCached(null, pos) : level.getBiome(pos)), structureManager, category, pos); // Leaf - cache getBiome
+     }
+ 
+     public static boolean isInNetherFortressBounds(BlockPos pos, ServerLevel level, MobCategory category, StructureManager structureManager) {
+@@ -759,7 +759,7 @@ public final class NaturalSpawner {
+     private static Optional<MobSpawnSettings.SpawnerData> getRandomSpawnMobAtWithChunk(
+         ServerLevel level, StructureManager structureManager, ChunkGenerator generator, MobCategory category, RandomSource random, BlockPos pos, LevelChunk chunk
+     ) {
+-        Holder<Biome> biome = org.dreeam.leaf.config.modules.opt.OptimizeBiome.mobSpawn ? level.getBiomeCached(chunk, pos) : level.getBiome(pos); // Leaf - cache getBiome
++        Holder<Biome> biome = me.s0nd3r.watermc.core.config.modules.opt.OptimizeBiome.mobSpawn ? level.getBiomeCached(chunk, pos) : level.getBiome(pos); // Leaf - cache getBiome
+         return category == MobCategory.WATER_AMBIENT && biome.is(BiomeTags.REDUCED_WATER_AMBIENT_SPAWNS) && random.nextFloat() < 0.98F
+             ? Optional.empty()
+             : mobsAtWithChunk(level, structureManager, generator, category, pos, biome, chunk).getRandom(random);
+@@ -771,7 +771,7 @@ public final class NaturalSpawner {
+     ) {
+         return isInNetherFortressBoundsChunk(pos, level, category, structureManager, chunk)
+             ? NetherFortressStructure.FORTRESS_ENEMIES
+-            : generator.getMobsAtChunk(biome != null ? biome : (org.dreeam.leaf.config.modules.opt.OptimizeBiome.mobSpawn ? level.getBiomeCached(chunk, pos) : level.getBiome(pos)), structureManager, category, pos, chunk); // Leaf - cache getBiome
++            : generator.getMobsAtChunk(biome != null ? biome : (me.s0nd3r.watermc.core.config.modules.opt.OptimizeBiome.mobSpawn ? level.getBiomeCached(chunk, pos) : level.getBiome(pos)), structureManager, category, pos, chunk); // Leaf - cache getBiome
+     }
+ 
+     // Copied and modified from `isInNetherFortressBounds`

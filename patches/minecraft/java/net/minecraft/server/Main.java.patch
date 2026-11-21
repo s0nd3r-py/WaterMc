@@ -1,0 +1,117 @@
+diff --git a/java/net/minecraft/server/Main.java b/java/net/minecraft/server/Main.java
+index 170d2bac2c280921248c86d266add46260c5a76d..70238bdc48568bf852e17fa250fc0d44e3f6e400 100644
+--- a/java/net/minecraft/server/Main.java
++++ b/java/net/minecraft/server/Main.java
+@@ -5,7 +5,6 @@ import com.mojang.datafixers.DataFixer;
+ import com.mojang.logging.LogUtils;
+ import com.mojang.serialization.Dynamic;
+ import com.mojang.serialization.Lifecycle;
+-import java.awt.GraphicsEnvironment;
+ import java.io.File;
+ import java.io.IOException;
+ import java.io.UncheckedIOException;
+@@ -39,8 +38,6 @@ import net.minecraft.server.packs.repository.ServerPacksSource;
+ import net.minecraft.util.Mth;
+ import net.minecraft.util.Util;
+ import net.minecraft.util.datafix.DataFixers;
+-import net.minecraft.util.profiling.jfr.Environment;
+-import net.minecraft.util.profiling.jfr.JvmProfiler;
+ import net.minecraft.util.worldupdate.WorldUpgrader;
+ import net.minecraft.world.flag.FeatureFlags;
+ import net.minecraft.world.level.LevelSettings;
+@@ -100,12 +97,10 @@ public class Main {
+                 writePidFile(path);
+             }
+ 
+-            org.dreeam.leaf.config.LeafConfig.loadConfig(); // Leaf - Leaf config
++            me.s0nd3r.watermc.core.config.WaterConfig.useGlobalConfigFile((File) optionSet.valueOf("watermc-settings")); // WaterMc - --watermc-settings
++            me.s0nd3r.watermc.core.config.WaterConfig.loadConfig(); // Leaf - Leaf config
+ 
+             CrashReport.preload();
+-            if (optionSet.has("jfrProfile")) { // CraftBukkit
+-                JvmProfiler.INSTANCE.start(Environment.SERVER);
+-            }
+ 
+             // Purpur start - Add toggle for enchant level clamping - load config files early
+             org.bukkit.configuration.file.YamlConfiguration purpurConfiguration = io.papermc.paper.configuration.PaperConfigurations.loadLegacyConfigFile((File) optionSet.valueOf("purpur-settings"));
+@@ -118,7 +113,7 @@ public class Main {
+             Bootstrap.bootStrap();
+             Bootstrap.validate();
+             Util.startTimerHackThread();
+-            org.dreeam.leaf.config.ConfigModules.loadAfterBootstrap(); // Leaf - Leaf config - post load
++            me.s0nd3r.watermc.core.config.ConfigModules.loadAfterBootstrap(); // Leaf - Leaf config - post load
+             Path path1 = Paths.get("server.properties");
+             DedicatedServerSettings dedicatedServerSettings = new DedicatedServerSettings(optionSet); // CraftBukkit - CLI argument support
+             dedicatedServerSettings.forceSave();
+@@ -160,29 +155,22 @@ public class Main {
+                 return;
+             }
+ 
+-            // Paper start - Detect headless JRE
+-            String awtException = io.papermc.paper.util.ServerEnvironment.awtDependencyCheck();
+-            if (awtException != null) {
+-                LOGGER.error("You are using a headless JRE distribution.");
+-                LOGGER.error("This distribution is missing certain graphic libraries that the Minecraft server needs to function.");
+-                LOGGER.error("For instructions on how to install the non-headless JRE, see https://docs.papermc.io/misc/java-install");
+-                LOGGER.error("");
+-                LOGGER.error(awtException);
+-                return;
+-            }
+-            // Paper end - Detect headless JRE
++            // WaterMc - headless server: AWT is never initialised during startup
+ 
+             org.spigotmc.SpigotConfig.disabledAdvancements = spigotConfiguration.getStringList("advancements.disabled"); // Paper - fix SPIGOT-5885, must be set early in init
+ 
+             // Paper start - fix SPIGOT-5824
+             File file;
+-            File userCacheFile = new File(Services.USERID_CACHE_FILE);
++            final me.s0nd3r.watermc.bootstrap.ServerLayout waterLayout = me.s0nd3r.watermc.bootstrap.ServerLayout.current(); // WaterMc - config/, data/, worlds/
++            File userCacheFile = waterLayout.dataFileLegacy("usercache.wdb"); // WaterMc - data/usercache.wdb (imported from usercache.json once)
+             if (optionSet.has("universe")) {
+                 file = (File) optionSet.valueOf("universe"); // CraftBukkit
+-                userCacheFile = new File(file, Services.USERID_CACHE_FILE);
+-            } else {
++            } else if (bukkitConfiguration.isSet("settings.world-container")) {
+                 file = new File(bukkitConfiguration.getString("settings.world-container", "."));
++            } else {
++                file = waterLayout.defaultWorldContainer(dedicatedServerSettings.getProperties().levelName).toFile(); // WaterMc - worlds/ unless a legacy root world exists
+             }
++            java.nio.file.Files.createDirectories(file.toPath()); // WaterMc
+             // Paper end - fix SPIGOT-5824
+             Services services = Services.create(new com.destroystokyo.paper.profile.PaperAuthenticationService(Proxy.NO_PROXY), file, userCacheFile, optionSet); // Paper - pass OptionSet to load paper config files; override authentication service; fix world-container
+             // CraftBukkit start
+@@ -231,7 +219,7 @@ public class Main {
+             }
+ 
+             Dynamic<?> dynamic = dataTag;
+-            boolean hasOptionSpec = optionSet.has("safeMode"); // CraftBukkit
++            boolean hasOptionSpec = false; // WaterMc - --safeMode removed
+             if (hasOptionSpec) {
+                 LOGGER.warn("Safe mode active, only vanilla datapack will be loaded");
+             }
+@@ -281,7 +269,7 @@ public class Main {
+                                 } else {
+                                     LOGGER.info("No existing world data, creating new world");
+                                     return createNewWorldData(
+-                                        dedicatedServerSettings, context, registry, optionSet.has("demo"), optionSet.has("bonusChest") // CraftBukkit
++                                        dedicatedServerSettings, context, registry, false, false // WaterMc - --demo and --bonusChest removed
+                                     );
+                                 }
+                             },
+@@ -331,15 +319,11 @@ public class Main {
+                     if (optionSet.has("serverId")) {
+                         dedicatedServer1.setId((String) optionSet.valueOf("serverId"));
+                     }
+-                    dedicatedServer1.setDemo(optionSet.has("demo"));
+                     // Paper end
+                     /*
+                     dedicatedServer1.setId(optionSet.valueOf(optionSpec12));
+                      */
+-                    boolean flag = !optionSet.has("nogui") && !optionSet.nonOptionArguments().contains("nogui");
+-                    if (flag && !GraphicsEnvironment.isHeadless()) {
+-                        dedicatedServer1.showGui();
+-                    }
++                    // WaterMc - always headless, the Swing console window was removed
+                     // Paper start
+                     if (optionSet.has("port")) {
+                         int port = (Integer) optionSet.valueOf("port");

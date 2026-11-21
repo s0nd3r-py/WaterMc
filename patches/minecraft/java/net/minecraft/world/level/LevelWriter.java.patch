@@ -1,0 +1,31 @@
+diff --git a/java/net/minecraft/world/level/LevelWriter.java b/java/net/minecraft/world/level/LevelWriter.java
+index f627d12737bffecbedd97fb1fc6e4b6511328344..bf2734f848c499abfda3debde8ac68d55f1f0703 100644
+--- a/java/net/minecraft/world/level/LevelWriter.java
++++ b/java/net/minecraft/world/level/LevelWriter.java
+@@ -25,6 +25,26 @@ public interface LevelWriter {
+ 
+     boolean destroyBlock(BlockPos pos, boolean dropBlock, @Nullable Entity entity, int recursionLeft);
+ 
++    // Leaf start - propagate block destruction cancellation (HaHaWTH, GPL-3.0)
++    default DestroyBlockResult destroyBlockWithResult(BlockPos pos, boolean dropBlock, @Nullable Entity entity, int recursionLeft) {
++        return this.destroyBlock(pos, dropBlock, entity, recursionLeft) ? DestroyBlockResult.CHANGED : DestroyBlockResult.UNCHANGED;
++    }
++
++    enum DestroyBlockResult {
++        CANCELLED,
++        CHANGED,
++        UNCHANGED;
++
++        public boolean isCancelled() {
++            return this == CANCELLED;
++        }
++
++        public boolean isChanged() {
++            return this == CHANGED;
++        }
++    }
++    // Leaf end - propagate block destruction cancellation
++
+     default boolean addFreshEntity(Entity entity) {
+         return false;
+     }

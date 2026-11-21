@@ -1,0 +1,12 @@
+diff --git a/java/net/minecraft/world/entity/EntityType.java b/java/net/minecraft/world/entity/EntityType.java
+index 6a6eff5b8e0a3e454c69587d60f6f7bdc0c51cb5..0c5f3c5fab4a10ce59aa34c4c387827d3268659f 100644
+--- a/java/net/minecraft/world/entity/EntityType.java
++++ b/java/net/minecraft/world/entity/EntityType.java
+@@ -1219,6 +1219,7 @@ public class EntityType<T extends Entity> implements FeatureElement, EntityTypeT
+     private final boolean fireImmune;
+     private final boolean canSpawnFarFromPlayer;
+     private final int clientTrackingRange;
++    public boolean waterCullingSkip = false; // WaterMc - raytrace entity culling
+     private final int updateInterval;
+     public boolean dabEnabled = false; // Pufferfish
+     private final String descriptionId;

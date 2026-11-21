@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/monster/EnderMan.java b/java/net/minecraft/world/entity/monster/EnderMan.java
+index e3901f14d7414b03df30db8c877085769cc771f0..e1428c36f0714ffa78224de1172253e2e81cd1a1 100644
+--- a/java/net/minecraft/world/entity/monster/EnderMan.java
++++ b/java/net/minecraft/world/entity/monster/EnderMan.java
+@@ -587,7 +587,7 @@ public class EnderMan extends Monster implements NeutralMob {
+             this.startAggroTargetConditions = TargetingConditions.forCombat().range(this.getFollowDistance()).selector(this.isAngerInducing);
+         }
+ 
+-        private final int leaf$internal = Math.max(1, reducedTickDelay(org.dreeam.leaf.config.modules.opt.EntityGoal.chanceEndermanLookForPlayer)); private int leaf$counter; // Leaf - configurable goal update interval
++        private final int leaf$internal = Math.max(1, reducedTickDelay(me.s0nd3r.watermc.core.config.modules.opt.EntityGoal.chanceEndermanLookForPlayer)); private int leaf$counter; // Leaf - configurable goal update interval
+         @Override
+         public boolean canUse() {
+             leaf$counter++; if (leaf$counter < leaf$internal) { return false; } else { leaf$counter = this.mob.random.nextInt(leaf$internal); } // Leaf - configurable goal update interval

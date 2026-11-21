@@ -1,0 +1,333 @@
+diff --git a/java/net/minecraft/world/level/chunk/PalettedContainer.java b/java/net/minecraft/world/level/chunk/PalettedContainer.java
+index 07355d76cdb162b2d200c230e2511aca18babed3..fc34fd0490445d9f78f0764ac46e9d75b6a8d9fe 100644
+--- a/java/net/minecraft/world/level/chunk/PalettedContainer.java
++++ b/java/net/minecraft/world/level/chunk/PalettedContainer.java
+@@ -5,9 +5,10 @@ import com.mojang.serialization.Codec;
+ import com.mojang.serialization.DataResult;
+ import com.mojang.serialization.codecs.RecordCodecBuilder;
+ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+-import it.unimi.dsi.fastutil.ints.IntArraySet;
++import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+ import it.unimi.dsi.fastutil.ints.IntSet;
+ import java.util.Arrays;
++import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Optional;
+ import java.util.function.Consumer;
+@@ -25,7 +26,9 @@ import org.jspecify.annotations.Nullable;
+ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainerRO<T> {
+     private static final int MIN_PALETTE_BITS = 0;
+     public volatile PalettedContainer.Data<T> data; // Paper - optimise collisions - public
++    private me.s0nd3r.watermc.storage.SectionPacketCache.Slot<T> packetCache;
+     private final Strategy<T> strategy;
++    private T waterDefaultValue;
+     private final T @org.jetbrains.annotations.Nullable [] presetValues; // Paper - Anti-Xray - Add preset values
+     //private final ThreadingDetector threadingDetector = new ThreadingDetector("PalettedContainer"); // Paper - unused
+ 
+@@ -82,6 +85,34 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+             .comapFlatMap(packedData -> unpacker.read(strategy, (PalettedContainerRO.PackedData<T>)packedData), container -> container.pack(strategy));
+     }
+ 
++    /**
++     * WaterMc: flat {@code long[4096]} section storage is opt-in ({@code -Dwatermc.flat-section-storage=true}).
++     * Measured on the same 1600-chunk world: live heap 833 MiB with flat storage vs 393 MiB with the packed
++     * Paper/Leaf storage (+281 KiB per loaded chunk), so the packed storage is the default.
++     */
++    public static volatile boolean WATER_FLAT_SECTION_STORAGE = Boolean.getBoolean("watermc.flat-section-storage");
++
++    /** Palette facade is retained for disk, protocol and Anti-Xray compatibility. */
++    private void useWaterStorage() {
++        if (!WATER_FLAT_SECTION_STORAGE) return; // WaterMc - packed storage by default
++        if (this.strategy.globalPaletteBitsInMemory < 9
++            || this.strategy.entryCount() != me.s0nd3r.watermc.storage.WaterSectionStorage.SIZE
++            || this.data.storage() instanceof me.s0nd3r.watermc.storage.WaterSectionStorage) return;
++        final Data<T> previous = this.data;
++        this.waterDefaultValue = previous.palette().valueFor(0);
++        final int bits = this.strategy.globalPaletteBitsInMemory;
++        final Palette<T> palette = this.strategy.globalPalette();
++        final PaletteResize<T> noResize = PaletteResize.noResizeExpected();
++        final int firstId = palette.idFor(previous.palette().valueFor(previous.storage().get(0)), noResize);
++        final me.s0nd3r.watermc.storage.WaterSectionStorage flat = new me.s0nd3r.watermc.storage.WaterSectionStorage(bits, firstId);
++        if (previous.palette().getSize() != 1) {
++            for (int i = 0; i < flat.getSize(); ++i) {
++                flat.set(i, palette.idFor(previous.palette().valueFor(previous.storage().get(i)), noResize));
++            }
++        }
++        this.data = new Data<>(new Configuration.Global(bits, bits), flat, palette);
++    }
++
+     // Paper start - optimise palette reads
+     private void updateData(final PalettedContainer.Data<T> data) {
+         if (data != null) {
+@@ -139,13 +170,16 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+             }
+         }
+         // Paper end
++        this.useWaterStorage();
+         this.updateData(this.data); // Paper - optimise palette reads
+     }
+ 
+     private PalettedContainer(PalettedContainer<T> other, T @org.jetbrains.annotations.Nullable [] presetValues) { // Paper - Anti-Xray - Add preset values
+         this.presetValues = presetValues; // Paper - Anti-Xray - Add preset values
+         this.strategy = other.strategy;
++        this.waterDefaultValue = other.waterDefaultValue;
+         this.data = other.data.copy();
++        this.useWaterStorage();
+         this.updateData(this.data); // Paper - optimise palette reads
+     }
+ 
+@@ -160,6 +194,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+         this.strategy = strategy;
+         this.data = this.createOrReuseData(null, 0);
+         this.data.palette.idFor(defaultValue, this);
++        this.useWaterStorage();
+         this.updateData(this.data); // Paper - optimise palette reads
+     }
+ 
+@@ -177,7 +212,10 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+     }
+ 
+     @Override
+-    public synchronized int onResize(int bits, T addedValue) { // Paper - synchronize
++    public synchronized int onResize(int bits, T addedValue) { // cold compatibility path
++        if (this.data.storage() instanceof me.s0nd3r.watermc.storage.WaterSectionStorage) {
++            return addedValue == null ? -1 : this.data.palette().idFor(addedValue, PaletteResize.noResizeExpected());
++        }
+         PalettedContainer.Data<T> data = this.data;
+         // Paper start - Anti-Xray - Add preset values
+         if (this.presetValues != null && addedValue != null && data.configuration() instanceof Configuration.Simple simpleFactory && simpleFactory.factory() == Strategy.SINGLE_VALUE_PALETTE_FACTORY) {
+@@ -206,17 +244,22 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+     }
+     // Paper end - Anti-Xray
+ 
+-    public synchronized T getAndSet(int x, int y, int z, T state) { // Paper - synchronize
+-        this.acquire();
+-
+-        Object var5;
+-        try {
+-            var5 = this.getAndSet(this.strategy.getIndex(x, y, z), state);
+-        } finally {
+-            this.release();
++    public T getAndSet(int x, int y, int z, T state) {
++        if (this.data.storage() instanceof me.s0nd3r.watermc.storage.WaterSectionStorage) {
++            return this.getAndSet(this.strategy.getIndex(x, y, z), state);
+         }
++        synchronized (this) {
++            this.acquire();
++
++            Object var5;
++            try {
++                var5 = this.getAndSet(this.strategy.getIndex(x, y, z), state);
++            } finally {
++                this.release();
++            }
+ 
+-        return (T)var5;
++            return (T)var5;
++        }
+     }
+ 
+     public T getAndSetUnchecked(int x, int y, int z, T state) {
+@@ -232,13 +275,19 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+         // Paper end - optimise palette reads
+     }
+ 
+-    public synchronized void set(int x, int y, int z, T state) { // Paper - synchronize
+-        this.acquire();
+-
+-        try {
++    public void set(int x, int y, int z, T state) {
++        if (this.data.storage() instanceof me.s0nd3r.watermc.storage.WaterSectionStorage) {
+             this.set(this.strategy.getIndex(x, y, z), state);
+-        } finally {
+-            this.release();
++            return;
++        }
++        synchronized (this) {
++            this.acquire();
++
++            try {
++                this.set(this.strategy.getIndex(x, y, z), state);
++            } finally {
++                this.release();
++            }
+         }
+     }
+ 
+@@ -252,6 +301,17 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+         return this.get(this.strategy.getIndex(x, y, z));
+     }
+ 
++    // WaterMc start - Leaf: reduce PalettedContainer lookup in collisions - read the data once, then many indices from that snapshot
++    @SuppressWarnings("unchecked")
++    public PalettedContainer.Data<T> waterDataAcquire() {
++        return (PalettedContainer.Data<T>) DATA_HANDLE.getAcquire(this);
++    }
++
++    public T waterGetFromData(final PalettedContainer.Data<T> data, final int index) {
++        return this.readPalette(data, data.storage.get(index));
++    }
++    // WaterMc end
++
+     public T get(int index) { // Paper - public
+         // Paper start - optimise palette reads
+         final PalettedContainer.Data<T> data = (PalettedContainer.Data<T>) DATA_HANDLE.getAcquire(this); // Leaf - optimize PalettedContainer#get
+@@ -262,7 +322,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+     @Override
+     public void getAll(Consumer<T> consumer) {
+         Palette<T> palette = this.data.palette();
+-        IntSet set = new IntArraySet();
++        IntSet set = new IntOpenHashSet();
+         this.data.storage.getAll(set::add);
+         set.forEach(id -> consumer.accept(palette.valueFor(id)));
+     }
+@@ -272,11 +332,12 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+ 
+         try {
+             int _byte = buffer.readByte();
+-            PalettedContainer.Data<T> data = this.createOrReuseData(this.data, _byte);
++            PalettedContainer.Data<T> data = this.createOrReuseData(this.data.storage() instanceof me.s0nd3r.watermc.storage.WaterSectionStorage ? null : this.data, _byte);
+             data.palette.read(buffer, this.strategy.globalMap());
+             buffer.readFixedSizeLongArray(data.storage.getRaw());
+             this.data = data;
+             this.addPresetValues(); // Paper - Anti-Xray - Add preset values (inefficient, but this isn't used by the server)
++            this.useWaterStorage();
+             this.updateData(this.data); // Paper - optimise palette reads
+         } finally {
+             this.release();
+@@ -293,7 +354,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+         this.acquire();
+ 
+         try {
+-            this.data.write(buffer, this.strategy.globalMap(), chunkPacketInfo, chunkSectionIndex);
++            this.networkData().write(buffer, this.strategy.globalMap(), chunkPacketInfo, chunkSectionIndex);
+             if (chunkPacketInfo != null) {
+                 chunkPacketInfo.setPresetValues(chunkSectionIndex, this.presetValues);
+             }
+@@ -352,6 +413,13 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+ 
+         PalettedContainerRO.PackedData var14;
+         try {
++            if (this.data.storage() instanceof me.s0nd3r.watermc.storage.WaterSectionStorage flat) {
++                FlatSnapshot<T> snapshot = this.flatSnapshot(this.data, flat);
++                int bits = strategy.getConfigurationForPaletteSize(snapshot.entries.size()).bitsInStorage();
++                Optional<LongStream> encoded = bits == 0 ? Optional.empty()
++                    : Optional.of(Arrays.stream(new SimpleBitStorage(bits, flat.getSize(), snapshot.localIds).getRaw()));
++                return new PalettedContainerRO.PackedData<>(snapshot.entries, encoded, bits);
++            }
+             BitStorage bitStorage = this.data.storage;
+             Palette<T> palette = this.data.palette;
+             HashMapPalette<T> hashMapPalette = new HashMapPalette<>(bitStorage.getBits());
+@@ -395,9 +463,80 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+         return ints;
+     }
+ 
++    /** Repack only at the protocol boundary; live sections retain global, independently atomic IDs.
++     * Like pack(), this snapshot must be taken by the chunk owner (or on its isolated copy).
++     */
++    private Data<T> networkData() {
++        final Data<T> source = this.data;
++        if (!(source.storage() instanceof me.s0nd3r.watermc.storage.WaterSectionStorage flat)) return source;
++        me.s0nd3r.watermc.storage.SectionPacketCache.Slot<T> slot = null;
++        if (me.s0nd3r.watermc.storage.SectionPacketCache.enabled()) {
++            slot = this.packetCache;
++            if (slot == null || !slot.owns(flat)) this.packetCache = slot = new me.s0nd3r.watermc.storage.SectionPacketCache.Slot<>(flat);
++            Data<T> cached = slot.get(source);
++            if (cached != null) return cached;
++        }
++        FlatSnapshot<T> snapshot = this.flatSnapshot(source, flat);
++        final List<T> entries = snapshot.entries;
++        final Int2IntOpenHashMap localIds = snapshot.globalToLocal;
++        int[] encoded = snapshot.localIds;
++        // Anti-Xray rewrites packet-local IDs, so its replacement states must fit this palette.
++        if (this.presetValues != null && !(entries.size() == 1
++            && entries.getFirst() instanceof net.minecraft.world.level.block.state.BlockState state && state.isAir())) {
++            for (T preset : this.presetValues) {
++                final int id = this.strategy.globalMap().getId(preset);
++                if (!localIds.containsKey(id)) {
++                    localIds.put(id, entries.size());
++                    entries.add(preset);
++                }
++            }
++        }
++        final Configuration configuration = this.strategy.getConfigurationForPaletteSize(entries.size());
++        final Palette<T> palette = configuration.createPalette(this.strategy, entries);
++        final BitStorage storage;
++        if (configuration.bitsInMemory() == 0) {
++            storage = new ZeroBitStorage(flat.getSize());
++        } else {
++            if (encoded == null) encoded = new int[flat.getSize()];
++            if (configuration instanceof Configuration.Global) {
++                for (int i = 0; i < encoded.length; ++i) {
++                    encoded[i] = this.strategy.globalMap().getId(entries.get(encoded[i]));
++                }
++            }
++            storage = new SimpleBitStorage(configuration.bitsInMemory(), encoded.length, encoded);
++        }
++        Data<T> result = new Data<>(configuration, storage, palette);
++        if (slot != null) slot.store(source, result);
++        return result;
++    }
++
++    private FlatSnapshot<T> flatSnapshot(Data<T> source, me.s0nd3r.watermc.storage.WaterSectionStorage flat) {
++        Int2IntOpenHashMap ids = new Int2IntOpenHashMap();
++        ids.defaultReturnValue(-1);
++        List<T> entries = new ArrayList<>();
++        if (flat.isCompact()) {
++            int id = flat.get(0);
++            ids.put(id, 0);
++            entries.add(source.palette().valueFor(id));
++            return new FlatSnapshot<>(entries, ids, null);
++        }
++        int[] encoded = new int[flat.getSize()];
++        for (int i = 0; i < encoded.length; ++i) {
++            int id = flat.get(i), local = ids.get(id);
++            if (local == -1) {
++                local = entries.size();
++                ids.put(id, local);
++                entries.add(source.palette().valueFor(id));
++            }
++            encoded[i] = local;
++        }
++        return new FlatSnapshot<>(entries, ids, encoded);
++    }
++    private record FlatSnapshot<T>(List<T> entries, Int2IntOpenHashMap globalToLocal, int[] localIds) {}
++
+     @Override
+     public int getSerializedSize() {
+-        return this.data.getSerializedSize(this.strategy.globalMap());
++        return this.networkData().getSerializedSize(this.strategy.globalMap());
+     }
+ 
+     @Override
+@@ -407,7 +546,11 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+ 
+     @Override
+     public boolean maybeHas(Predicate<T> predicate) {
+-        return this.data.palette.maybeHas(predicate);
++        final Data<T> data = this.data;
++        if (data.storage() instanceof me.s0nd3r.watermc.storage.WaterSectionStorage flat && flat.isCompact()) {
++            return predicate.test(data.palette().valueFor(flat.get(0)));
++        }
++        return data.palette.maybeHas(predicate);
+     }
+ 
+     @Override
+@@ -417,7 +560,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+ 
+     @Override
+     public PalettedContainer<T> recreate() {
+-        return new PalettedContainer<>(this.data.palette.valueFor(0), this.strategy, this.presetValues); // Paper - Anti-Xray - Add preset values
++        return new PalettedContainer<>(this.waterDefaultValue != null ? this.waterDefaultValue : this.data.palette.valueFor(0), this.strategy, this.presetValues); // Paper - Anti-Xray - Add preset values
+     }
+ 
+     @Override
+@@ -484,7 +627,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+         }
+ 
+         public int getSerializedSize(IdMap<T> map) {
+-            return 1 + this.palette.getSerializedSize(map) + this.storage.getRaw().length * 8;
++            return 1 + this.palette.getSerializedSize(map) + (this.storage instanceof me.s0nd3r.watermc.storage.WaterSectionStorage flat ? flat.encodedLength() : this.storage.getRaw().length) * 8;
+         }
+ 
+         // Paper start - Anti-Xray - Add chunk packet info

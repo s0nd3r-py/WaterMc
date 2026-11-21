@@ -1,0 +1,43 @@
+diff --git a/java/net/minecraft/world/level/levelgen/feature/SpikeFeature.java b/java/net/minecraft/world/level/levelgen/feature/SpikeFeature.java
+index 70bb9a6742d236bb2f8f9b6bc43e973838ec5842..d7d7213421f5a4c19e38032b611dbe1a18246351 100644
+--- a/java/net/minecraft/world/level/levelgen/feature/SpikeFeature.java
++++ b/java/net/minecraft/world/level/levelgen/feature/SpikeFeature.java
+@@ -1,8 +1,8 @@
+ package net.minecraft.world.level.levelgen.feature;
+ 
+-import com.google.common.cache.CacheBuilder;
+-import com.google.common.cache.CacheLoader;
+-import com.google.common.cache.LoadingCache;
++import me.s0nd3r.watermc.util.WaterCaches;
++import com.github.benmanes.caffeine.cache.CacheLoader;
++import com.github.benmanes.caffeine.cache.LoadingCache;
+ import com.google.common.collect.Lists;
+ import com.mojang.serialization.Codec;
+ import com.mojang.serialization.codecs.RecordCodecBuilder;
+@@ -31,7 +31,7 @@ import net.minecraft.world.phys.AABB;
+ public class SpikeFeature extends Feature<SpikeConfiguration> {
+     public static final int NUMBER_OF_SPIKES = 10;
+     private static final int SPIKE_DISTANCE = 42;
+-    private static final LoadingCache<Long, List<SpikeFeature.EndSpike>> SPIKE_CACHE = CacheBuilder.newBuilder()
++    private static final LoadingCache<Long, List<SpikeFeature.EndSpike>> SPIKE_CACHE = WaterCaches.newBuilder()
+         .expireAfterWrite(5L, TimeUnit.MINUTES)
+         .build(new SpikeFeature.SpikeCacheLoader());
+ 
+@@ -42,7 +42,7 @@ public class SpikeFeature extends Feature<SpikeConfiguration> {
+     public static List<SpikeFeature.EndSpike> getSpikesForLevel(WorldGenLevel level) {
+         RandomSource randomSource = RandomSource.create(level.getSeed());
+         long l = randomSource.nextLong() & 65535L;
+-        return SPIKE_CACHE.getUnchecked(l);
++        return SPIKE_CACHE.get(l);
+     }
+ 
+     @Override
+@@ -178,7 +178,7 @@ public class SpikeFeature extends Feature<SpikeConfiguration> {
+         }
+     }
+ 
+-    static class SpikeCacheLoader extends CacheLoader<Long, List<SpikeFeature.EndSpike>> {
++    static class SpikeCacheLoader implements CacheLoader<Long, List<SpikeFeature.EndSpike>> {
+         @Override
+         public List<SpikeFeature.EndSpike> load(Long _long) {
+             IntArrayList list = Util.toShuffledList(IntStream.range(0, 10), RandomSource.create(_long));

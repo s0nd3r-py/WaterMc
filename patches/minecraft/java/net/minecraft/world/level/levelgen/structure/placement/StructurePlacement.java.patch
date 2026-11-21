@@ -1,0 +1,45 @@
+diff --git a/java/net/minecraft/world/level/levelgen/structure/placement/StructurePlacement.java b/java/net/minecraft/world/level/levelgen/structure/placement/StructurePlacement.java
+index 478f652b8f54dddc4d9f59637a26c88ca99e8bd0..b89dccb123282964308d69524585284324a5d8bc 100644
+--- a/java/net/minecraft/world/level/levelgen/structure/placement/StructurePlacement.java
++++ b/java/net/minecraft/world/level/levelgen/structure/placement/StructurePlacement.java
+@@ -121,10 +121,10 @@ public abstract class StructurePlacement {
+     private static boolean probabilityReducer(long levelSeed, int regionX, int regionZ, int salt, float frequency, @javax.annotation.Nullable Integer saltOverride) { // Paper - Add missing structure set seed configs; ignore here
+         // Leaf start - Matter - Secure Seed
+         WorldgenRandom worldgenRandom;
+-        if (org.dreeam.leaf.config.modules.misc.SecureSeed.enabled) {
+-            worldgenRandom = new su.plo.matter.WorldgenCryptoRandom(regionX, regionZ, su.plo.matter.Globals.Salt.UNDEFINED, salt);
++        if (me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled) {
++            worldgenRandom = new me.s0nd3r.watermc.seed.WorldgenCryptoRandom(regionX, regionZ, me.s0nd3r.watermc.seed.Globals.Salt.UNDEFINED, salt);
+         } else {
+-            worldgenRandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
++            worldgenRandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
+             worldgenRandom.setLargeFeatureWithSalt(levelSeed, regionX, regionZ, salt);
+         }
+         // Leaf end - Matter - Secure Seed
+@@ -132,7 +132,7 @@ public abstract class StructurePlacement {
+     }
+ 
+     private static boolean legacyProbabilityReducerWithDouble(long baseSeed, int salt, int chunkX, int chunkZ, float frequency, @javax.annotation.Nullable Integer saltOverride) { // Paper - Add missing structure set seed configs
+-        WorldgenRandom worldgenRandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
++        WorldgenRandom worldgenRandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
+         if (saltOverride == null) { // Paper - Add missing structure set seed configs
+         worldgenRandom.setLargeFeatureSeed(baseSeed, chunkX, chunkZ);
+             // Paper start - Add missing structure set seed configs
+@@ -144,7 +144,7 @@ public abstract class StructurePlacement {
+     }
+ 
+     private static boolean legacyArbitrarySaltProbabilityReducer(long levelSeed, int salt, int regionX, int regionZ, float frequency, @javax.annotation.Nullable Integer saltOverride) { // Paper - Add missing structure set seed configs
+-        WorldgenRandom worldgenRandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
++        WorldgenRandom worldgenRandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
+         worldgenRandom.setLargeFeatureWithSalt(levelSeed, regionX, regionZ, saltOverride != null ? saltOverride : HIGHLY_ARBITRARY_RANDOM_SALT); // Paper - Add missing structure set seed configs
+         return worldgenRandom.nextFloat() < frequency;
+     }
+@@ -152,7 +152,7 @@ public abstract class StructurePlacement {
+     private static boolean legacyPillagerOutpostReducer(long levelSeed, int salt, int regionX, int regionZ, float frequency, @javax.annotation.Nullable Integer saltOverride) { // Paper - Add missing structure set seed configs; ignore here
+         int i = regionX >> 4;
+         int i1 = regionZ >> 4;
+-        WorldgenRandom worldgenRandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
++        WorldgenRandom worldgenRandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
+         worldgenRandom.setSeed(i ^ i1 << 4 ^ levelSeed);
+         worldgenRandom.nextInt();
+         return worldgenRandom.nextInt((int)(1.0F / frequency)) == 0;

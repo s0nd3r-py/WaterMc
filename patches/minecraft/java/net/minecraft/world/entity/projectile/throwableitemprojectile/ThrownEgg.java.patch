@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/projectile/throwableitemprojectile/ThrownEgg.java b/java/net/minecraft/world/entity/projectile/throwableitemprojectile/ThrownEgg.java
+index 55e7d7e76055ec38b1d3a22b18e70c66a60330c6..3f9a131239f9e049d996aca07e15cb429168b008 100644
+--- a/java/net/minecraft/world/entity/projectile/throwableitemprojectile/ThrownEgg.java
++++ b/java/net/minecraft/world/entity/projectile/throwableitemprojectile/ThrownEgg.java
+@@ -58,7 +58,7 @@ public class ThrownEgg extends ThrowableItemProjectile {
+         // Leaf start - Polpot - Make egg can knockback player
+         net.minecraft.world.entity.Entity entity = result.getEntity();
+         entity.hurt(this.damageSources().thrown(this, this.getOwner()), 0.0F);
+-        if (org.dreeam.leaf.config.modules.gameplay.Knockback.eggCanKnockback && entity instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
++        if (me.s0nd3r.watermc.core.config.modules.gameplay.Knockback.eggCanKnockback && entity instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+             serverPlayer.knockback(0.4F, this.getX() - entity.getX(), this.getZ() - entity.getZ());
+             serverPlayer.markHurt();
+         }

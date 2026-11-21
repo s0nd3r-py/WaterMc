@@ -1,0 +1,31 @@
+diff --git a/java/net/minecraft/world/level/BlockGetter.java b/java/net/minecraft/world/level/BlockGetter.java
+index f59b2201b1ac260d9076bf73ca1a337dd782afb4..822f255440021eccdbea016aed98ac2b8d7cd29b 100644
+--- a/java/net/minecraft/world/level/BlockGetter.java
++++ b/java/net/minecraft/world/level/BlockGetter.java
+@@ -212,7 +212,7 @@ public interface BlockGetter extends LevelHeightAccessor {
+     static boolean forEachBlockIntersectedBetween(Vec3 from, Vec3 to, AABB boundingBox, BlockGetter.BlockStepVisitor visitor) {
+         Vec3 vec3 = to.subtract(from);
+         if (vec3.lengthSqr() < Mth.square(1.0E-5F)) {
+-            for (BlockPos blockPos : org.dreeam.leaf.util.list.SimpleBlockPosIterator.iterable(boundingBox)) { // Leaf - Sakura - optimise check inside blocks
++            for (BlockPos blockPos : me.s0nd3r.watermc.core.util.list.SimpleBlockPosIterator.iterable(boundingBox)) { // Leaf - Sakura - optimise check inside blocks
+                 if (!visitor.visit(blockPos, 0)) {
+                     return false;
+                 }
+@@ -226,7 +226,7 @@ public interface BlockGetter extends LevelHeightAccessor {
+             final boolean zZero = vec3.z() == 0.0;
+             if (xZero && yZero || yZero && zZero || xZero && zZero) {
+                 int blockIndex = 0;
+-                for (final BlockPos blockPos : org.dreeam.leaf.util.list.SimpleBlockPosIterator.traverseBoundsInDirection(vec3, boundingBox, 16.0)) {
++                for (final BlockPos blockPos : me.s0nd3r.watermc.core.util.list.SimpleBlockPosIterator.traverseBoundsInDirection(vec3, boundingBox, 16.0)) {
+                     if (!visitor.visit(blockPos, blockIndex++)) {
+                         return false;
+                     }
+@@ -248,7 +248,7 @@ public interface BlockGetter extends LevelHeightAccessor {
+             if (i < 0) {
+                 return false;
+             } else {
+-                for (BlockPos blockPos2 : org.dreeam.leaf.util.list.SimpleBlockPosIterator.iterable(boundingBox)) { // Leaf - Sakura - optimise check inside blocks
++                for (BlockPos blockPos2 : me.s0nd3r.watermc.core.util.list.SimpleBlockPosIterator.iterable(boundingBox)) { // Leaf - Sakura - optimise check inside blocks
+                     if (set.add(blockPos2.asLong()) && !visitor.visit(blockPos2, i + 1)) {
+                         return false;
+                     }

@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/ai/attributes/AttributeSupplier.java b/java/net/minecraft/world/entity/ai/attributes/AttributeSupplier.java
+index c309b381c8c7caf0bc9142e436c8b801e110df9f..28d1a55ad99e06f0b9b0b1abb0cba00281020bc6 100644
+--- a/java/net/minecraft/world/entity/ai/attributes/AttributeSupplier.java
++++ b/java/net/minecraft/world/entity/ai/attributes/AttributeSupplier.java
+@@ -11,7 +11,7 @@ public class AttributeSupplier {
+     private final Map<Holder<Attribute>, AttributeInstance> instances;
+ 
+     AttributeSupplier(Map<Holder<Attribute>, AttributeInstance> instances) {
+-        this.instances = new org.dreeam.leaf.util.map.AttributeInstanceArrayMap(instances); // Leaf - optimize attribute
++        this.instances = new me.s0nd3r.watermc.core.util.map.AttributeInstanceArrayMap(instances); // Leaf - optimize attribute
+     }
+ 
+     public AttributeInstance getAttributeInstance(Holder<Attribute> attribute) {

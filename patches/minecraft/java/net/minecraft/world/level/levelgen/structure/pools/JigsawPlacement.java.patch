@@ -1,0 +1,15 @@
+diff --git a/java/net/minecraft/world/level/levelgen/structure/pools/JigsawPlacement.java b/java/net/minecraft/world/level/levelgen/structure/pools/JigsawPlacement.java
+index 3676c7cc42dba24b36c44cd84173838496fd869f..cc10bafa6ae36c2d6104966759104527beeb1ced 100644
+--- a/java/net/minecraft/world/level/levelgen/structure/pools/JigsawPlacement.java
++++ b/java/net/minecraft/world/level/levelgen/structure/pools/JigsawPlacement.java
+@@ -65,8 +65,8 @@ public class JigsawPlacement {
+         StructureTemplateManager structureTemplateManager = context.structureTemplateManager();
+         LevelHeightAccessor levelHeightAccessor = context.heightAccessor();
+         // Leaf start - Matter - Secure Seed
+-        WorldgenRandom worldgenRandom = org.dreeam.leaf.config.modules.misc.SecureSeed.enabled
+-            ? new su.plo.matter.WorldgenCryptoRandom(context.chunkPos().x, context.chunkPos().z, su.plo.matter.Globals.Salt.JIGSAW_PLACEMENT, 0)
++        WorldgenRandom worldgenRandom = me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled
++            ? new me.s0nd3r.watermc.seed.WorldgenCryptoRandom(context.chunkPos().x, context.chunkPos().z, me.s0nd3r.watermc.seed.Globals.Salt.JIGSAW_PLACEMENT, 0)
+             : context.random();
+         // Leaf end - Matter - Secure Seed
+         Registry<StructureTemplatePool> registry = registryAccess.lookupOrThrow(Registries.TEMPLATE_POOL);

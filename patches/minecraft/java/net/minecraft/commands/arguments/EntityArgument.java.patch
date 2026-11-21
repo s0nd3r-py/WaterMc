@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/commands/arguments/EntityArgument.java b/java/net/minecraft/commands/arguments/EntityArgument.java
+index 1bd52f976392544dc0e0967f2b046783cf1ec0b1..892bfa6ea98b89b8d02ac7ada475456613f7eba8 100644
+--- a/java/net/minecraft/commands/arguments/EntityArgument.java
++++ b/java/net/minecraft/commands/arguments/EntityArgument.java
+@@ -69,7 +69,7 @@ public class EntityArgument implements ArgumentType<EntitySelector> {
+     public static Collection<? extends Entity> getOptionalEntities(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
+         // Leaf start - Skip inactive entity for execute
+         EntitySelector entitySelector = context.getArgument(name, EntitySelector.class);
+-        return org.dreeam.leaf.config.modules.opt.SkipInactiveEntityForExecute.skipInactiveEntityForExecute && context.getSource().source instanceof net.minecraft.server.MinecraftServer ? entitySelector.findEntitiesSkipInactive(context.getSource()) : entitySelector.findEntities(context.getSource());
++        return me.s0nd3r.watermc.core.config.modules.opt.SkipInactiveEntityForExecute.skipInactiveEntityForExecute && context.getSource().source instanceof net.minecraft.server.MinecraftServer ? entitySelector.findEntitiesSkipInactive(context.getSource()) : entitySelector.findEntities(context.getSource());
+         // Leaf end - Skip inactive entity for execute
+     }
+ 

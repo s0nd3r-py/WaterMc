@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/stats/ServerRecipeBook.java b/java/net/minecraft/stats/ServerRecipeBook.java
+index ad12ca2a43e75aee60c55b4b686ac3ffae19a6c1..de4f761720f81b6f48c808a523f53bbf062cd745 100644
+--- a/java/net/minecraft/stats/ServerRecipeBook.java
++++ b/java/net/minecraft/stats/ServerRecipeBook.java
+@@ -106,7 +106,7 @@ public class ServerRecipeBook extends RecipeBook {
+     private void loadRecipes(List<ResourceKey<Recipe<?>>> recipes, Consumer<ResourceKey<Recipe<?>>> output, Predicate<ResourceKey<Recipe<?>>> isRecognized) {
+         for (ResourceKey<Recipe<?>> resourceKey : recipes) {
+             if (!isRecognized.test(resourceKey)) {
+-                if (org.galemc.gale.configuration.GaleGlobalConfiguration.get().logToConsole.unrecognizedRecipes) LOGGER.error("Tried to load unrecognized recipe: {} removed now.", resourceKey); // Gale - Purpur - do not log unrecognized recipes
++                if (me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().logToConsole.unrecognizedRecipes) LOGGER.error("Tried to load unrecognized recipe: {} removed now.", resourceKey); // Gale - Purpur - do not log unrecognized recipes
+             } else {
+                 output.accept(resourceKey);
+             }

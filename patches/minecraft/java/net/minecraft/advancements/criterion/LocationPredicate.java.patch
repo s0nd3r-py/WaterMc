@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/advancements/criterion/LocationPredicate.java b/java/net/minecraft/advancements/criterion/LocationPredicate.java
+index ec3a665fd1d566325e52a49909d739102daef72c..285926ca09fa1cef45f0a75a1e845f06159ad537 100644
+--- a/java/net/minecraft/advancements/criterion/LocationPredicate.java
++++ b/java/net/minecraft/advancements/criterion/LocationPredicate.java
+@@ -49,7 +49,7 @@ public record LocationPredicate(
+         } else {
+             BlockPos blockPos = BlockPos.containing(x, y, z);
+             boolean isLoaded = level.isLoaded(blockPos);
+-            return (!this.biomes.isPresent() || isLoaded && this.biomes.get().contains(org.dreeam.leaf.config.modules.opt.OptimizeBiome.advancement ? level.getBiomeCached(null, blockPos) : level.getBiome(blockPos))) // Leaf - cache getBiome
++            return (!this.biomes.isPresent() || isLoaded && this.biomes.get().contains(me.s0nd3r.watermc.core.config.modules.opt.OptimizeBiome.advancement ? level.getBiomeCached(null, blockPos) : level.getBiome(blockPos))) // Leaf - cache getBiome
+                 && (!this.structures.isPresent() || isLoaded && level.structureManager().getStructureWithPieceAt(blockPos, this.structures.get()).isValid())
+                 && (!this.smokey.isPresent() || isLoaded && this.smokey.get() == CampfireBlock.isSmokeyPos(level, blockPos))
+                 && (!this.light.isPresent() || this.light.get().matches(level, blockPos))

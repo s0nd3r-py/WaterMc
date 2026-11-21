@@ -1,0 +1,138 @@
+# Перевод консоли WaterMc: русский.
+# Формат: английский шаблон => перевод. {} — значение; {1}, {2} — значение по номеру.
+# Файл журнала logs/latest.log не переводится. Строка «Done (…)! For help, type "help"» не переводится:
+# по ней панели хостинга определяют, что сервер запущен.
+
+# ---------- запуск ----------
+Running Java {} ({}) on {} ({}) => Java {} ({}), система {} ({})
+Loading WaterMc {} for Minecraft {} => Загрузка WaterMc {} для Minecraft {}
+Loading config... => Загрузка настроек...
+Successfully loaded config in {}ms. => Настройки загружены за {} мс.
+Starting minecraft server version {} => Запуск сервера Minecraft {}
+Loading properties => Чтение server.properties
+Default game type: {} => Режим игры по умолчанию: {}
+Generating keypair => Создание ключей шифрования
+Starting Minecraft server on {} => Сервер слушает адрес {}
+Using {} threads for Netty based IO => Сетевых потоков Netty: {}
+Paper is using {} worker threads, {} I/O threads => Система чанков: рабочих потоков {}, потоков ввода-вывода {}
+WaterMc is using {} worker threads, {} I/O threads => Система чанков: рабочих потоков {}, потоков ввода-вывода {}
+Paper: Using Java compression from Velocity. => Сжатие трафика: Java-реализация Velocity.
+Paper: Using Java cipher from Velocity. => Шифрование трафика: Java-реализация Velocity.
+Paper: Using libdeflate (Linux x86_64) compression from Velocity. => Сжатие трафика: нативная libdeflate (Velocity).
+Paper: Using OpenSSL 3.x.x (Linux x86_64) cipher from Velocity. => Шифрование трафика: нативный OpenSSL (Velocity).
+This server is running {} version {} (Implementing API version {}) => Ядро {} версии {} (API {})
+Server Ping Player Sample Count: {} => Игроков в ответе на пинг: {}
+Initializing plugins... => Инициализация плагинов...
+Initialized {} plugin => Инициализирован плагин: {}
+Initialized {} plugins => Инициализировано плагинов: {}
+Bukkit plugins ({}):{} => Плагины Bukkit ({}):{}
+Paper plugins ({}):{} => Плагины Paper ({}):{}
+Loading server plugin {} v{} => Загрузка плагина {} v{}
+Enabling {} v{} => Включение {} v{}
+Disabling {} v{} => Выключение {} v{}
+Preparing level "{}" => Подготовка мира «{}»
+Preparing start region for dimension {} => Подготовка стартовой области измерения {}
+Preparing spawn area: {} => Подготовка области спавна: {}
+Prepared spawn area in {} ms => Область спавна готова за {} мс
+Selecting spawn point for world '{}'... => Выбор точки спавна мира «{}»...
+Loading {} persistent chunks for world '{}'... => Загрузка постоянных чанков мира «{2}»: {1}
+No existing world data, creating new world => Данных мира нет, создаётся новый мир
+Time elapsed: {} ms => Прошло {} мс
+Running delayed init tasks => Выполнение отложенных задач запуска
+Resource reload finished after {} ms => Ресурсы перезагружены за {} мс
+Initialising converters for DataConverter... => Подготовка конвертеров данных (DataConverter)...
+Finished initialising converters for DataConverter in {} => Конвертеры данных готовы за {}
+The global config file didn't have a version set, assuming latest => В глобальном конфиге не указана версия, используется последняя
+
+# ---------- безопасность ----------
+**** SERVER IS RUNNING IN OFFLINE/INSECURE MODE! => **** СЕРВЕР РАБОТАЕТ В OFFLINE-РЕЖИМЕ (БЕЗ ПРОВЕРКИ ЛИЦЕНЗИЙ)!
+The server will make no attempt to authenticate usernames. Beware. => Ники игроков не проверяются через серверы Mojang.
+While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose. => Это позволяет играть без интернета, но любой может зайти под любым ником.
+To change this, set "online-mode" to "true" in the server.properties file. => Чтобы включить проверку, установите online-mode=true в server.properties.
+
+# ---------- игроки ----------
+UUID of player {} is {} => UUID игрока {}: {}
+{}[{}] logged in with entity id {} at ([{}]{}, {}, {}) => {1} [{2}] вошёл: сущность {3}, мир {4}, координаты {5}, {6}, {7}
+{} joined the game => {} зашёл на сервер
+{} left the game => {} вышел с сервера
+{} lost connection: {} => {} отключился: {}
+{} was kicked for floating too long! => {} кикнут за полёт без разрешения
+Disconnecting {}: {} => Отключение {}: {}
+
+# ---------- производительность ----------
+Can't keep up! Is the server overloaded? Running {}ms or {} ticks behind => Сервер не успевает: отставание {} мс ({} тиков). Проверьте нагрузку.
+
+# ---------- остановка ----------
+Stopping the server => Получена команда остановки
+Stopping server => Остановка сервера
+Closing Server => Закрытие сервера
+Saving players => Сохранение игроков
+Saving worlds => Сохранение миров
+Saving chunks for level '{}'/{} => Сохранение чанков мира «{}» ({})
+ThreadedChunkStorage ({}): All chunks are saved => Хранилище чанков ({}): все чанки сохранены
+ThreadedChunkStorage: All dimensions are saved => Хранилище чанков: все измерения сохранены
+Waiting for all RegionFile I/O tasks to complete... => Ожидание завершения записи файлов регионов...
+All RegionFile I/O tasks to complete => Запись файлов регионов завершена
+Waiting for player data writes before saving worlds => Ожидание записи данных игроков перед сохранением миров
+Waiting for mob spawning thread to shutdown... => Ожидание остановки потока спавна мобов...
+Total blocking time: {} ms => Общее время блокировки: {} мс
+Flushing Chunk IO => Сброс очереди записи чанков
+Closing Thread Pool => Закрытие пула потоков
+Saving usercache.json => Сохранение usercache.json
+Saving all chunkholders for world '{}' => Сохранение всех чанков мира «{}»
+Saved {} block chunks, {} entity chunks, {} poi chunks in world '{}' in {} => Сохранено в мире «{4}»: чанков блоков {1}, чанков сущностей {2}, чанков POI {3} за {5}
+Saved {} block chunks, {} entity chunks, {} poi chunks in world '{}', progress: {} => Сохранение мира «{4}»: чанков блоков {1}, чанков сущностей {2}, чанков POI {3}, прогресс {5}
+Waiting {} for chunk system to halt for world '{}' => Ожидание остановки системы чанков мира «{2}» (до {1})
+Halted chunk system for world '{}' => Система чанков мира «{}» остановлена
+Waiting {} for chunk I/O to halt for world '{}' => Ожидание остановки ввода-вывода чанков мира «{2}» (до {1})
+Halted I/O scheduler for world '{}' => Ввод-вывод чанков мира «{}» остановлен
+Awaiting termination of worker pool for up to {}... => Ожидание остановки рабочих потоков (до {})...
+Awaiting termination of I/O pool for up to {}... => Ожидание остановки потоков ввода-вывода (до {})...
+
+# ---------- WaterMc ----------
+Plugin remapping cache moved: {} -> {} => Кэш переотображённых плагинов перенесён: {} -> {}
+Could not move the plugin remapping cache {} -> {}; it will be rebuilt => Не удалось перенести кэш переотображённых плагинов {} -> {}; он будет создан заново
+{}: removed obsolete keys {}; previous values saved to {} => {}: удалены устаревшие ключи {}; прежние значения сохранены в {}
+Could not back up obsolete keys {}; they were left unchanged => Не удалось сохранить резервную копию устаревших ключей {}; ключи оставлены как есть
+Conflicting settings: {} => Конфликт настроек: {}
+Settings from {} moved to {}; the old file is kept as {} => Настройки из {} перенесены в {}; старый файл сохранён как {}
+Could not move {} to config/legacy/ => Не удалось переместить {} в config/legacy/
+Cache cleanup failed => Ошибка очистки кэша
+Heap guard: {}; cold caches cleared: {} => Контроль памяти: {}; очищено холодных кэшей: {}
+Plugin {} used {} ms of the main thread in one tick ({} calls); heaviest: {} ({} ms) => Плагин {} занял {} мс основного потока за тик ({} вызовов); самый тяжёлый: {} ({} мс)
+Drain: new logins closed, players transferred: {}{} => Drain: вход закрыт, переведено игроков: {}{}
+Drain: {} players online, waiting for data writes, then stopping => Drain: игроков онлайн {}, ожидание записи данных и остановка
+Metrics available at http://{}:{}/metrics => Метрики доступны на http://{}:{}/metrics
+Could not start the metrics HTTP endpoint on {}:{} => Не удалось запустить HTTP-эндпоинт метрик на {}:{}
+Could not open data/script-variables.wdb; scripts are disabled => Не удалось открыть data/script-variables.wdb, скрипты отключены
+Could not unregister script commands and events => Не удалось снять регистрацию команд и событий скриптов
+Error while unloading scripts => Ошибка при выгрузке скриптов
+Could not close data/script-variables.wdb => Не удалось закрыть data/script-variables.wdb
+Scripts: {} loaded, {} with errors, {} commands, {} events => Скрипты: загружено {}, с ошибками {}, команд {}, событий {}
+Could not read {} => Не удалось прочитать {}
+Could not read directory {} => Не удалось прочитать каталог {}
+Could not create the scripts/ directory => Не удалось создать каталог scripts/
+Script handler for {} did not finish within {} ms; cancellation was not applied => Обработчик события {} не успел за {} мс; отмена не применена
+Error in script handler for {} => Ошибка в обработчике события {}
+Script command /{} from {} conflicts with an existing command; available as /{}:{} => Команда скрипта /{} из {} конфликтует с существующей; доступна как /{}:{}
+{} is corrupted and cannot be imported; copy: {}, original renamed to {} => {} повреждён и не может быть импортирован; копия: {}, исходник переименован в {}
+Imported {} entries from {} into {} (backup: {}) => Импортировано записей: {} из {} в {} (резервная копия: {})
+Player data writes did not finish within {} {} => Запись данных игроков не завершилась за {} {}
+Error while waiting for player data writes => Ошибка ожидания записи данных игроков
+{}: truncated tail after an unclean shutdown detected; {} records recovered => {}: после аварийного завершения найден оборванный хвост; восстановлено записей: {}
+Could not wait for data/*.wdb writes to finish => Не удалось дождаться записи файлов data/*.wdb
+Write error in {} => Ошибка записи {}
+WaterMc: keep the full log, the build version and this thread dump to investigate the problem. => WaterMc: сохраните полный лог, версию сборки и этот дамп потоков для разбора проблемы.
+Console language: {} => Язык консоли: {}
+Remapping plugin {}... => Переотображение плагина {}...
+Remapping library {}... => Переотображение библиотеки {}...
+Plugin {} remapped in {} ms => Плагин {} переотображён за {} мс
+Library {} remapped in {} ms => Библиотека {} переотображена за {} мс
+Preparing the Spigot-mapped server classpath for plugin remapping (once per server version)... => Подготовка classpath сервера в именах Spigot для переотображения плагинов (один раз на версию сервера)...
+Server classpath for plugin remapping ready in {} ms => Classpath для переотображения плагинов готов за {} мс
+Plugin remapping index '{}' is unreadable; the cache will be rebuilt => Индекс переотображения плагинов «{}» не читается; кэш будет создан заново
+Loaded {} recipes => Загружено рецептов: {}
+Loaded {} advancements => Загружено достижений: {}
+Found new data pack {}, loading it automatically => Найден новый датапак {}, он подключён автоматически
+Done preparing level "{}" ({}) => Мир «{}» подготовлен за {}
+Preparing worlds with {} chunk worker threads ({} after startup) => Подготовка миров: рабочих потоков чанков {} (после запуска: {})

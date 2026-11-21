@@ -1,0 +1,675 @@
+diff --git a/java/net/minecraft/world/level/block/entity/HopperBlockEntity.java b/java/net/minecraft/world/level/block/entity/HopperBlockEntity.java
+index 1e8b94ea01d7662247affe1ffbe9bf655dd3d64d..800ce47cf4ce2a1e8951a7bfc511a1ee051ee5f2 100644
+--- a/java/net/minecraft/world/level/block/entity/HopperBlockEntity.java
++++ b/java/net/minecraft/world/level/block/entity/HopperBlockEntity.java
+@@ -28,7 +28,7 @@ import net.minecraft.world.level.storage.ValueOutput;
+ import net.minecraft.world.phys.AABB;
+ import org.jspecify.annotations.Nullable;
+ 
+-public class HopperBlockEntity extends RandomizableContainerBlockEntity implements Hopper, net.caffeinemc.mods.lithium.common.block.entity.SleepingBlockEntity, net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementListener, net.caffeinemc.mods.lithium.api.inventory.LithiumInventory, net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeListener, net.caffeinemc.mods.lithium.common.hopper.UpdateReceiver, net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker { // Leaves - Lithium Sleeping Block Entity
++public class HopperBlockEntity extends RandomizableContainerBlockEntity implements Hopper, me.s0nd3r.watermc.engine.common.block.entity.SleepingBlockEntity, me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementListener, me.s0nd3r.watermc.engine.api.inventory.LithiumInventory, me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeListener, me.s0nd3r.watermc.engine.common.hopper.UpdateReceiver, me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker { // Leaves - Lithium Sleeping Block Entity
+     public static final int MOVE_ITEM_SPEED = 8;
+     public static final int HOPPER_CONTAINER_SIZE = 5;
+     private static final int[][] CACHED_SLOTS = new int[54][];
+@@ -119,7 +119,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+ 
+     @Override
+     public void setBlockState(BlockState blockState) {
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && this.level != null && !this.level.isClientSide() && blockState.getValue(HopperBlock.FACING) != this.getBlockState().getValue(HopperBlock.FACING)) this.invalidateCachedData(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && this.level != null && !this.level.isClientSide() && blockState.getValue(HopperBlock.FACING) != this.getBlockState().getValue(HopperBlock.FACING)) this.invalidateCachedData(); // Leaves - Lithium Sleeping Block Entity
+         super.setBlockState(blockState);
+         this.facing = blockState.getValue(HopperBlock.FACING);
+     }
+@@ -138,7 +138,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+             boolean result = tryMoveItems(level, pos, state, blockEntity, () -> {
+                 return suckInItems(level, blockEntity);
+             });
+-            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) blockEntity.checkSleepingConditions(); // Leaves - Lithium Sleeping Block Entity
++            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) blockEntity.checkSleepingConditions(); // Leaves - Lithium Sleeping Block Entity
+             if (!result && blockEntity.level.spigotConfig.hopperCheck > 1) {
+                 blockEntity.setCooldown(blockEntity.level.spigotConfig.hopperCheck);
+             }
+@@ -202,7 +202,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+                     blockEntity.setCooldown(level.spigotConfig.hopperTransfer); // Spigot
+                     setChanged(level, pos, state);
+                     // Leaves start - Lithium Sleeping Block Entity
+-                    if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled
++                    if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled
+                         && !blockEntity.isOnCooldown()
+                         && !blockEntity.isSleeping()
+                         && !state.getValue(HopperBlock.ENABLED)) {
+@@ -282,7 +282,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         final int originalItemCount = origItemStack.getCount();
+         final int movedItemCount = Math.min(level.spigotConfig.hopperAmount, originalItemCount);
+         // Leaves start - Vanilla hopper
+-        if (org.dreeam.leaf.config.modules.gameplay.VanillaHopper.enabled && movedItem.getCount() <= movedItemCount) {
++        if (me.s0nd3r.watermc.core.config.modules.gameplay.VanillaHopper.enabled && movedItem.getCount() <= movedItemCount) {
+             if (!skipPullModeEventFire) {
+                 movedItem = callPullMoveEvent(hopper, container, movedItem);
+                 if (movedItem == null) { // cancelled
+@@ -411,53 +411,16 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         }
+     }
+ 
+-    private static boolean allMatch(Container container, Direction direction, java.util.function.BiPredicate<ItemStack, Integer> test) {
+-        if (container instanceof WorldlyContainer) {
+-            for (int slot : ((WorldlyContainer) container).getSlotsForFace(direction)) {
+-                if (!test.test(container.getItem(slot), slot)) {
+-                    return false;
+-                }
+-            }
+-        } else {
+-            int size = container.getContainerSize();
+-            for (int slot = 0; slot < size; slot++) {
+-                if (!test.test(container.getItem(slot), slot)) {
+-                    return false;
+-                }
+-            }
+-        }
+-        return true;
+-    }
+-
+-    private static boolean anyMatch(Container container, Direction direction, java.util.function.BiPredicate<ItemStack, Integer> test) {
+-        if (container instanceof WorldlyContainer) {
+-            for (int slot : ((WorldlyContainer) container).getSlotsForFace(direction)) {
+-                if (test.test(container.getItem(slot), slot)) {
+-                    return true;
+-                }
+-            }
+-        } else {
+-            int size = container.getContainerSize();
+-            for (int slot = 0; slot < size; slot++) {
+-                if (test.test(container.getItem(slot), slot)) {
+-                    return true;
+-                }
+-            }
+-        }
+-        return true;
+-    }
+-    private static final java.util.function.BiPredicate<ItemStack, Integer> STACK_SIZE_TEST = (itemStack, i) -> itemStack.getCount() >= itemStack.getMaxStackSize();
+-    private static final java.util.function.BiPredicate<ItemStack, Integer> IS_EMPTY_TEST = (itemStack, i) -> itemStack.isEmpty();
+     // Paper end - Perf: Optimize Hoppers
+ 
+     private static boolean ejectItems(Level level, BlockPos pos, HopperBlockEntity blockEntity) {
+-        Container attachedContainer = org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled ? blockEntity.getInsertInventory(level) : getAttachedContainer(level, pos, blockEntity); // Leaves - Lithium Sleeping Block Entity
++        Container attachedContainer = me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled ? blockEntity.getInsertInventory(level) : getAttachedContainer(level, pos, blockEntity); // Leaves - Lithium Sleeping Block Entity
+         if (attachedContainer == null) {
+             return false;
+         } else {
+             Direction opposite = blockEntity.facing.getOpposite();
+             // Leaves start - Lithium Sleeping Block Entity
+-            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) {
++            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) {
+                 Boolean res = lithiumInsert(level, pos, blockEntity, attachedContainer);
+                 if (res != null) {
+                     return res;
+@@ -572,12 +535,12 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+     public static boolean suckInItems(Level level, Hopper hopper) {
+         BlockPos blockPos = BlockPos.containing(hopper.getLevelX(), hopper.getLevelY() + 1.0, hopper.getLevelZ());
+         BlockState blockState = level.getBlockState(blockPos);
+-        Container sourceContainer = org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled ? getExtractInventory(level, hopper, blockPos, blockState) : getSourceContainer(level, hopper, blockPos, blockState); // Leaves - Lithium Sleeping Block Entity
++        Container sourceContainer = me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled ? getExtractInventory(level, hopper, blockPos, blockState) : getSourceContainer(level, hopper, blockPos, blockState); // Leaves - Lithium Sleeping Block Entity
+         if (sourceContainer != null) {
+             Direction direction = Direction.DOWN;
+             skipPullModeEventFire = skipHopperEvents; // Paper - Perf: Optimize Hoppers
+             // Leaves start - Lithium Sleeping Block Entity
+-            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) {
++            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) {
+                 Boolean res = lithiumExtract(level, hopper, sourceContainer);
+                 if (res != null) {
+                     return res;
+@@ -595,7 +558,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         } else {
+             boolean flag = hopper.isGridAligned() && blockState.isCollisionShapeFullBlock(level, blockPos) && !blockState.is(BlockTags.DOES_NOT_BLOCK_HOPPERS);
+             if (!flag) {
+-                for (ItemEntity itemEntity : org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled ? lithiumGetInputItemEntities(level, hopper) : getItemsAtAndAbove(level, hopper)) { // Leaves - Lithium Sleeping Block Entity
++                for (ItemEntity itemEntity : me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled ? lithiumGetInputItemEntities(level, hopper) : getItemsAtAndAbove(level, hopper)) { // Leaves - Lithium Sleeping Block Entity
+                     if (addItem(hopper, itemEntity)) {
+                         return true;
+                     }
+@@ -886,7 +849,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+ 
+     public void setCooldown(int cooldownTime) {
+         // Leaves start - Lithium Sleeping Block Entity
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) {
+             if (cooldownTime == 7) {
+                 if (this.tickedGameTime == Long.MAX_VALUE) {
+                     this.sleepOnlyCurrentTick();
+@@ -917,7 +880,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+     @Override
+     protected void setItems(NonNullList<ItemStack> items) {
+         this.items = items;
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) this.lithium$emitStackListReplaced(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) this.lithium$emitStackListReplaced(); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     public static void entityInside(Level level, BlockPos pos, BlockState state, Entity entity, HopperBlockEntity blockEntity) {
+@@ -939,35 +902,35 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+     private long myModCountAtLastInsert, myModCountAtLastExtract, myModCountAtLastItemCollect;
+     private boolean skipNextSleepCheckAfterCooldown = false;
+ 
+-    private net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory insertionMode = net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
+-    private net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory extractionMode = net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
++    private me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory insertionMode = me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
++    private me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory extractionMode = me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
+ 
+     //The currently used block inventories
+     @Nullable
+     private Container insertBlockInventory, extractBlockInventory;
+ 
+     //The currently used inventories (optimized type, if not present, skip optimizations)
+-    private net.caffeinemc.mods.lithium.api.inventory.@Nullable LithiumInventory insertInventory, extractInventory;
++    private me.s0nd3r.watermc.engine.api.inventory.@Nullable LithiumInventory insertInventory, extractInventory;
+     //Null iff corresp. LithiumInventory field is null
+-    private net.caffeinemc.mods.lithium.common.hopper.@Nullable LithiumStackList insertStackList, extractStackList;
++    private me.s0nd3r.watermc.engine.common.hopper.@Nullable LithiumStackList insertStackList, extractStackList;
+     //Mod count used to avoid transfer attempts that are known to fail (no change since last attempt)
+     private long insertStackListModCount, extractStackListModCount;
+ 
+     @Nullable
+-    private List<net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionItemEntityMovementTracker> collectItemEntityTracker;
++    private List<me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionItemEntityMovementTracker> collectItemEntityTracker;
+     private boolean collectItemEntityTrackerWasEmpty;
+     @Nullable
+     private AABB collectItemEntityBox;
+     private long collectItemEntityAttemptTime;
+ 
+     @Nullable
+-    private List<net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionInventoryEntityTracker> extractInventoryEntityTracker;
++    private List<me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionInventoryEntityTracker> extractInventoryEntityTracker;
+     @Nullable
+     private AABB extractInventoryEntityBox;
+     private long extractInventoryEntityFailedSearchTime;
+ 
+     @Nullable
+-    private List<net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionInventoryEntityTracker> insertInventoryEntityTracker;
++    private List<me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionInventoryEntityTracker> insertInventoryEntityTracker;
+     @Nullable
+     private AABB insertInventoryEntityBox;
+     private long insertInventoryEntityFailedSearchTime;
+@@ -991,15 +954,15 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         boolean listenToItemEntities = false;
+         boolean listenToInsertEntities = false;
+ 
+-        net.caffeinemc.mods.lithium.common.hopper.LithiumStackList thisStackList = net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(this);
++        me.s0nd3r.watermc.engine.common.hopper.LithiumStackList thisStackList = me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(this);
+ 
+-        if (this.extractionMode != net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE && thisStackList.getFullSlots() != thisStackList.size()) {
+-            if (this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
++        if (this.extractionMode != me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE && thisStackList.getFullSlots() != thisStackList.size()) {
++            if (this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
+                 Container blockInventory = this.extractBlockInventory;
+                 if (this.extractStackList != null &&
+-                    blockInventory instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) {
++                    blockInventory instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) {
+                     if (this.extractStackList.maybeSendsComparatorUpdatesOnFailedExtract() && this.extractStackList.getOccupiedSlots() != 0) {
+-                        if (blockInventory instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_comparator_tracking.ComparatorTracker comparatorTracker && !comparatorTracker.lithium$hasAnyComparatorNearby()) {
++                        if (blockInventory instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_comparator_tracking.ComparatorTracker comparatorTracker && !comparatorTracker.lithium$hasAnyComparatorNearby()) {
+                             listenToExtractTracker = true;
+                         } else {
+                             //Inventory is not empty (0 != number of occupied slots) and maybe sends comparator
+@@ -1013,7 +976,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+                 } else {
+                     return;
+                 }
+-            } else if (this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY) {
++            } else if (this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY) {
+                 BlockState hopperState = this.getBlockState();
+                 listenToExtractEntities = true;
+ 
+@@ -1026,15 +989,15 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+                 return;
+             }
+         }
+-        if (this.insertionMode != net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE && 0 < thisStackList.getOccupiedSlots()) {
+-            if (this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
++        if (this.insertionMode != me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE && 0 < thisStackList.getOccupiedSlots()) {
++            if (this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
+                 Container blockInventory = this.insertBlockInventory;
+-                if (this.insertStackList != null && blockInventory instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) {
++                if (this.insertStackList != null && blockInventory instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) {
+                     listenToInsertTracker = true;
+                 } else {
+                     return;
+                 }
+-            } else if (this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY) {
++            } else if (this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY) {
+                 BlockState hopperState = this.getBlockState();
+                 listenToInsertEntities = true;
+             } else {
+@@ -1043,28 +1006,28 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         }
+ 
+         if (listenToExtractTracker) {
+-            ((net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) this.extractBlockInventory).listenForContentChangesOnce(this.extractStackList, this);
++            ((me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) this.extractBlockInventory).listenForContentChangesOnce(this.extractStackList, this);
+         }
+         if (listenToInsertTracker) {
+-            ((net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) this.insertBlockInventory).listenForContentChangesOnce(this.insertStackList, this);
++            ((me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) this.insertBlockInventory).listenForContentChangesOnce(this.insertStackList, this);
+         }
+         if (listenToInsertEntities) {
+             if (this.insertInventoryEntityTracker == null || this.insertInventoryEntityTracker.isEmpty()) {
+                 return;
+             }
+-            net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.listenToEntityMovementOnce(this, insertInventoryEntityTracker);
++            me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.listenToEntityMovementOnce(this, insertInventoryEntityTracker);
+         }
+         if (listenToExtractEntities) {
+             if (this.extractInventoryEntityTracker == null || this.extractInventoryEntityTracker.isEmpty()) {
+                 return;
+             }
+-            net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.listenToEntityMovementOnce(this, extractInventoryEntityTracker);
++            me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.listenToEntityMovementOnce(this, extractInventoryEntityTracker);
+         }
+         if (listenToItemEntities) {
+             if (this.collectItemEntityTracker == null || this.collectItemEntityTracker.isEmpty()) {
+                 return;
+             }
+-            net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.listenToEntityMovementOnce(this, collectItemEntityTracker);
++            me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.listenToEntityMovementOnce(this, collectItemEntityTracker);
+         }
+ 
+         this.listenForContentChangesOnce(thisStackList, this);
+@@ -1101,7 +1064,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         net.minecraft.world.level.chunk.LevelChunk.RebindableTickingBlockEntityWrapper tickWrapper = this.lithium$getTickWrapper();
+         if (tickWrapper != null) {
+             this.lithium$setSleepingTicker(tickWrapper.ticker);
+-            tickWrapper.rebind(net.caffeinemc.mods.lithium.common.block.entity.SleepingBlockEntity.SLEEPING_BLOCK_ENTITY_TICKER);
++            tickWrapper.rebind(me.s0nd3r.watermc.engine.common.block.entity.SleepingBlockEntity.SLEEPING_BLOCK_ENTITY_TICKER);
+ 
+             // Set the last tick time to max value, so other hoppers transferring into this hopper will set it to 7gt
+             // cooldown. Then when waking up, we make sure to not tick this hopper in the same gametick.
+@@ -1159,11 +1122,11 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+     public void lithium$invalidateCacheOnNeighborUpdate(boolean fromAbove) {
+         //Clear the block inventory cache (composter inventories and no inventory present) on block update / observer update
+         if (fromAbove) {
+-            if (this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY || this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
++            if (this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY || this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
+                 this.invalidateBlockExtractionData();
+             }
+         } else {
+-            if (this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY || this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
++            if (this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY || this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
+                 this.invalidateBlockInsertionData();
+             }
+         }
+@@ -1171,10 +1134,10 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+ 
+     @Override
+     public void lithium$invalidateCacheOnUndirectedNeighborUpdate() {
+-        if (this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY || this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
++        if (this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY || this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
+             this.invalidateBlockExtractionData();
+         }
+-        if (this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY || this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
++        if (this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY || this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
+             this.invalidateBlockInsertionData();
+         }
+     }
+@@ -1196,7 +1159,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+     private void invalidateInsertionData() {
+         if (this.level instanceof net.minecraft.server.level.ServerLevel) {
+             if (this.insertInventoryEntityTracker != null) {
+-                net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.unregister(this.insertInventoryEntityTracker);
++                me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.unregister(this.insertInventoryEntityTracker);
+                 this.insertInventoryEntityTracker = null;
+                 this.insertInventoryEntityBox = null;
+                 this.insertInventoryEntityFailedSearchTime = 0L;
+@@ -1207,12 +1170,12 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+     }
+ 
+     private void invalidateBlockInsertionData() {
+-        if (this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
++        if (this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
+             assert this.insertBlockInventory != null;
+-            ((net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) this.insertBlockInventory).stopListenForMajorInventoryChanges(this);
++            ((me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) this.insertBlockInventory).stopListenForMajorInventoryChanges(this);
+         }
+ 
+-        this.insertionMode = net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
++        this.insertionMode = me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
+         this.insertBlockInventory = null;
+         this.insertInventory = null;
+         this.insertStackList = null;
+@@ -1224,13 +1187,13 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+     private void invalidateExtractionData() {
+         if (this.level instanceof net.minecraft.server.level.ServerLevel) {
+             if (this.extractInventoryEntityTracker != null) {
+-                net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.unregister(this.extractInventoryEntityTracker);
++                me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.unregister(this.extractInventoryEntityTracker);
+                 this.extractInventoryEntityTracker = null;
+                 this.extractInventoryEntityBox = null;
+                 this.extractInventoryEntityFailedSearchTime = 0L;
+             }
+             if (this.collectItemEntityTracker != null) {
+-                net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.unregister(this.collectItemEntityTracker);
++                me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.unregister(this.collectItemEntityTracker);
+                 this.collectItemEntityTracker = null;
+                 this.collectItemEntityBox = null;
+                 this.collectItemEntityTrackerWasEmpty = false;
+@@ -1240,12 +1203,12 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+     }
+ 
+     private void invalidateBlockExtractionData() {
+-        if (this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
++        if (this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
+             assert this.extractBlockInventory != null;
+-            ((net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) this.extractBlockInventory).stopListenForMajorInventoryChanges(this);
++            ((me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) this.extractBlockInventory).stopListenForMajorInventoryChanges(this);
+         }
+ 
+-        this.extractionMode = net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
++        this.extractionMode = me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
+         this.extractBlockInventory = null;
+         this.extractInventory = null;
+         this.extractStackList = null;
+@@ -1273,20 +1236,20 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+ 
+     public @Nullable Container lithium$getExtractBlockInventory(Level world, BlockPos extractBlockPos, BlockState extractBlockState) {
+         Container blockInventory = this.extractBlockInventory;
+-        if (this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY) {
++        if (this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY) {
+             return null;
+-        } else if (this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
++        } else if (this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
+             return blockInventory;
+-        } else if (this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
++        } else if (this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
+             return blockInventory;
+-        } else if (this.extractionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_ENTITY) {
++        } else if (this.extractionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_ENTITY) {
+             BlockEntity blockEntity = (BlockEntity) java.util.Objects.requireNonNull(blockInventory);
+             //Movable Block Entity compatibility - position comparison
+             BlockPos pos = blockEntity.getBlockPos();
+             if (!(blockEntity).isRemoved() && pos.equals(extractBlockPos)) {
+-                net.caffeinemc.mods.lithium.api.inventory.LithiumInventory optimizedInventory;
++                me.s0nd3r.watermc.engine.api.inventory.LithiumInventory optimizedInventory;
+                 if ((optimizedInventory = this.extractInventory) != null) {
+-                    net.caffeinemc.mods.lithium.common.hopper.LithiumStackList insertInventoryStackList = net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
++                    me.s0nd3r.watermc.engine.common.hopper.LithiumStackList insertInventoryStackList = me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
+                     //This check is necessary as sometimes the stacklist is silently replaced (e.g. command making furnace read inventory from nbt)
+                     if (insertInventoryStackList == this.extractStackList) {
+                         return optimizedInventory;
+@@ -1301,20 +1264,20 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+ 
+         //No Cached Inventory: Get like vanilla and cache
+         blockInventory = getBlockContainer(world, extractBlockPos, extractBlockState);
+-        blockInventory = net.caffeinemc.mods.lithium.common.hopper.HopperHelper.replaceDoubleInventory(blockInventory);
++        blockInventory = me.s0nd3r.watermc.engine.common.hopper.HopperHelper.replaceDoubleInventory(blockInventory);
+         this.cacheExtractBlockInventory(blockInventory);
+         return blockInventory;
+     }
+ 
+     public @Nullable Container lithium$getInsertBlockInventory(Level world) {
+         Container blockInventory = this.insertBlockInventory;
+-        if (this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY) {
++        if (this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY) {
+             return null;
+-        } else if (this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
++        } else if (this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE) {
+             return blockInventory;
+-        } else if (this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
++        } else if (this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY) {
+             return blockInventory;
+-        } else if (this.insertionMode == net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_ENTITY) {
++        } else if (this.insertionMode == me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_ENTITY) {
+             BlockEntity blockEntity = (BlockEntity) java.util.Objects.requireNonNull(blockInventory);
+             //Movable Block Entity compatibility - position comparison
+             BlockPos pos = blockEntity.getBlockPos();
+@@ -1322,9 +1285,9 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+             BlockPos transferPos = this.getBlockPos().relative(direction);
+             if (!(blockEntity).isRemoved() &&
+                 pos.equals(transferPos)) {
+-                net.caffeinemc.mods.lithium.api.inventory.LithiumInventory optimizedInventory;
++                me.s0nd3r.watermc.engine.api.inventory.LithiumInventory optimizedInventory;
+                 if ((optimizedInventory = this.insertInventory) != null) {
+-                    net.caffeinemc.mods.lithium.common.hopper.LithiumStackList insertInventoryStackList = net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
++                    me.s0nd3r.watermc.engine.common.hopper.LithiumStackList insertInventoryStackList = me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
+                     //This check is necessary as sometimes the stacklist is silently replaced (e.g. command making furnace read inventory from nbt)
+                     if (insertInventoryStackList == this.insertStackList) {
+                         return optimizedInventory;
+@@ -1342,7 +1305,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         BlockPos insertBlockPos = this.getBlockPos().relative(direction);
+         BlockState blockState = world.getBlockState(insertBlockPos);
+         blockInventory = getBlockContainer(world, insertBlockPos, blockState);
+-        blockInventory = net.caffeinemc.mods.lithium.common.hopper.HopperHelper.replaceDoubleInventory(blockInventory);
++        blockInventory = me.s0nd3r.watermc.engine.common.hopper.HopperHelper.replaceDoubleInventory(blockInventory);
+         this.cacheInsertBlockInventory(blockInventory);
+         return blockInventory;
+     }
+@@ -1366,22 +1329,22 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         if (this.insertInventoryEntityTracker == null) {
+             this.initInsertInventoryTracker(world);
+         }
+-        if (net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.isUnchangedSince(this.insertInventoryEntityFailedSearchTime, this.insertInventoryEntityTracker)) {
++        if (me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.isUnchangedSince(this.insertInventoryEntityFailedSearchTime, this.insertInventoryEntityTracker)) {
+             this.insertInventoryEntityFailedSearchTime = this.tickedGameTime;
+             return null;
+         }
+         this.insertInventoryEntityFailedSearchTime = Long.MIN_VALUE;
+         this.shouldCheckSleep = false;
+ 
+-        List<Container> inventoryEntities = net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionInventoryEntityTracker.getEntities(world, this.insertInventoryEntityBox);
++        List<Container> inventoryEntities = me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionInventoryEntityTracker.getEntities(world, this.insertInventoryEntityBox);
+         if (inventoryEntities.isEmpty()) {
+             this.insertInventoryEntityFailedSearchTime = this.tickedGameTime;
+             //Remember failed entity search timestamp. This allows shortcutting if no entity movement happens.
+             return null;
+         }
+         Container inventory = inventoryEntities.get(world.random.nextInt(inventoryEntities.size()));
+-        if (inventory instanceof net.caffeinemc.mods.lithium.api.inventory.LithiumInventory optimizedInventory) {
+-            net.caffeinemc.mods.lithium.common.hopper.LithiumStackList insertInventoryStackList = net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
++        if (inventory instanceof me.s0nd3r.watermc.engine.api.inventory.LithiumInventory optimizedInventory) {
++            me.s0nd3r.watermc.engine.common.hopper.LithiumStackList insertInventoryStackList = me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
+             if (inventory != this.insertInventory || this.insertStackList != insertInventoryStackList) {
+                 this.cacheInsertLithiumInventory(optimizedInventory);
+             }
+@@ -1395,7 +1358,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         AABB inputBox = this.getSuckAabb().move(this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ());
+         this.collectItemEntityBox = inputBox;
+         this.collectItemEntityTracker =
+-            net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionItemEntityMovementTracker.registerAt(
++            me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionItemEntityMovementTracker.registerAt(
+                 (net.minecraft.server.level.ServerLevel) this.level,
+                 inputBox
+             );
+@@ -1407,7 +1370,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         BlockPos pos = this.worldPosition.relative(Direction.UP);
+         this.extractInventoryEntityBox = new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+         this.extractInventoryEntityTracker =
+-            net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionInventoryEntityTracker.registerAt(
++            me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionInventoryEntityTracker.registerAt(
+                 (net.minecraft.server.level.ServerLevel) this.level,
+                 this.extractInventoryEntityBox
+             );
+@@ -1420,7 +1383,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         BlockPos pos = this.worldPosition.relative(direction);
+         this.insertInventoryEntityBox = new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+         this.insertInventoryEntityTracker =
+-            net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionInventoryEntityTracker.registerAt(
++            me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionInventoryEntityTracker.registerAt(
+                 (net.minecraft.server.level.ServerLevel) this.level,
+                 this.insertInventoryEntityBox
+             );
+@@ -1431,14 +1394,14 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         if (this.extractInventoryEntityTracker == null) {
+             this.initExtractInventoryTracker(world);
+         }
+-        if (net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.isUnchangedSince(this.extractInventoryEntityFailedSearchTime, this.extractInventoryEntityTracker)) {
++        if (me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.isUnchangedSince(this.extractInventoryEntityFailedSearchTime, this.extractInventoryEntityTracker)) {
+             this.extractInventoryEntityFailedSearchTime = this.tickedGameTime;
+             return null;
+         }
+         this.extractInventoryEntityFailedSearchTime = Long.MIN_VALUE;
+         this.shouldCheckSleep = false;
+ 
+-        List<Container> inventoryEntities = net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionInventoryEntityTracker.getEntities(world, this.extractInventoryEntityBox);
++        List<Container> inventoryEntities = me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionInventoryEntityTracker.getEntities(world, this.extractInventoryEntityBox);
+         if (inventoryEntities.isEmpty()) {
+             this.extractInventoryEntityFailedSearchTime = this.tickedGameTime;
+             //only set unchanged when no entity present. this allows shortcutting this case
+@@ -1446,8 +1409,8 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+             return null;
+         }
+         Container inventory = inventoryEntities.get(world.random.nextInt(inventoryEntities.size()));
+-        if (inventory instanceof net.caffeinemc.mods.lithium.api.inventory.LithiumInventory optimizedInventory) {
+-            net.caffeinemc.mods.lithium.common.hopper.LithiumStackList extractInventoryStackList = net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
++        if (inventory instanceof me.s0nd3r.watermc.engine.api.inventory.LithiumInventory optimizedInventory) {
++            me.s0nd3r.watermc.engine.common.hopper.LithiumStackList extractInventoryStackList = me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
+             if (inventory != this.extractInventory || this.extractStackList != extractInventoryStackList) {
+                 //not caching the inventory (NO_BLOCK_INVENTORY prevents it)
+                 //make change counting on the entity inventory possible, without caching it as block inventory
+@@ -1464,7 +1427,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+      */
+     private void cacheInsertBlockInventory(@Nullable Container insertInventory) {
+         assert !(insertInventory instanceof Entity);
+-        if (insertInventory instanceof net.caffeinemc.mods.lithium.api.inventory.LithiumInventory optimizedInventory) {
++        if (insertInventory instanceof me.s0nd3r.watermc.engine.api.inventory.LithiumInventory optimizedInventory) {
+             this.cacheInsertLithiumInventory(optimizedInventory);
+         } else {
+             this.insertInventory = null;
+@@ -1474,32 +1437,32 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+ 
+         if (insertInventory instanceof BlockEntity || insertInventory instanceof net.minecraft.world.CompoundContainer) {
+             this.insertBlockInventory = insertInventory;
+-            if (insertInventory instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) {
+-                this.insertionMode = net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY;
+-                ((net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) insertInventory).listenForMajorInventoryChanges(this);
++            if (insertInventory instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) {
++                this.insertionMode = me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY;
++                ((me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) insertInventory).listenForMajorInventoryChanges(this);
+             } else {
+-                this.insertionMode = net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_ENTITY;
++                this.insertionMode = me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_ENTITY;
+             }
+         } else {
+             if (insertInventory == null) {
+                 this.insertBlockInventory = null;
+-                this.insertionMode = net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY;
++                this.insertionMode = me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY;
+             } else {
+                 this.insertBlockInventory = insertInventory;
+-                this.insertionMode = insertInventory instanceof net.caffeinemc.mods.lithium.common.hopper.BlockStateOnlyInventory ? net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE : net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
++                this.insertionMode = insertInventory instanceof me.s0nd3r.watermc.engine.common.hopper.BlockStateOnlyInventory ? me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE : me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
+             }
+         }
+     }
+ 
+-    private void cacheInsertLithiumInventory(net.caffeinemc.mods.lithium.api.inventory.LithiumInventory optimizedInventory) {
+-        net.caffeinemc.mods.lithium.common.hopper.LithiumStackList insertInventoryStackList = net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
++    private void cacheInsertLithiumInventory(me.s0nd3r.watermc.engine.api.inventory.LithiumInventory optimizedInventory) {
++        me.s0nd3r.watermc.engine.common.hopper.LithiumStackList insertInventoryStackList = me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
+         this.insertInventory = optimizedInventory;
+         this.insertStackList = insertInventoryStackList;
+         this.insertStackListModCount = insertInventoryStackList.getModCount() - 1;
+     }
+ 
+-    private void cacheExtractLithiumInventory(net.caffeinemc.mods.lithium.api.inventory.LithiumInventory optimizedInventory) {
+-        net.caffeinemc.mods.lithium.common.hopper.LithiumStackList extractInventoryStackList = net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
++    private void cacheExtractLithiumInventory(me.s0nd3r.watermc.engine.api.inventory.LithiumInventory optimizedInventory) {
++        me.s0nd3r.watermc.engine.common.hopper.LithiumStackList extractInventoryStackList = me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory);
+         this.extractInventory = optimizedInventory;
+         this.extractStackList = extractInventoryStackList;
+         this.extractStackListModCount = extractInventoryStackList.getModCount() - 1;
+@@ -1512,7 +1475,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+      */
+     private void cacheExtractBlockInventory(@Nullable Container extractInventory) {
+         assert !(extractInventory instanceof Entity);
+-        if (extractInventory instanceof net.caffeinemc.mods.lithium.api.inventory.LithiumInventory optimizedInventory) {
++        if (extractInventory instanceof me.s0nd3r.watermc.engine.api.inventory.LithiumInventory optimizedInventory) {
+             this.cacheExtractLithiumInventory(optimizedInventory);
+         } else {
+             this.extractInventory = null;
+@@ -1522,19 +1485,19 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+ 
+         if (extractInventory instanceof BlockEntity || extractInventory instanceof net.minecraft.world.CompoundContainer) {
+             this.extractBlockInventory = extractInventory;
+-            if (extractInventory instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) {
+-                this.extractionMode = net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY;
+-                ((net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker) extractInventory).listenForMajorInventoryChanges(this);
++            if (extractInventory instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) {
++                this.extractionMode = me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.REMOVAL_TRACKING_BLOCK_ENTITY;
++                ((me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker) extractInventory).listenForMajorInventoryChanges(this);
+             } else {
+-                this.extractionMode = net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_ENTITY;
++                this.extractionMode = me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_ENTITY;
+             }
+         } else {
+             if (extractInventory == null) {
+                 this.extractBlockInventory = null;
+-                this.extractionMode = net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY;
++                this.extractionMode = me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.NO_BLOCK_INVENTORY;
+             } else {
+                 this.extractBlockInventory = extractInventory;
+-                this.extractionMode = extractInventory instanceof net.caffeinemc.mods.lithium.common.hopper.BlockStateOnlyInventory ? net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE : net.caffeinemc.mods.lithium.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
++                this.extractionMode = extractInventory instanceof me.s0nd3r.watermc.engine.common.hopper.BlockStateOnlyInventory ? me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.BLOCK_STATE : me.s0nd3r.watermc.engine.common.hopper.HopperCachingState.BlockInventory.UNKNOWN;
+             }
+         }
+     }
+@@ -1548,10 +1511,10 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+             hopperBlockEntity.initCollectItemEntityTracker();
+         }
+ 
+-        long modCount = net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(hopperBlockEntity).getModCount();
++        long modCount = me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(hopperBlockEntity).getModCount();
+ 
+         if ((hopperBlockEntity.collectItemEntityTrackerWasEmpty || hopperBlockEntity.myModCountAtLastItemCollect == modCount) &&
+-            net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.isUnchangedSince(hopperBlockEntity.collectItemEntityAttemptTime, hopperBlockEntity.collectItemEntityTracker)) {
++            me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.isUnchangedSince(hopperBlockEntity.collectItemEntityAttemptTime, hopperBlockEntity.collectItemEntityTracker)) {
+             hopperBlockEntity.collectItemEntityAttemptTime = hopperBlockEntity.tickedGameTime;
+             return java.util.Collections.emptyList();
+         }
+@@ -1559,7 +1522,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+         hopperBlockEntity.myModCountAtLastItemCollect = modCount;
+         hopperBlockEntity.shouldCheckSleep = false;
+ 
+-        List<ItemEntity> itemEntities = net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionItemEntityMovementTracker.getEntities(world, hopperBlockEntity.collectItemEntityBox);
++        List<ItemEntity> itemEntities = me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionItemEntityMovementTracker.getEntities(world, hopperBlockEntity.collectItemEntityBox);
+         hopperBlockEntity.collectItemEntityAttemptTime = hopperBlockEntity.tickedGameTime;
+         hopperBlockEntity.collectItemEntityTrackerWasEmpty = itemEntities.isEmpty();
+         //set unchanged so that if this extract fails and there is no other change to hoppers or items, extracting
+@@ -1574,7 +1537,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+             return null;
+         }
+ 
+-        net.caffeinemc.mods.lithium.common.hopper.LithiumStackList hopperStackList = net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(hopperBlockEntity);
++        me.s0nd3r.watermc.engine.common.hopper.LithiumStackList hopperStackList = me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(hopperBlockEntity);
+         if (hopperBlockEntity.insertInventory == insertInventory && hopperStackList.getModCount() == hopperBlockEntity.myModCountAtLastInsert) {
+             if (hopperBlockEntity.insertStackList != null && hopperBlockEntity.insertStackList.getModCount() == hopperBlockEntity.insertStackListModCount) {
+ //                ComparatorUpdatePattern.NO_UPDATE.apply(hopperBlockEntity, hopperStackList); //commented because it's a noop, Hoppers do not send useless comparator updates
+@@ -1606,7 +1569,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+                             break;
+                         }
+                     }
+-                    boolean transferSuccess = net.caffeinemc.mods.lithium.common.hopper.HopperHelper.tryMoveSingleItem(insertInventory, transferStack, fromDirection);
++                    boolean transferSuccess = me.s0nd3r.watermc.engine.common.hopper.HopperHelper.tryMoveSingleItem(insertInventory, transferStack, fromDirection);
+                     if (transferSuccess) {
+                         if (insertInventoryWasEmptyHopperNotDisabled) {
+                             HopperBlockEntity receivingHopper = (HopperBlockEntity) insertInventory;
+@@ -1641,12 +1604,12 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+             return null; //from inventory is not an optimized inventory, vanilla fallback
+         }
+ 
+-        net.caffeinemc.mods.lithium.common.hopper.LithiumStackList hopperStackList = net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(hopperBlockEntity);
+-        net.caffeinemc.mods.lithium.common.hopper.LithiumStackList fromStackList = hopperBlockEntity.extractStackList;
++        me.s0nd3r.watermc.engine.common.hopper.LithiumStackList hopperStackList = me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(hopperBlockEntity);
++        me.s0nd3r.watermc.engine.common.hopper.LithiumStackList fromStackList = hopperBlockEntity.extractStackList;
+ 
+         if (hopperStackList.getModCount() == hopperBlockEntity.myModCountAtLastExtract) {
+             if (fromStackList.getModCount() == hopperBlockEntity.extractStackListModCount) {
+-                if (!(from instanceof net.caffeinemc.mods.lithium.common.block.entity.inventory_comparator_tracking.ComparatorTracker comparatorTracker) || comparatorTracker.lithium$hasAnyComparatorNearby()) {
++                if (!(from instanceof me.s0nd3r.watermc.engine.common.block.entity.inventory_comparator_tracking.ComparatorTracker comparatorTracker) || comparatorTracker.lithium$hasAnyComparatorNearby()) {
+                     //noinspection CollectionAddedToSelf
+                     fromStackList.runComparatorUpdatePatternOnFailedExtract(fromStackList, from);
+                 }
+@@ -1669,7 +1632,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
+                 //calling removeStack is necessary due to its side effects (markDirty in LootableContainerBlockEntity)
+                 ItemStack takenItem = from.removeItem(fromSlot, 1);
+                 assert !takenItem.isEmpty();
+-                boolean transferSuccess = net.caffeinemc.mods.lithium.common.hopper.HopperHelper.tryMoveSingleItem(to, takenItem, null);
++                boolean transferSuccess = me.s0nd3r.watermc.engine.common.hopper.HopperHelper.tryMoveSingleItem(to, takenItem, null);
+                 if (transferSuccess) {
+                     to.setChanged();
+                     from.setChanged();

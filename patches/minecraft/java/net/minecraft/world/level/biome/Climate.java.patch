@@ -1,0 +1,29 @@
+diff --git a/java/net/minecraft/world/level/biome/Climate.java b/java/net/minecraft/world/level/biome/Climate.java
+index ab567a57daebe2deac0a1f8dd76e35ae9a5cb3e5..24cb09dbd66e50b78dcd486a867f3d6abef3e9e2 100644
+--- a/java/net/minecraft/world/level/biome/Climate.java
++++ b/java/net/minecraft/world/level/biome/Climate.java
+@@ -407,20 +407,17 @@ public class Climate {
+         abstract static class Node<T> {
+             protected final Climate.Parameter[] parameterSpace;
+ 
++            protected final long[] waterBounds; // WaterMc - flat bounds for the biome search
++
+             protected Node(List<Climate.Parameter> parameters) {
+                 this.parameterSpace = parameters.toArray(new Climate.Parameter[0]);
++                this.waterBounds = me.s0nd3r.watermc.world.ClimateDistance.flatten(this.parameterSpace); // WaterMc
+             }
+ 
+             protected abstract Climate.RTree.Leaf<T> search(long[] searchedValues, Climate.RTree.@Nullable Leaf<T> leaf, Climate.DistanceMetric<T> metric);
+ 
+             protected long distance(long[] values) {
+-                long l = 0L;
+-
+-                for (int i = 0; i < 7; i++) {
+-                    l += Mth.square(this.parameterSpace[i].distance(values[i]));
+-                }
+-
+-                return l;
++                return me.s0nd3r.watermc.world.ClimateDistance.distance(this.waterBounds, values); // WaterMc - bit-identical flat distance
+             }
+ 
+             @Override

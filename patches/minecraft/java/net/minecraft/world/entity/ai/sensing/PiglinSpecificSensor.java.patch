@@ -1,0 +1,28 @@
+diff --git a/java/net/minecraft/world/entity/ai/sensing/PiglinSpecificSensor.java b/java/net/minecraft/world/entity/ai/sensing/PiglinSpecificSensor.java
+index 6d96e6a80f4bcf6b83671f089e13b826d21fd0ef..f97e7488cbf08d6113c3824df7042b8c2222332b 100644
+--- a/java/net/minecraft/world/entity/ai/sensing/PiglinSpecificSensor.java
++++ b/java/net/minecraft/world/entity/ai/sensing/PiglinSpecificSensor.java
+@@ -48,7 +48,7 @@ public class PiglinSpecificSensor extends Sensor<LivingEntity> {
+     @Override
+     protected void doTick(ServerLevel level, LivingEntity entity) {
+         Brain<?> brain = entity.getBrain();
+-        brain.setMemory(MemoryModuleType.NEAREST_REPELLENT, findNearestRepellent(level, entity));
++        brain.setMemory(MemoryModuleType.NEAREST_REPELLENT, me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.CommonBlockSearchesCheckAndCache.hasNoMatch(level, entity, 8, 4, IS_VALID_REPELLENT_PREDICATE, true) ? Optional.empty() : findNearestRepellent(level, entity)); // Leaf - Lithium - optimize non-POI block searches
+         Optional<Mob> optional = Optional.empty();
+         Optional<Hoglin> optional1 = Optional.empty();
+         Optional<Hoglin> optional2 = Optional.empty();
+@@ -119,8 +119,13 @@ public class PiglinSpecificSensor extends Sensor<LivingEntity> {
+         return BlockPos.findClosestMatch(livingEntity.blockPosition(), 8, 4, pos -> isValidRepellent(level, pos));
+     }
+ 
++    private static final java.util.function.Predicate<BlockState> IS_VALID_REPELLENT_PREDICATE = PiglinSpecificSensor::isValidRepellent; // Leaf - Lithium - optimize non-POI block searches
++
+     private static boolean isValidRepellent(ServerLevel level, BlockPos pos) {
+-        BlockState blockState = level.getBlockState(pos);
++        return isValidRepellent(level.getBlockState(pos)); // Leaf - Lithium - optimize non-POI block searches: state-only check shared with the pre-scan
++    }
++
++    private static boolean isValidRepellent(BlockState blockState) {
+         boolean isPiglinRepellents = blockState.is(BlockTags.PIGLIN_REPELLENTS);
+         return isPiglinRepellents && blockState.is(Blocks.SOUL_CAMPFIRE) ? CampfireBlock.isLitCampfire(blockState) : isPiglinRepellents;
+     }

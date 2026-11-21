@@ -1,0 +1,35 @@
+diff --git a/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java b/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java
+index 7b6fcd414aa4b29b23825ed0c23a8545eef2c514..7c53c7a0b71da309cfa8f03c8cbe8320bc3fcbb4 100644
+--- a/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java
++++ b/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java
+@@ -64,6 +64,8 @@ public class AcquirePoi {
+                     private final Optional<Byte> entityEventId;
+                     private final BiPredicate<ServerLevel, BlockPos> predicate;
+                     private long mutableLong;
++                    private final me.s0nd3r.watermc.ai.PoiSearchBackoff waterBackoff = new me.s0nd3r.watermc.ai.PoiSearchBackoff(); // WaterMc
++                    private long waterBaseDue; // WaterMc - due time without back-off
+                     @org.jspecify.annotations.Nullable private Path pending;
+                     @org.jspecify.annotations.Nullable private Set<Pair<Holder<PoiType>, BlockPos>> stateSet;
+ 
+@@ -97,7 +99,7 @@ public class AcquirePoi {
+                         } else if (mutableLong == 0L) {
+                             mutableLong = (level.getGameTime() + level.random.nextInt(20));
+                             return false;
+-                        } else if (level.getGameTime() < mutableLong) {
++                        } else if (level.getGameTime() < mutableLong && !(this.waterBackoff.worldChangedSinceFailure() && level.getGameTime() >= this.waterBaseDue)) { // WaterMc - a POI change cancels the extra back-off delay
+                             return false;
+                         } else {
+                             mutableLong = (time + 20L + level.getRandom().nextInt(20));
+@@ -126,6 +128,12 @@ public class AcquirePoi {
+                                 }
+                             }
+                             // Paper end - optimise POI access
++                            // WaterMc start - back off repeated empty POI searches while the world's POIs are unchanged
++                            if (me.s0nd3r.watermc.core.config.modules.water.PoiSearchBackoffConfig.enabled) {
++                                this.waterBaseDue = mutableLong;
++                                mutableLong += this.waterBackoff.onSearchFinished(!poiposes.isEmpty(), me.s0nd3r.watermc.core.config.modules.water.PoiSearchBackoffConfig.maxDelayTicks);
++                            }
++                            // WaterMc end
+                             // Kaiiju start - petal - async path processing
+                             Path path = findPathToPois(mob, set);
+                             if (path != null && !path.isProcessed()) {

@@ -1,0 +1,22 @@
+diff --git a/java/io/papermc/paper/FeatureHooks.java b/java/io/papermc/paper/FeatureHooks.java
+index 265011035d90804d9a0295f693878509c8086d07..9d644bb4050024093cf83ffdf371f7e2554330cc 100644
+--- a/java/io/papermc/paper/FeatureHooks.java
++++ b/java/io/papermc/paper/FeatureHooks.java
+@@ -71,7 +71,7 @@ public final class FeatureHooks {
+ 
+     public static Set<Long> getSentChunkKeys(final ServerPlayer player) {
+         // Leaf start - Multithreaded tracker
+-        if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled) {
+             LongOpenHashSet set = player.moonrise$getChunkLoader().getSentChunksRaw();
+             synchronized (set) {
+                 return LongSets.unmodifiable(new LongOpenHashSet(set));
+@@ -90,7 +90,7 @@ public final class FeatureHooks {
+         final ObjectSet<org.bukkit.Chunk> chunks = new ObjectOpenHashSet<>(rawChunkKeys.size());
+         final World world = player.level().getWorld();
+         // Leaf start - Multithreaded tracker
+-        if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled) {
+             synchronized (rawChunkKeys) {
+                 final LongIterator iter = rawChunkKeys.longIterator();
+                 while (iter.hasNext()) {

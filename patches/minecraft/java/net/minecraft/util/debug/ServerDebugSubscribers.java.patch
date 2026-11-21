@@ -1,0 +1,48 @@
+diff --git a/java/net/minecraft/util/debug/ServerDebugSubscribers.java b/java/net/minecraft/util/debug/ServerDebugSubscribers.java
+index 5bdd43ef13d85005d969602cdfd4861e441e7b22..672b9fe354f4203c21096a140f1c865cbfbe026d 100644
+--- a/java/net/minecraft/util/debug/ServerDebugSubscribers.java
++++ b/java/net/minecraft/util/debug/ServerDebugSubscribers.java
+@@ -25,12 +25,12 @@ public class ServerDebugSubscribers {
+     }
+ 
+     private List<ServerPlayer> getSubscribersFor(DebugSubscription<?> subscription) {
+-        if (org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_DEBUG_FEATURE) return EMPTY_PLAYERS; // Leaf - Reduce debug subscribers overhead
++        if (me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_DEBUG_FEATURE) return EMPTY_PLAYERS; // Leaf - Reduce debug subscribers overhead
+         return this.enabledSubscriptions.getOrDefault(subscription, List.of());
+     }
+ 
+     public void tick() {
+-        if (org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_DEBUG_FEATURE || tickCount++ % 20 != 0) return; // Leaf - Reduce debug subscribers overhead
++        if (me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_DEBUG_FEATURE || tickCount++ % 20 != 0) return; // Leaf - Reduce debug subscribers overhead
+         this.enabledSubscriptions.values().forEach(List::clear);
+ 
+         for (ServerPlayer serverPlayer : this.server.getPlayerList().getPlayers()) {
+@@ -43,24 +43,24 @@ public class ServerDebugSubscribers {
+     }
+ 
+     public void broadcastToAll(DebugSubscription<?> subscription, Packet<?> packet) {
+-        if (org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_DEBUG_FEATURE) return; // Leaf - Reduce debug subscribers overhead
++        if (me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_DEBUG_FEATURE) return; // Leaf - Reduce debug subscribers overhead
+         for (ServerPlayer serverPlayer : this.getSubscribersFor(subscription)) {
+             serverPlayer.connection.send(packet);
+         }
+     }
+ 
+     public Set<DebugSubscription<?>> enabledSubscriptions() {
+-        if (org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_DEBUG_FEATURE) return EMPTY_SUBSCRIPTIONS; // Leaf - Reduce debug subscribers overhead
++        if (me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_DEBUG_FEATURE) return EMPTY_SUBSCRIPTIONS; // Leaf - Reduce debug subscribers overhead
+         return Set.copyOf(this.enabledSubscriptions.keySet());
+     }
+ 
+     public boolean hasAnySubscriberFor(DebugSubscription<?> subscription) {
+-        if (org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_DEBUG_FEATURE) return false; // Leaf - Reduce debug subscribers overhead
++        if (me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_DEBUG_FEATURE) return false; // Leaf - Reduce debug subscribers overhead
+         return !this.getSubscribersFor(subscription).isEmpty();
+     }
+ 
+     public boolean hasRequiredPermissions(ServerPlayer player) {
+-        if (org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_DEBUG_FEATURE) return false; // Leaf - Reduce debug subscribers overhead
++        if (me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_DEBUG_FEATURE) return false; // Leaf - Reduce debug subscribers overhead
+         NameAndId nameAndId = player.nameAndId();
+         return SharedConstants.IS_RUNNING_IN_IDE && this.server.isSingleplayerOwner(nameAndId) || this.server.getPlayerList().isOp(nameAndId);
+     }

@@ -1,0 +1,5 @@
+network:
+  vanilla-particle-budget:
+    enabled: true
+    max-packets-per-tick: 128
+    max-particles-per-tick: 4096

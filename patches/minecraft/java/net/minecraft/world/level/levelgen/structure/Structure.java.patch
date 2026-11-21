@@ -1,0 +1,19 @@
+diff --git a/java/net/minecraft/world/level/levelgen/structure/Structure.java b/java/net/minecraft/world/level/levelgen/structure/Structure.java
+index 3aa35d67df8f9118c944cebfcb675cccd9d99be2..ada1a91a42276ba7b1f31e44107b962acdb9f0fd 100644
+--- a/java/net/minecraft/world/level/levelgen/structure/Structure.java
++++ b/java/net/minecraft/world/level/levelgen/structure/Structure.java
+@@ -250,11 +250,11 @@ public abstract class Structure {
+ 
+         private static WorldgenRandom makeRandom(long seed, ChunkPos chunkPos) {
+             // Leaf start - Matter - Secure Seed
+-            if (org.dreeam.leaf.config.modules.misc.SecureSeed.enabled) {
+-                return new su.plo.matter.WorldgenCryptoRandom(chunkPos.x, chunkPos.z, su.plo.matter.Globals.Salt.GENERATE_FEATURE, seed);
++            if (me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled) {
++                return new me.s0nd3r.watermc.seed.WorldgenCryptoRandom(chunkPos.x, chunkPos.z, me.s0nd3r.watermc.seed.Globals.Salt.GENERATE_FEATURE, seed);
+             }
+             // Leaf end - Matter - Secure Seed
+-            WorldgenRandom worldgenRandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
++            WorldgenRandom worldgenRandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
+             worldgenRandom.setLargeFeatureSeed(seed, chunkPos.x, chunkPos.z);
+             return worldgenRandom;
+         }

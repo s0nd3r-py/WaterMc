@@ -1,0 +1,6 @@
+java/net/minecraft/server/gui/MinecraftServerGui.java
+java/net/minecraft/server/gui/PlayerListComponent.java
+java/net/minecraft/server/gui/StatsComponent.java
+java/net/minecraft/server/gui/package-info.java
+java/org/purpurmc/purpur/gui/GUIColor.java
+java/org/purpurmc/purpur/gui/JColorTextPane.java

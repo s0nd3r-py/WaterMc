@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/levelgen/synth/PerlinSimplexNoise.java b/java/net/minecraft/world/level/levelgen/synth/PerlinSimplexNoise.java
+index 21a4c8de077a740cdca76d73ef01abc26c08a859..4e8030df6cd0755808c9ee2d122a835e799dcd36 100644
+--- a/java/net/minecraft/world/level/levelgen/synth/PerlinSimplexNoise.java
++++ b/java/net/minecraft/world/level/levelgen/synth/PerlinSimplexNoise.java
+@@ -44,7 +44,7 @@ public class PerlinSimplexNoise {
+ 
+                 if (i1 > 0) {
+                     long l = (long)(simplexNoise.getValue(simplexNoise.xo, simplexNoise.yo, simplexNoise.zo) * 9.223372E18F);
+-                    RandomSource randomSource = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(l) : new LegacyRandomSource(l)); // Leaf - Faster random generator
++                    RandomSource randomSource = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(l) : new LegacyRandomSource(l)); // Leaf - Faster random generator
+ 
+                     for (int i5 = i3 - 1; i5 >= 0; i5--) {
+                         if (i5 < i2 && octaves.contains(i3 - i5)) {

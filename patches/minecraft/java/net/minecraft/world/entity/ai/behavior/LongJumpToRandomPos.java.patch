@@ -1,0 +1,40 @@
+diff --git a/java/net/minecraft/world/entity/ai/behavior/LongJumpToRandomPos.java b/java/net/minecraft/world/entity/ai/behavior/LongJumpToRandomPos.java
+index e6b9bcf3bf4e476be58830156a194557b76ae3f4..203cf748356e4982105f1e2fe05cdf2e741e425b 100644
+--- a/java/net/minecraft/world/entity/ai/behavior/LongJumpToRandomPos.java
++++ b/java/net/minecraft/world/entity/ai/behavior/LongJumpToRandomPos.java
+@@ -2,7 +2,9 @@ package net.minecraft.world.entity.ai.behavior;
+ 
+ import com.google.common.collect.ImmutableMap;
+ import com.google.common.collect.Lists;
+-import java.util.Collections;
++import it.unimi.dsi.fastutil.ints.IntArrayList;
++import it.unimi.dsi.fastutil.ints.IntLists;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.List;
+ import java.util.Optional;
+ import java.util.function.BiPredicate;
+@@ -32,7 +34,7 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
+     private static final int PREPARE_JUMP_DURATION = 40;
+     protected static final int MIN_PATHFIND_DISTANCE_TO_VALID_JUMP = 8;
+     private static final int TIME_OUT_DURATION = 200;
+-    private static final List<Integer> ALLOWED_ANGLES = Lists.newArrayList(65, 70, 75, 80);
++    private static final int[] ALLOWED_ANGLES = {65, 70, 75, 80};
+     private final UniformInt timeBetweenLongJumps;
+     protected final int maxLongJumpHeight;
+     protected final int maxLongJumpWidth;
+@@ -189,11 +191,12 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
+     }
+ 
+     protected @Nullable Vec3 calculateOptimalJumpVector(Mob mob, Vec3 target) {
+-        List<Integer> list = Lists.newArrayList(ALLOWED_ANGLES);
+-        Collections.shuffle(list);
++        IntArrayList list = new IntArrayList(ALLOWED_ANGLES);
++        IntLists.shuffle(list, ThreadLocalRandom.current());
+         float f = (float)(mob.getAttributeValue(Attributes.JUMP_STRENGTH) * this.maxJumpVelocityMultiplier);
+ 
+-        for (int i : list) {
++        for (int index = 0; index < list.size(); ++index) {
++            int i = list.getInt(index);
+             Optional<Vec3> optional = LongJumpUtil.calculateJumpVectorForAngle(mob, target, f, i, true);
+             if (optional.isPresent()) {
+                 return optional.get();

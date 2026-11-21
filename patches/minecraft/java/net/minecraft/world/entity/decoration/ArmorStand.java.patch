@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/decoration/ArmorStand.java b/java/net/minecraft/world/entity/decoration/ArmorStand.java
+index 9ab14c1d61665358b4e3cdafeffe067292130708..f32e334504088e6c43285b268c1228ba13e6e337 100644
+--- a/java/net/minecraft/world/entity/decoration/ArmorStand.java
++++ b/java/net/minecraft/world/entity/decoration/ArmorStand.java
+@@ -206,7 +206,7 @@ public class ArmorStand extends LivingEntity {
+ 
+     @Override
+     protected void pushEntities() {
+-        if (org.dreeam.leaf.config.modules.gameplay.OnlyPlayerPushable.enabled || !this.level().paperConfig().entities.armorStands.doCollisionEntityLookups) return; // Paper - Option to prevent armor stands from doing entity lookups // Leaf - Only player pushable
++        if (me.s0nd3r.watermc.core.config.modules.gameplay.OnlyPlayerPushable.enabled || !this.level().paperConfig().entities.armorStands.doCollisionEntityLookups) return; // Paper - Option to prevent armor stands from doing entity lookups // Leaf - Only player pushable
+         for (Entity entity : this.level().getEntitiesOfClass(AbstractMinecart.class, this.getBoundingBox(), RIDABLE_MINECARTS)) { // Paper - optimise collisions
+             if (this.distanceToSqr(entity) <= 0.2) {
+                 entity.push(this);

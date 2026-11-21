@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/core/Vec3i.java b/java/net/minecraft/core/Vec3i.java
+index 6ca7f162be90e1521b97c94b93da9a49d3c870ea..adaeecb128308e3c3e22df29b305ae69c34d4fa1 100644
+--- a/java/net/minecraft/core/Vec3i.java
++++ b/java/net/minecraft/core/Vec3i.java
+@@ -48,7 +48,7 @@ public class Vec3i implements Comparable<Vec3i> {
+ 
+     @Override
+     public final int hashCode() { // Paper - Perf: Final for inline
+-        return org.dreeam.leaf.util.Vec3iHasher.hash(this.x, this.y, this.z); // Leaf - Optimize Vec3i hashing
++        return me.s0nd3r.watermc.core.util.Vec3iHasher.hash(this.x, this.y, this.z); // Leaf - Optimize Vec3i hashing
+     }
+ 
+     @Override

@@ -1,0 +1,20 @@
+diff --git a/java/net/minecraft/world/level/material/WaterFluid.java b/java/net/minecraft/world/level/material/WaterFluid.java
+index d1df2186bf77b3ee7105cad6d6f27664c2ff10f9..75f6f0f21c7a3125feb4fd5e05452cd55aca04a7 100644
+--- a/java/net/minecraft/world/level/material/WaterFluid.java
++++ b/java/net/minecraft/world/level/material/WaterFluid.java
+@@ -125,13 +125,13 @@ public abstract class WaterFluid extends FlowingFluid {
+ 
+     @Override
+     public int getTickDelay(LevelReader level) {
+-        return org.dreeam.leaf.config.modules.misc.LagCompensation.enabled && org.dreeam.leaf.config.modules.misc.LagCompensation.enableForWater ? org.dreeam.leaf.misc.LagCompensation.tt20(5, true) : 5; // Leaf - TT20 - Lag compensation
++        return me.s0nd3r.watermc.core.config.modules.misc.LagCompensation.enabled && me.s0nd3r.watermc.core.config.modules.misc.LagCompensation.enableForWater ? me.s0nd3r.watermc.core.misc.LagCompensation.tt20(5, true) : 5; // Leaf - TT20 - Lag compensation
+     }
+ 
+     // Leaf start - TT20 - Lag compensation
+     @Override
+     public int getCompensatedTickDelay(Level level, BlockPos pos) {
+-        return org.dreeam.leaf.misc.LagCompensation.fluidDelay(level, pos, 5, org.dreeam.leaf.config.modules.misc.LagCompensation.enableForWater, FluidTags.LAVA); // 5 = vanilla water delay
++        return me.s0nd3r.watermc.core.misc.LagCompensation.fluidDelay(level, pos, 5, me.s0nd3r.watermc.core.config.modules.misc.LagCompensation.enableForWater, FluidTags.LAVA); // 5 = vanilla water delay
+     }
+ 
+     @Override

@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/levelgen/structure/LegacyStructureDataHandler.java b/java/net/minecraft/world/level/levelgen/structure/LegacyStructureDataHandler.java
+index 40dc72a415037683c06ff79975a0daee1d93e084..4d4df55b9b7daaa57d6d2c50ec3b7f5c6a2026cf 100644
+--- a/java/net/minecraft/world/level/levelgen/structure/LegacyStructureDataHandler.java
++++ b/java/net/minecraft/world/level/levelgen/structure/LegacyStructureDataHandler.java
+@@ -208,7 +208,7 @@ public class LegacyStructureDataHandler implements LegacyTagFixer {
+ 
+     private synchronized void populateCaches(DimensionDataStorage storage) {
+         if (!this.cachesInitialized) {
+-            boolean ignoreNullLegacyStructureData = org.galemc.gale.configuration.GaleGlobalConfiguration.get().misc.ignoreNullLegacyStructureData; // Gale - MultiPaper - ignore null legacy structure data
++            boolean ignoreNullLegacyStructureData = me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().misc.ignoreNullLegacyStructureData; // Gale - MultiPaper - ignore null legacy structure data
+             for (String string : this.legacyKeys) {
+                 CompoundTag compoundTag = new CompoundTag();
+ 

@@ -1,0 +1,20 @@
+diff --git a/java/net/minecraft/world/entity/ai/village/poi/PoiSection.java b/java/net/minecraft/world/entity/ai/village/poi/PoiSection.java
+index 49cbdd80057250c37464ca5f5dd39a20dbaa9f2c..36818a3046d8499cf71e09ffc36201b45d2d9871 100644
+--- a/java/net/minecraft/world/entity/ai/village/poi/PoiSection.java
++++ b/java/net/minecraft/world/entity/ai/village/poi/PoiSection.java
+@@ -94,6 +94,7 @@ public class PoiSection implements ca.spottedleaf.moonrise.patches.chunk_system.
+         }
+ 
+         this.records.put(s, _record);
++        me.s0nd3r.watermc.ai.PoiSearchBackoff.bump(); // WaterMc
+         this.byType.computeIfAbsent(poiType, holder -> Sets.newHashSet()).add(_record);
+         return true;
+     }
+@@ -104,6 +105,7 @@ public class PoiSection implements ca.spottedleaf.moonrise.patches.chunk_system.
+             LOGGER.error("POI data mismatch: never registered at {}", pos);
+         } else {
+             this.byType.get(poiRecord.getPoiType()).remove(poiRecord);
++            me.s0nd3r.watermc.ai.PoiSearchBackoff.bump(); // WaterMc
+             LOGGER.debug("Removed POI of type {} @ {}", LogUtils.defer(poiRecord::getPoiType), LogUtils.defer(poiRecord::getPos));
+             this.setDirty.run();
+         }

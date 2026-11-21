@@ -1,0 +1,288 @@
+diff --git a/java/net/minecraft/server/players/StoredUserList.java b/java/net/minecraft/server/players/StoredUserList.java
+index 25f45b66e9b2b74b71e727a6e75830c82e2f9f66..3ea943a0b56067c99c3246da44e123ab2811cf23 100644
+--- a/java/net/minecraft/server/players/StoredUserList.java
++++ b/java/net/minecraft/server/players/StoredUserList.java
+@@ -1,21 +1,16 @@
+ package net.minecraft.server.players;
+ 
+-import com.google.common.collect.Lists;
+ import com.google.common.collect.Maps;
+-import com.google.common.io.Files;
+ import com.google.gson.Gson;
+ import com.google.gson.GsonBuilder;
+ import com.google.gson.JsonArray;
+ import com.google.gson.JsonElement;
+ import com.google.gson.JsonObject;
+ import com.mojang.logging.LogUtils;
+-import java.io.BufferedReader;
+-import java.io.BufferedWriter;
+ import java.io.File;
+ import java.io.IOException;
+ import java.nio.charset.StandardCharsets;
+ import java.util.Collection;
+-import java.util.List;
+ import java.util.Map;
+ import java.util.Objects;
+ import net.minecraft.server.notifications.NotificationService;
+@@ -26,35 +21,36 @@ import org.slf4j.Logger;
+ 
+ public abstract class StoredUserList<K, V extends StoredUserEntry<K>> {
+     private static final Logger LOGGER = LogUtils.getLogger();
+-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
++    private static final Gson GSON = new GsonBuilder().create(); // WaterMc - compact payloads inside .wdb
+     private final File file;
+     private final Map<String, V> map = Maps.newConcurrentMap(); // Paper - Use ConcurrentHashMap in StoredUserList
+     protected final NotificationService notificationService;
++    // WaterMc start - append-only .wdb journal instead of rewriting the whole JSON file on every change
++    private final Object persistLock = new Object();
++    private me.s0nd3r.watermc.storage.@Nullable WaterRecordLog log;
++    // WaterMc end
+ 
+     public StoredUserList(File file, NotificationService notificationService) {
+         this.file = file;
+         this.notificationService = notificationService;
+     }
+ 
++    /** WaterMc: the {@code .wdb} journal (previously the JSON file). */
+     public File getFile() {
+         return this.file;
+     }
+ 
+     public boolean add(V entry) {
+         String keyForUser = this.getKeyForUser(entry.getUser());
+-        V storedUserEntry = this.map.get(keyForUser);
+-        if (entry.equals(storedUserEntry)) {
+-            return false;
+-        } else {
+-            this.map.put(keyForUser, entry);
+-
+-            try {
+-                this.save();
+-            } catch (IOException var5) {
+-                LOGGER.warn("Could not save the list after adding a user.", (Throwable)var5);
++        synchronized (this.persistLock) { // WaterMc - map mutation and journal order must match
++            V storedUserEntry = this.map.get(keyForUser);
++            if (entry.equals(storedUserEntry)) {
++                return false;
++            } else {
++                this.map.put(keyForUser, entry);
++                this.persistPut(keyForUser, entry); // WaterMc
++                return true;
+             }
+-
+-            return true;
+         }
+     }
+ 
+@@ -67,17 +63,15 @@ public abstract class StoredUserList<K, V extends StoredUserEntry<K>> {
+     }
+ 
+     public boolean remove(K user) {
+-        V storedUserEntry = this.map.remove(this.getKeyForUser(user));
+-        if (storedUserEntry == null) {
+-            return false;
+-        } else {
+-            try {
+-                this.save();
+-            } catch (IOException var4) {
+-                LOGGER.warn("Could not save the list after removing a user.", (Throwable)var4);
++        final String key = this.getKeyForUser(user);
++        synchronized (this.persistLock) { // WaterMc
++            V storedUserEntry = this.map.remove(key);
++            if (storedUserEntry == null) {
++                return false;
++            } else {
++                this.persistRemove(key); // WaterMc
++                return true;
+             }
+-
+-            return true;
+         }
+     }
+ 
+@@ -86,12 +80,12 @@ public abstract class StoredUserList<K, V extends StoredUserEntry<K>> {
+     }
+ 
+     public void clear() {
+-        this.map.clear();
+-
+-        try {
+-            this.save();
+-        } catch (IOException var2) {
+-            LOGGER.warn("Could not save the list after removing a user.", (Throwable)var2);
++        synchronized (this.persistLock) { // WaterMc
++            final me.s0nd3r.watermc.storage.WaterRecordLog current = this.ensureLog(); // open before clearing, so disk entries are not merged back
++            this.map.clear();
++            if (current != null) {
++                current.clear();
++            }
+         }
+     }
+ 
+@@ -122,50 +116,134 @@ public abstract class StoredUserList<K, V extends StoredUserEntry<K>> {
+         return this.map.values();
+     }
+ 
+-    public void save() throws IOException {
+-        Runnable saveTask = () -> {// Leaf - Akarin - Save Json list asynchronously
+-        this.removeExpired(); // Paper - remove expired values before saving
+-        JsonArray jsonArray = new JsonArray();
+-        this.map.values().stream().map(storedEntry -> Util.make(new JsonObject(), storedEntry::serialize)).forEach(jsonArray::add);
++    // WaterMc start - .wdb persistence
++    private static byte[] encode(final StoredUserEntry<?> entry) {
++        return me.s0nd3r.watermc.storage.LegacyJsonMigration.utf8(GSON.toJson(Util.make(new JsonObject(), entry::serialize)));
++    }
+ 
+-        try { // Leaf - Akarin - Save Json list asynchronously
+-        try (BufferedWriter writer = Files.newWriter(this.file, StandardCharsets.UTF_8)) {
+-            GSON.toJson(jsonArray, GSON.newJsonWriter(writer));
++    /** Opens the journal lazily for lists that were modified before {@link #load()} (e.g. by OldUsersConverter). */
++    @SuppressWarnings("unchecked")
++    private me.s0nd3r.watermc.storage.@Nullable WaterRecordLog ensureLog() {
++        if (this.log == null) {
++            try {
++                final me.s0nd3r.watermc.storage.WaterRecordLog.Opened opened = me.s0nd3r.watermc.storage.LegacyJsonMigration.openMigrating(
++                    this.file.toPath(), me.s0nd3r.watermc.storage.LegacyJsonMigration.backupDirectory(), true, this::convertLegacy);
++                for (final Map.Entry<String, byte[]> record : opened.entries().entrySet()) {
++                    if (!this.map.containsKey(record.getKey())) {
++                        final StoredUserEntry<K> entry = this.createEntry(GSON.fromJson(new String(record.getValue(), StandardCharsets.UTF_8), JsonObject.class));
++                        if (entry.getUser() != null) {
++                            this.map.put(this.getKeyForUser(entry.getUser()), (V) entry);
++                        }
++                    }
++                }
++                this.log = opened.log();
++                this.log.compact(this::snapshot);
++            } catch (IOException | RuntimeException ex) {
++                LOGGER.warn("Could not open {}", this.file, ex);
++            }
+         }
++        return this.log;
++    }
+ 
+-        // Leaf start - Akarin - Save Json list asynchronously
+-        } catch (Exception e) {
+-            StoredUserList.LOGGER.warn("Failed to save {} asynchronously", this.file, e);
++    private void persistPut(final String key, final V entry) {
++        final me.s0nd3r.watermc.storage.WaterRecordLog current = this.ensureLog();
++        if (current == null) {
++            return;
++        }
++        current.put(key, encode(entry));
++        if (current.shouldCompact(this.map.size())) {
++            current.compact(this::snapshot);
+         }
+-        };
+-        io.papermc.paper.util.MCUtil.scheduleAsyncTask(saveTask);
+-        // Leaf end - Akarin - Save Json list asynchronously
+     }
+ 
+-    public void load() throws IOException {
+-        if (this.file.exists()) {
+-            try (BufferedReader reader = Files.newReader(this.file, StandardCharsets.UTF_8)) {
+-                this.map.clear();
+-                JsonArray jsonArray = GSON.fromJson(reader, JsonArray.class);
+-                if (jsonArray == null) {
+-                    return;
+-                }
++    private void persistRemove(final String key) {
++        final me.s0nd3r.watermc.storage.WaterRecordLog current = this.ensureLog();
++        if (current != null) {
++            current.remove(key);
++        }
++    }
+ 
+-                for (JsonElement jsonElement : jsonArray) {
+-                    JsonObject jsonObject = GsonHelper.convertToJsonObject(jsonElement, "entry");
++    private Map<String, byte[]> snapshot() {
++        final java.util.LinkedHashMap<String, byte[]> snapshot = new java.util.LinkedHashMap<>();
++        for (final Map.Entry<String, V> entry : this.map.entrySet()) {
++            if (!entry.getValue().hasExpired()) {
++                snapshot.put(entry.getKey(), encode(entry.getValue()));
++            }
++        }
++        return snapshot;
++    }
++
++    /** WaterMc: flushes and closes the journal (it is reopened lazily on the next change or by {@link #load()}). */
++    public void closeJournal() throws IOException {
++        synchronized (this.persistLock) {
++            if (this.log != null) {
++                this.log.close();
++                this.log = null;
++            }
++        }
++    }
++
++    /** WaterMc: waits until every queued change is durable on disk. */
++    public void flush() {
++        final me.s0nd3r.watermc.storage.WaterRecordLog current = this.log;
++        if (current != null) {
++            current.flush().join();
++        }
++    }
++    // WaterMc end - .wdb persistence
++
++    /**
++     * WaterMc: compacts the {@code .wdb} journal (drops expired and superseded records). Ordinary changes are
++     * appended immediately by {@link #add}/{@link #remove}, so this no longer rewrites the file on every change.
++     */
++    public void save() throws IOException {
++        this.removeExpired(); // Paper - remove expired values before saving
++        synchronized (this.persistLock) {
++            final me.s0nd3r.watermc.storage.WaterRecordLog current = this.ensureLog();
++            if (current != null) {
++                current.compact(this::snapshot);
++            }
++        }
++    }
++
++    @SuppressWarnings("unchecked")
++    public void load() throws IOException {
++        // WaterMc start - open the .wdb journal, importing <name>.json (backed up to data/migration-backup/) once
++        synchronized (this.persistLock) {
++            if (this.log != null) {
++                this.log.close();
++                this.log = null;
++            }
++            final me.s0nd3r.watermc.storage.WaterRecordLog.Opened opened = me.s0nd3r.watermc.storage.LegacyJsonMigration.openMigrating(
++                this.file.toPath(), me.s0nd3r.watermc.storage.LegacyJsonMigration.backupDirectory(), true, this::convertLegacy);
++            this.map.clear();
++            for (final Map.Entry<String, byte[]> record : opened.entries().entrySet()) {
++                try {
++                    final JsonObject jsonObject = GSON.fromJson(new String(record.getValue(), StandardCharsets.UTF_8), JsonObject.class);
+                     StoredUserEntry<K> storedUserEntry = this.createEntry(jsonObject);
+                     if (storedUserEntry.getUser() != null) {
+-                        this.map.put(this.getKeyForUser(storedUserEntry.getUser()), (V)storedUserEntry);
++                        this.map.put(this.getKeyForUser(storedUserEntry.getUser()), (V) storedUserEntry);
+                     }
++                } catch (RuntimeException ex) {
++                    LOGGER.warn("Skipping unreadable record {} in {}", record.getKey(), this.file, ex);
+                 }
+-            // Spigot start
+-            } catch (com.google.gson.JsonParseException | NullPointerException ex) {
+-                File backup = new File(this.file + ".backup");
+-                LOGGER.warn("Unable to read file {}, backing it up to {} and creating new copy.", this.file, backup, ex);
+-                this.file.renameTo(backup);
+-                this.file.delete();
+             }
+-            // Spigot end
++            this.log = opened.log();
++        }
++        // WaterMc end
++    }
++
++    // WaterMc start - JSON array -> journal records; payload is the original JSON object (lossless, unknown fields kept)
++    private java.util.LinkedHashMap<String, byte[]> convertLegacy(final JsonArray jsonArray) {
++        final java.util.LinkedHashMap<String, byte[]> records = new java.util.LinkedHashMap<>();
++        for (JsonElement jsonElement : jsonArray) {
++            JsonObject jsonObject = GsonHelper.convertToJsonObject(jsonElement, "entry");
++            StoredUserEntry<K> storedUserEntry = this.createEntry(jsonObject);
++            if (storedUserEntry.getUser() != null) {
++                records.put(this.getKeyForUser(storedUserEntry.getUser()), me.s0nd3r.watermc.storage.LegacyJsonMigration.utf8(GSON.toJson(jsonObject)));
++            }
+         }
++        return records;
+     }
++    // WaterMc end
+ }

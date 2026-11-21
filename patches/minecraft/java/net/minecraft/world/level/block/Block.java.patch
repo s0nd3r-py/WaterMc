@@ -1,0 +1,25 @@
+diff --git a/java/net/minecraft/world/level/block/Block.java b/java/net/minecraft/world/level/block/Block.java
+index 8a7b1c5444236865a327c59e59d7bc3b69835f0c..e70037f81029b3b32744a73ab4429199a21e88f8 100644
+--- a/java/net/minecraft/world/level/block/Block.java
++++ b/java/net/minecraft/world/level/block/Block.java
+@@ -1,8 +1,8 @@
+ package net.minecraft.world.level.block;
+ 
+-import com.google.common.cache.CacheBuilder;
+-import com.google.common.cache.CacheLoader;
+-import com.google.common.cache.LoadingCache;
++import me.s0nd3r.watermc.util.WaterCaches;
++import com.github.benmanes.caffeine.cache.CacheLoader;
++import com.github.benmanes.caffeine.cache.LoadingCache;
+ import com.google.common.collect.ImmutableMap;
+ import com.mojang.logging.LogUtils;
+ import com.mojang.serialization.MapCodec;
+@@ -79,7 +79,7 @@ public class Block extends BlockBehaviour implements ItemLike {
+     private static final Logger LOGGER = LogUtils.getLogger();
+     private final Holder.Reference<Block> builtInRegistryHolder = BuiltInRegistries.BLOCK.createIntrusiveHolder(this);
+     public static final IdMapper<BlockState> BLOCK_STATE_REGISTRY = new IdMapper<>();
+-    private static final LoadingCache<VoxelShape, Boolean> SHAPE_FULL_BLOCK_CACHE = CacheBuilder.newBuilder()
++    private static final LoadingCache<VoxelShape, Boolean> SHAPE_FULL_BLOCK_CACHE = WaterCaches.newBuilder()
+         .maximumSize(512L)
+         .weakKeys()
+         .build(new CacheLoader<VoxelShape, Boolean>() {

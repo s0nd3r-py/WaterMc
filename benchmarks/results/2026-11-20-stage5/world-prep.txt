@@ -1,0 +1,139 @@
+warm-up leaf: {'spawn_select_s': 304.54, 'level_s': 314.325, 'done_s': 596.245, 'wall_s': 617.45, 'workers': '[MoonriseCommon] Paper is using 1 worker threads, 1 I/O threads | '}
+warm-up water-noboost: {'spawn_select_s': 24.07, 'level_s': 31.559, 'done_s': 119.605, 'wall_s': 121.03, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | '}
+warm-up water: {'spawn_select_s': 25.76, 'level_s': 31.717, 'done_s': 100.73, 'wall_s': 101.51, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | '}
+warm-up water-tuned: {'spawn_select_s': 10.68, 'level_s': 17.598, 'done_s': 74.88, 'wall_s': 75.67, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | '}
+round 1 leaf: {'spawn_select_s': 27.14, 'level_s': 34.512, 'done_s': 105.491, 'wall_s': 109.82, 'workers': '[MoonriseCommon] Paper is using 1 worker threads, 1 I/O threads | '}
+round 1 water-noboost: {'spawn_select_s': 29.59, 'level_s': 36.877, 'done_s': 96.398, 'wall_s': 97.04, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | '}
+round 1 water: {'spawn_select_s': 242.58, 'level_s': 257.002, 'done_s': 367.189, 'wall_s': 368.16, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | '}
+round 1 water-tuned: {'spawn_select_s': 10.74, 'level_s': 18.056, 'done_s': 112.241, 'wall_s': 114.09, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | '}
+round 2 water-tuned: {'spawn_select_s': 15.01, 'level_s': 23.147, 'done_s': 95.093, 'wall_s': 95.78, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | '}
+round 2 water: {'spawn_select_s': 23.22, 'level_s': 29.468, 'done_s': 104.287, 'wall_s': 108.76, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | '}
+round 2 water-noboost: {'spawn_select_s': 30.49, 'level_s': 39.109, 'done_s': 140.865, 'wall_s': 142.43, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | '}
+round 2 leaf: {'spawn_select_s': 31.99, 'level_s': 42.209, 'done_s': 135.964, 'wall_s': 141.83, 'workers': '[MoonriseCommon] Paper is using 1 worker threads, 1 I/O threads | '}
+round 3 leaf: {'spawn_select_s': 64.7, 'level_s': 72.976, 'done_s': 159.216, 'wall_s': 166.31, 'workers': '[MoonriseCommon] Paper is using 1 worker threads, 1 I/O threads | '}
+round 3 water-noboost: {'spawn_select_s': 29.89, 'level_s': 39.481, 'done_s': 109.545, 'wall_s': 111.01, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | '}
+round 3 water: {'spawn_select_s': 47.46, 'level_s': 55.675, 'done_s': 161.427, 'wall_s': 162.15, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | '}
+round 3 water-tuned: {'spawn_select_s': 8.9, 'level_s': 14.786, 'done_s': 364.567, 'wall_s': 365.26, 'workers': '[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | '}
+{
+ "median": {
+  "leaf": {
+   "spawn_select_s": 31.99,
+   "level_s": 42.209,
+   "done_s": 135.964,
+   "wall_s": 141.83
+  },
+  "water-noboost": {
+   "spawn_select_s": 29.89,
+   "level_s": 39.109,
+   "done_s": 109.545,
+   "wall_s": 111.01
+  },
+  "water": {
+   "spawn_select_s": 47.46,
+   "level_s": 55.675,
+   "done_s": 161.427,
+   "wall_s": 162.15
+  },
+  "water-tuned": {
+   "spawn_select_s": 10.74,
+   "level_s": 18.056,
+   "done_s": 112.241,
+   "wall_s": 114.09
+  }
+ },
+ "runs": {
+  "leaf": [
+   {
+    "spawn_select_s": 27.14,
+    "level_s": 34.512,
+    "done_s": 105.491,
+    "wall_s": 109.82,
+    "workers": "[MoonriseCommon] Paper is using 1 worker threads, 1 I/O threads | "
+   },
+   {
+    "spawn_select_s": 31.99,
+    "level_s": 42.209,
+    "done_s": 135.964,
+    "wall_s": 141.83,
+    "workers": "[MoonriseCommon] Paper is using 1 worker threads, 1 I/O threads | "
+   },
+   {
+    "spawn_select_s": 64.7,
+    "level_s": 72.976,
+    "done_s": 159.216,
+    "wall_s": 166.31,
+    "workers": "[MoonriseCommon] Paper is using 1 worker threads, 1 I/O threads | "
+   }
+  ],
+  "water-noboost": [
+   {
+    "spawn_select_s": 29.59,
+    "level_s": 36.877,
+    "done_s": 96.398,
+    "wall_s": 97.04,
+    "workers": "[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | "
+   },
+   {
+    "spawn_select_s": 30.49,
+    "level_s": 39.109,
+    "done_s": 140.865,
+    "wall_s": 142.43,
+    "workers": "[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | "
+   },
+   {
+    "spawn_select_s": 29.89,
+    "level_s": 39.481,
+    "done_s": 109.545,
+    "wall_s": 111.01,
+    "workers": "[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | "
+   }
+  ],
+  "water": [
+   {
+    "spawn_select_s": 242.58,
+    "level_s": 257.002,
+    "done_s": 367.189,
+    "wall_s": 368.16,
+    "workers": "[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | "
+   },
+   {
+    "spawn_select_s": 23.22,
+    "level_s": 29.468,
+    "done_s": 104.287,
+    "wall_s": 108.76,
+    "workers": "[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | "
+   },
+   {
+    "spawn_select_s": 47.46,
+    "level_s": 55.675,
+    "done_s": 161.427,
+    "wall_s": 162.15,
+    "workers": "[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | "
+   }
+  ],
+  "water-tuned": [
+   {
+    "spawn_select_s": 10.74,
+    "level_s": 18.056,
+    "done_s": 112.241,
+    "wall_s": 114.09,
+    "workers": "[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | "
+   },
+   {
+    "spawn_select_s": 15.01,
+    "level_s": 23.147,
+    "done_s": 95.093,
+    "wall_s": 95.78,
+    "workers": "[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | "
+   },
+   {
+    "spawn_select_s": 8.9,
+    "level_s": 14.786,
+    "done_s": 364.567,
+    "wall_s": 365.26,
+    "workers": "[MoonriseCommon] WaterMc is using 2 worker threads, 1 I/O threads | [MoonriseCommon] Preparing worlds with 4 chunk worker threads (2 after startup) | "
+   }
+  ]
+ }
+}
+EXIT 0

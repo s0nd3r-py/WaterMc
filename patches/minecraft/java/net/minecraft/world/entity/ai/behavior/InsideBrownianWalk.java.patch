@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/ai/behavior/InsideBrownianWalk.java b/java/net/minecraft/world/entity/ai/behavior/InsideBrownianWalk.java
+index 13724f5463aa6a1a1ec91cc361ab3862d038b9e8..adedeaa15e3c584c99f9b02e5991b4915c4b1b5b 100644
+--- a/java/net/minecraft/world/entity/ai/behavior/InsideBrownianWalk.java
++++ b/java/net/minecraft/world/entity/ai/behavior/InsideBrownianWalk.java
+@@ -21,7 +21,7 @@ public class InsideBrownianWalk {
+                         } else {
+                             BlockPos blockPos = mob.blockPosition();
+                             // Leaf start - rewrite InsideBrownianWalk
+-                            BlockPos[] list = org.dreeam.leaf.util.BlockAreaUtils.getBlocksBetween(
++                            BlockPos[] list = me.s0nd3r.watermc.core.util.BlockAreaUtils.getBlocksBetween(
+                                 blockPos.offset(-1, -1, -1),
+                                 blockPos.offset(1, 1, 1)
+                             );

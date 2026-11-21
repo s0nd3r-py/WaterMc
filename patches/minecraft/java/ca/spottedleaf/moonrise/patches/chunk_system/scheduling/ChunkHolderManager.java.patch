@@ -1,0 +1,49 @@
+diff --git a/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java b/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
+index 980064656dfd5a95e8e962f65253f3e73f858925..0d3ab7c73e9f2f33d2df5fdaf8f215cd312d3168 100644
+--- a/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
++++ b/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
+@@ -80,7 +80,7 @@ public final class ChunkHolderManager {
+     final ChunkUnloadQueue unloadQueue;
+ 
+     private final ConcurrentLong2ReferenceChainedHashTable<NewChunkHolder> chunkHolders = ConcurrentLong2ReferenceChainedHashTable.createWithCapacity(16384, 0.25f);
+-    public final org.dreeam.leaf.world.ChunkCache<NewChunkHolder> chunkHoldersNoSync; // Leaf - thread unsafe chunk map
++    public final me.s0nd3r.watermc.core.world.ChunkCache<NewChunkHolder> chunkHoldersNoSync; // Leaf - thread unsafe chunk map
+     private final ServerLevel world;
+     private final ChunkTaskScheduler taskScheduler;
+     private long currentTick;
+@@ -116,7 +116,7 @@ public final class ChunkHolderManager {
+         this.taskScheduler = taskScheduler;
+         this.ticketLockArea = new ReentrantAreaLock(taskScheduler.getChunkSystemLockShift());
+         this.unloadQueue = new ChunkUnloadQueue(((ChunkSystemServerLevel)world).moonrise$getRegionChunkShift());
+-        this.chunkHoldersNoSync = new org.dreeam.leaf.world.ChunkCache<>(world.getChunkSource().mainThread); // Leaf - thread unsafe chunk map
++        this.chunkHoldersNoSync = new me.s0nd3r.watermc.core.world.ChunkCache<>(world.getChunkSource().mainThread); // Leaf - thread unsafe chunk map
+     }
+ 
+     public boolean processTicketUpdates(final int chunkX, final int chunkZ) {
+@@ -1146,7 +1146,7 @@ public final class ChunkHolderManager {
+         if (changedFullStatus.isEmpty()) {
+             return;
+         }
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && !TickThread.isTickThreadFor(world) || !TickThread.isTickThread()) { // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && !TickThread.isTickThreadFor(world) || !TickThread.isTickThread()) { // Leaf - SparklyPaper - parallel world ticking
+             // These will be handled on the next ServerChunkCache$MainThreadExecutor#pollTask, as it runs the distance manager update
+             // which will invoke processTicketUpdates
+             this.offThreadPendingFullLoadUpdate.addAll(changedFullStatus);
+@@ -1172,7 +1172,7 @@ public final class ChunkHolderManager {
+     // note: never call while inside the chunk system, this will absolutely break everything
+     public void processUnloads() {
+         // Leaf start - SparklyPaper - parallel world ticking
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
+             TickThread.ensureTickThread(world, "Cannot unload chunks off-main");
+         } else {
+             TickThread.ensureTickThread("Cannot unload chunks off-main");
+@@ -1448,7 +1448,7 @@ public final class ChunkHolderManager {
+         if (BLOCK_TICKET_UPDATES.get() == Boolean.TRUE) {
+             throw new IllegalStateException("Cannot update ticket level while unloading chunks or updating entity manager");
+         }
+-        final boolean isTickThread = org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled ? TickThread.isTickThreadFor(world) : TickThread.isTickThread(); // Leaf - SparklyPaper - parallel world ticking
++        final boolean isTickThread = me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled ? TickThread.isTickThreadFor(world) : TickThread.isTickThread(); // Leaf - SparklyPaper - parallel world ticking
+ 
+         if (!PlatformHooks.get().allowAsyncTicketUpdates() && isTickThread) {
+             TickThread.ensureTickThread("Cannot asynchronously process ticket updates");

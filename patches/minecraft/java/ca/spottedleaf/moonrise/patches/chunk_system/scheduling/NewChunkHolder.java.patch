@@ -1,0 +1,33 @@
+diff --git a/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java b/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
+index 0ca348d43143d11ba6dd0e6df33b5ee90ad8c381..f5802d78e881bcf91299629eb2e8c07d62c6e3ea 100644
+--- a/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
++++ b/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
+@@ -1705,7 +1705,7 @@ public final class NewChunkHolder {
+ 
+     private boolean saveChunk(final ChunkAccess chunk, final boolean unloading, final Completable<CompoundTag>[] chunkSave) {
+         // Leaf start - disable world data saving
+-        if (org.dreeam.leaf.config.modules.misc.DisableWorldDataSaving.shouldSkipSave(this.world) || org.dreeam.leaf.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) { // Leaf - Add read-only mode for Linear v2
++        if (me.s0nd3r.watermc.core.config.modules.misc.DisableWorldDataSaving.shouldSkipSave(this.world) || me.s0nd3r.watermc.core.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) { // Leaf - Add read-only mode for Linear v2
+             if (chunk.isUnsaved()) {
+                 chunk.tryMarkSaved();
+             }
+@@ -1762,8 +1762,8 @@ public final class NewChunkHolder {
+ 
+     private boolean lastEntitySaveNull;
+     private boolean saveEntities(final ChunkEntitySlices entities, final boolean unloading, final Completable<CompoundTag>[] entitySave) {
+-        if (org.dreeam.leaf.config.modules.misc.DisableWorldDataSaving.shouldSkipSave(this.world)) return false; // Leaf - disable world data saving
+-        if (org.dreeam.leaf.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) return false; // Leaf - Add read-only mode for Linear v2
++        if (me.s0nd3r.watermc.core.config.modules.misc.DisableWorldDataSaving.shouldSkipSave(this.world)) return false; // Leaf - disable world data saving
++        if (me.s0nd3r.watermc.core.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) return false; // Leaf - Add read-only mode for Linear v2
+         try {
+             if (entities.isTransient()) {
+                 if (!unloading) {
+@@ -1821,7 +1821,7 @@ public final class NewChunkHolder {
+     private boolean lastPoiSaveNull;
+     private boolean savePOI(final PoiChunk poi, final boolean unloading, final Completable<CompoundTag>[] poiSave) {
+         // Leaf start - disable world data saving
+-        if (org.dreeam.leaf.config.modules.misc.DisableWorldDataSaving.shouldSkipSave(this.world) || org.dreeam.leaf.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) { // Leaf - Add read-only mode for Linear v2
++        if (me.s0nd3r.watermc.core.config.modules.misc.DisableWorldDataSaving.shouldSkipSave(this.world) || me.s0nd3r.watermc.core.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) { // Leaf - Add read-only mode for Linear v2
+             if (poi.isDirty()) {
+                 poi.setDirty(false);
+             }

@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/levelgen/structure/structures/MineshaftStructure.java b/java/net/minecraft/world/level/levelgen/structure/structures/MineshaftStructure.java
+index 2acee0e8b5b80f7a40346befcafcd011edd37cf9..0bedfe8051281e2e329d657f3217d524584c2968 100644
+--- a/java/net/minecraft/world/level/levelgen/structure/structures/MineshaftStructure.java
++++ b/java/net/minecraft/world/level/levelgen/structure/structures/MineshaftStructure.java
+@@ -20,7 +20,7 @@ import net.minecraft.world.level.levelgen.WorldgenRandom;
+ import net.minecraft.world.level.levelgen.structure.Structure;
+ import net.minecraft.world.level.levelgen.structure.StructureType;
+ import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
+-//import su.plo.matter.WorldgenCryptoRandom; // Leaf - Matter - Secure Seed
++//import me.s0nd3r.watermc.seed.WorldgenCryptoRandom; // Leaf - Matter - Secure Seed
+ 
+ public class MineshaftStructure extends Structure {
+     public static final MapCodec<MineshaftStructure> CODEC = RecordCodecBuilder.mapCodec(

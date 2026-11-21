@@ -1,0 +1,12 @@
+diff --git a/java/net/minecraft/world/waypoints/WaypointTransmitter.java b/java/net/minecraft/world/waypoints/WaypointTransmitter.java
+index 436b97c3812e5267a5cb5d312d8464c00df38b9e..f734d0509e28c72d42faa95835ac1fd0c77c0bcb 100644
+--- a/java/net/minecraft/world/waypoints/WaypointTransmitter.java
++++ b/java/net/minecraft/world/waypoints/WaypointTransmitter.java
+@@ -21,6 +21,7 @@ public interface WaypointTransmitter extends Waypoint {
+ 
+     static boolean doesSourceIgnoreReceiver(LivingEntity entity, ServerPlayer player) {
+         if (!player.getBukkitEntity().canSee(entity.getBukkitEntity())) return true; // Paper - ignore if entity is hidden from player
++        if (me.s0nd3r.watermc.culling.EntityCullingManager.isCulled(player, entity)) return true; // WaterMc - raytrace entity culling: culled players stay off the locator bar
+         if (player.isSpectator()) {
+             return false;
+         } else if (!entity.isSpectator() && !entity.hasIndirectPassenger(player)) {

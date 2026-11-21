@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/ai/sensing/Sensing.java b/java/net/minecraft/world/entity/ai/sensing/Sensing.java
+index dffe896ee16c88957d76adb716bf1ce11f7ca9ac..1324ccf51be92ff6afb3af95e15518f2ea937194 100644
+--- a/java/net/minecraft/world/entity/ai/sensing/Sensing.java
++++ b/java/net/minecraft/world/entity/ai/sensing/Sensing.java
+@@ -20,7 +20,7 @@ public class Sensing {
+     public Sensing(Mob mob) {
+         this.mob = mob;
+         // Gale start - Petal - reduce line of sight updates - expiring entity id lists
+-        int updateLineOfSightInterval = org.galemc.gale.configuration.GaleGlobalConfiguration.get().smallOptimizations.reducedIntervals.updateEntityLineOfSight;
++        int updateLineOfSightInterval = me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().smallOptimizations.reducedIntervals.updateEntityLineOfSight;
+ 
+         if (updateLineOfSightInterval <= 1) {
+             this.expiring = null;

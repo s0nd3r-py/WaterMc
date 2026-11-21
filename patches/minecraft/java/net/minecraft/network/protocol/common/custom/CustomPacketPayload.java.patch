@@ -1,0 +1,32 @@
+diff --git a/java/net/minecraft/network/protocol/common/custom/CustomPacketPayload.java b/java/net/minecraft/network/protocol/common/custom/CustomPacketPayload.java
+index 8883d942b9c03982bd853ba5f90eb91f06cc8b55..5004e026773993bedb67d576956c8ece1fe06362 100644
+--- a/java/net/minecraft/network/protocol/common/custom/CustomPacketPayload.java
++++ b/java/net/minecraft/network/protocol/common/custom/CustomPacketPayload.java
+@@ -41,14 +41,14 @@ public interface CustomPacketPayload {
+             @Override
+             public void encode(B buffer, CustomPacketPayload value) {
+                 // Leaves start - protocol core
+-                if (value instanceof org.leavesmc.leaves.protocol.core.LeavesCustomPayload payload) {
+-                    org.leavesmc.leaves.protocol.core.LeavesProtocolManager.encode(buffer, payload);
++                if (value instanceof me.s0nd3r.watermc.integration.protocol.core.LeavesCustomPayload payload) {
++                    me.s0nd3r.watermc.integration.protocol.core.LeavesProtocolManager.encode(buffer, payload);
+                     return;
+                 }
+                 // Leaves end - protocol core
+                 // Leaf start - Protocol core
+-                if (value instanceof org.dreeam.leaf.protocol.LeafCustomPayload payload) {
+-                    org.dreeam.leaf.protocol.Protocols.write(buffer, payload);
++                if (value instanceof me.s0nd3r.watermc.core.protocol.LeafCustomPayload payload) {
++                    me.s0nd3r.watermc.core.protocol.Protocols.write(buffer, payload);
+                     return;
+                 }
+                 // Leaf end - Protocol core
+@@ -59,7 +59,7 @@ public interface CustomPacketPayload {
+             public CustomPacketPayload decode(B buffer) {
+                 Identifier identifier = buffer.readIdentifier();
+                 // Leaves start - protocol core
+-                var payload = org.leavesmc.leaves.protocol.core.LeavesProtocolManager.decode(identifier, buffer);
++                var payload = me.s0nd3r.watermc.integration.protocol.core.LeavesProtocolManager.decode(identifier, buffer);
+                 return java.util.Objects.requireNonNullElseGet(payload, () -> this.findCodec(identifier).decode(buffer));
+                 // Leaves end - protocol core
+             }

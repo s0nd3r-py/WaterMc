@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/util/Util.java b/java/net/minecraft/util/Util.java
+index b939f1807aaada171767bdfe5d63d7b950310bfb..f5997fc95c491bd54a423de5fb9aa9d035fbaac4 100644
+--- a/java/net/minecraft/util/Util.java
++++ b/java/net/minecraft/util/Util.java
+@@ -98,7 +98,7 @@ public class Util {
+     private static final TracingExecutor BACKGROUND_EXECUTOR = makeExecutor("Main", -1); // Paper - Perf: add priority
+     private static final TracingExecutor IO_POOL = makeIoExecutor("IO-Worker-", false);
+     public static final TracingExecutor DIMENSION_DATA_IO_POOL = makeExtraIoExecutor("Dimension-Data-IO-Worker-"); // Paper - Separate dimension data IO pool
+-    private static final TracingExecutor DOWNLOAD_POOL = new TracingExecutor(org.dreeam.leaf.async.ExecutorFactory.buildDownloadPoolExecutor()); // Leaf - Virtual thread support for download pool
++    private static final TracingExecutor DOWNLOAD_POOL = new TracingExecutor(me.s0nd3r.watermc.core.async.ExecutorFactory.buildDownloadPoolExecutor()); // Leaf - Virtual thread support for download pool
+     private static final DateTimeFormatter FILENAME_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss", Locale.ROOT);
+     public static final int LINEAR_LOOKUP_THRESHOLD = 8;
+     private static final Set<String> ALLOWED_UNTRUSTED_LINK_PROTOCOLS = Set.of("http", "https");
+@@ -201,7 +201,7 @@ public class Util {
+             maxExecutorThreads = cpus * 2 / 3;
+         }
+         maxExecutorThreads = Math.min(8, maxExecutorThreads);
+-        return Integer.getInteger("Paper.WorkerThreadCount", maxExecutorThreads);
++        return me.s0nd3r.watermc.runtime.WorkerThreads.intProperty("WorkerThreadCount", maxExecutorThreads); // WaterMc - WaterMc.* or legacy Paper.*
+         // Paper end - Perf: use simpler thread pool that allows 1 thread and reduce worldgen thread worker count for low core count CPUs
+     }
+ 

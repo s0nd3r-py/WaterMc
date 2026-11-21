@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/util/profiling/SingleTickProfiler.java b/java/net/minecraft/util/profiling/SingleTickProfiler.java
+index f5f8427a6e478d70504783ee16b5897f6b625c3c..e16f707642f1e6408f3f8e3f325cb8c17321e9f6 100644
+--- a/java/net/minecraft/util/profiling/SingleTickProfiler.java
++++ b/java/net/minecraft/util/profiling/SingleTickProfiler.java
+@@ -18,7 +18,7 @@ public class SingleTickProfiler {
+ 
+     public SingleTickProfiler(LongSupplier realTime, String location, long saveThreshold) {
+         this.realTime = realTime;
+-        this.location = new File("debug", location);
++        this.location = new File(me.s0nd3r.watermc.bootstrap.ServerLayout.current().logsDir().resolve("debug").toFile(), location) /* WaterMc - logs/debug */;
+         this.saveThreshold = saveThreshold;
+     }
+ 

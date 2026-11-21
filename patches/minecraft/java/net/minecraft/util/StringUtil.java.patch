@@ -1,0 +1,26 @@
+diff --git a/java/net/minecraft/util/StringUtil.java b/java/net/minecraft/util/StringUtil.java
+index d21806680b1a4c1293ee1aed6c3cc9d259f76d9d..702c734b0d35a5c97b307e9658bf7ba32789eae5 100644
+--- a/java/net/minecraft/util/StringUtil.java
++++ b/java/net/minecraft/util/StringUtil.java
+@@ -65,7 +65,7 @@ public class StringUtil {
+ 
+     public static boolean isValidPlayerName(String playerName) {
+         // Leaf start - Configurable vanilla username check
+-        return isValidPlayerName(playerName, org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.shouldSkipNonPlayerNameCheck());
++        return isValidPlayerName(playerName, me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.shouldSkipNonPlayerNameCheck());
+     }
+     public static boolean isValidPlayerNameVanilla(String playerName) {
+         return playerName.length() <= 16 && playerName.chars().filter(i -> i <= 32 || i >= 127).findAny().isEmpty();
+@@ -97,9 +97,9 @@ public class StringUtil {
+     // Paper start - Username validation
+     public static boolean isReasonablePlayerName(final String name) {
+         // Leaf start - Configurable vanilla username check
+-        if (org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.allowOldPlayersJoin && net.minecraft.server.MinecraftServer.getServer().getPlayerList().playedPlayers.contains(name)) return true;
+-        if (org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.useUsernameRegex) {
+-            return org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.usernameRegex.matcher(name).matches() && name.length() <= 16; // Purpur - Configurable valid characters for usernames // Leaf - use our own config
++        if (me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.allowOldPlayersJoin && net.minecraft.server.MinecraftServer.getServer().getPlayerList().playedPlayers.contains(name)) return true;
++        if (me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.useUsernameRegex) {
++            return me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.usernameRegex.matcher(name).matches() && name.length() <= 16; // Purpur - Configurable valid characters for usernames // Leaf - use our own config
+         }
+         // Leaf end - Configurable vanilla username check
+         if (name.isEmpty() || name.length() > 16) {

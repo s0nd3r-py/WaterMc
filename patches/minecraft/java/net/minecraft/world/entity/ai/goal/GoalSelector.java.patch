@@ -1,0 +1,49 @@
+diff --git a/java/net/minecraft/world/entity/ai/goal/GoalSelector.java b/java/net/minecraft/world/entity/ai/goal/GoalSelector.java
+index 0938c1ab06878a62bd734255d1963001db7cea19..7b8cb307f3018767cdb30db456fac5ab41e1a560 100644
+--- a/java/net/minecraft/world/entity/ai/goal/GoalSelector.java
++++ b/java/net/minecraft/world/entity/ai/goal/GoalSelector.java
+@@ -22,7 +22,7 @@ public class GoalSelector {
+         }
+     };
+     private final Map<Goal.Flag, WrappedGoal> lockedFlags = new EnumMap<>(Goal.Flag.class);
+-    private final org.dreeam.leaf.util.map.BinaryGoalSet leaf$availableGoals = new org.dreeam.leaf.util.map.BinaryGoalSet(); // Leaf - optimize goal selector
++    private final me.s0nd3r.watermc.core.util.map.BinaryGoalSet leaf$availableGoals = new me.s0nd3r.watermc.core.util.map.BinaryGoalSet(); // Leaf - optimize goal selector
+     private final Set<WrappedGoal> availableGoals = leaf$availableGoals; // Leaf - optimize goal selector
+     private static final Goal.Flag[] GOAL_FLAG_VALUES = Goal.Flag.values(); // Paper - remove streams from GoalSelector
+     private final ca.spottedleaf.moonrise.common.set.OptimizedSmallEnumSet<net.minecraft.world.entity.ai.goal.Goal.Flag> goalTypes = new ca.spottedleaf.moonrise.common.set.OptimizedSmallEnumSet<>(Goal.Flag.class); // Paper - remove streams from GoalSelector
+@@ -45,7 +45,7 @@ public class GoalSelector {
+ 
+     public boolean hasTasks() {
+         // Leaf start - optimize goal selector
+-        org.dreeam.leaf.util.map.BinaryGoalSet availableGoals = this.leaf$availableGoals;
++        me.s0nd3r.watermc.core.util.map.BinaryGoalSet availableGoals = this.leaf$availableGoals;
+         WrappedGoal[] elements = availableGoals.elements();
+         for (int i = 0, j = availableGoals.size(); i < j; i++) {
+             WrappedGoal task = elements[i];
+@@ -60,7 +60,7 @@ public class GoalSelector {
+ 
+     public void removeGoal(Goal goal) {
+         // Leaf start - optimize goal selector
+-        org.dreeam.leaf.util.map.BinaryGoalSet availableGoals = this.leaf$availableGoals;
++        me.s0nd3r.watermc.core.util.map.BinaryGoalSet availableGoals = this.leaf$availableGoals;
+         WrappedGoal[] elements = availableGoals.elements();
+         for (int i = 0, j = availableGoals.size(); i < j; i++) {
+             WrappedGoal wrappedGoal = elements[i];
+@@ -95,7 +95,7 @@ public class GoalSelector {
+ 
+     public void tick() {
+         // Leaf start - optimize goal selector
+-        final org.dreeam.leaf.util.map.BinaryGoalSet availableGoals = this.leaf$availableGoals;
++        final me.s0nd3r.watermc.core.util.map.BinaryGoalSet availableGoals = this.leaf$availableGoals;
+         final WrappedGoal[] elements = availableGoals.elements();
+         final long disabled = this.goalTypes.getBackingSet();
+         final int elemSize = availableGoals.size();
+@@ -180,7 +180,7 @@ public class GoalSelector {
+         profilerFiller.push("goalTick");
+ 
+         // Leaf start - optimize goal selector
+-        org.dreeam.leaf.util.map.BinaryGoalSet availableGoals = this.leaf$availableGoals;
++        me.s0nd3r.watermc.core.util.map.BinaryGoalSet availableGoals = this.leaf$availableGoals;
+         WrappedGoal[] elements = availableGoals.elements();
+         for (int i = 0, j = availableGoals.size(); i < j; i++) {
+             WrappedGoal wrappedGoal = elements[i];

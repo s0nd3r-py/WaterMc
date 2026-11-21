@@ -1,0 +1,76 @@
+diff --git a/java/net/minecraft/server/waypoints/ServerWaypointManager.java b/java/net/minecraft/server/waypoints/ServerWaypointManager.java
+index 81b60e5f6ed263e8bfabd673e3b0fb74efc5a9ba..6425be58b43f2ea566e456a9944d74313cdb6558 100644
+--- a/java/net/minecraft/server/waypoints/ServerWaypointManager.java
++++ b/java/net/minecraft/server/waypoints/ServerWaypointManager.java
+@@ -32,7 +32,7 @@ public class ServerWaypointManager implements WaypointManager<WaypointTransmitte
+     @Override
+     public void trackWaypoint(WaypointTransmitter waypoint) {
+         if (!this.locatorBarEnabled) return; // Paper - optimize ServerWaypointManager with locator bar disabled
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot track waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot track waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
+         this.waypoints.add(waypoint);
+ 
+         for (ServerPlayer serverPlayer : this.players) {
+@@ -43,7 +43,7 @@ public class ServerWaypointManager implements WaypointManager<WaypointTransmitte
+     @Override
+     public void updateWaypoint(WaypointTransmitter waypoint) {
+         if (!this.locatorBarEnabled) return; // Paper - optimize ServerWaypointManager with locator bar disabled
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot update waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot update waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
+         if (this.waypoints.contains(waypoint)) {
+             Map<ServerPlayer, WaypointTransmitter.Connection> map = Tables.transpose(this.connections).row(waypoint);
+             SetView<ServerPlayer> set = Sets.difference(this.players, map.keySet());
+@@ -60,7 +60,7 @@ public class ServerWaypointManager implements WaypointManager<WaypointTransmitte
+ 
+     @Override
+     public void untrackWaypoint(WaypointTransmitter waypoint) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot untrack waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot untrack waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
+         this.connections.column(waypoint).forEach((serverPlayer, connection) -> connection.disconnect());
+         Tables.transpose(this.connections).row(waypoint).clear();
+         this.waypoints.remove(waypoint);
+@@ -68,7 +68,7 @@ public class ServerWaypointManager implements WaypointManager<WaypointTransmitte
+ 
+     public void addPlayer(ServerPlayer player) {
+         if (!this.locatorBarEnabled) return; // Paper - optimize ServerWaypointManager with locator bar disabled
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot add player to waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot add player to waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
+         this.players.add(player);
+ 
+         for (WaypointTransmitter waypointTransmitter : this.waypoints) {
+@@ -82,7 +82,7 @@ public class ServerWaypointManager implements WaypointManager<WaypointTransmitte
+ 
+     public void updatePlayer(ServerPlayer player) {
+         if (!this.locatorBarEnabled) return; // Paper - optimize ServerWaypointManager with locator bar disabled
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot update player for waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot update player for waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
+         Map<WaypointTransmitter, WaypointTransmitter.Connection> map = this.connections.row(player);
+         SetView<WaypointTransmitter> set = Sets.difference(this.waypoints, map.keySet());
+ 
+@@ -96,7 +96,7 @@ public class ServerWaypointManager implements WaypointManager<WaypointTransmitte
+     }
+ 
+     public void removePlayer(ServerPlayer player) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot remove player from waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot remove player from waypoints off-main"); // Leaf - SparklyPaper - parallel world ticking
+         this.connections.row(player).values().removeIf(connection -> {
+             connection.disconnect();
+             return true;
+@@ -106,7 +106,7 @@ public class ServerWaypointManager implements WaypointManager<WaypointTransmitte
+     }
+ 
+     public void breakAllConnections() {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot break all waypoint connections off-main"); // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot break all waypoint connections off-main"); // Leaf - SparklyPaper - parallel world ticking
+         if (!this.locatorBarEnabled && this.connections.isEmpty()) return; // Paper - optimize ServerWaypointManager with locator bar disabled
+         this.connections.values().forEach(WaypointTransmitter.Connection::disconnect);
+         this.connections.clear();
+@@ -114,7 +114,7 @@ public class ServerWaypointManager implements WaypointManager<WaypointTransmitte
+ 
+     public void remakeConnections(WaypointTransmitter waypoint) {
+         if (!this.locatorBarEnabled) return; // Paper - optimize ServerWaypointManager with locator bar disabled
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) { ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot remake waypoint connections off-main"); } // Leaf - SparklyPaper - parallel world ticking
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) { ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, "Cannot remake waypoint connections off-main"); } // Leaf - SparklyPaper - parallel world ticking
+         for (ServerPlayer serverPlayer : this.players) {
+             this.createConnection(serverPlayer, waypoint);
+         }

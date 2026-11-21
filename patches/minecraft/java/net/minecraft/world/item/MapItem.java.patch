@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/item/MapItem.java b/java/net/minecraft/world/item/MapItem.java
+index 3cb1355bee81c8096a6074289044a76918315ea6..aae006b203ea814abc18ac4d29cdd35c0e1db2a1 100644
+--- a/java/net/minecraft/world/item/MapItem.java
++++ b/java/net/minecraft/world/item/MapItem.java
+@@ -273,7 +273,7 @@ public class MapItem extends Item {
+                 savedData.tickCarriedBy(player, stack);
+             }
+ 
+-            if (!savedData.locked && (!org.dreeam.leaf.config.modules.opt.SkipMapItemDataUpdates.enabled || shouldUpdateMap(savedData)) && slot != null && slot.getType() == EquipmentSlot.Type.HAND) { // SparklyPaper - don't update maps if they don't have the CraftMapRenderer in the render list
++            if (!savedData.locked && (!me.s0nd3r.watermc.core.config.modules.opt.SkipMapItemDataUpdates.enabled || shouldUpdateMap(savedData)) && slot != null && slot.getType() == EquipmentSlot.Type.HAND) { // SparklyPaper - don't update maps if they don't have the CraftMapRenderer in the render list
+                 this.update(level, entity, savedData);
+             }
+         }

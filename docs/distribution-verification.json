@@ -1,0 +1,14 @@
+{
+  "jar": "D:\\water-mc\\WaterMc\\watermc-server\\build\\libs\\watermc-1.21.11.jar",
+  "bytes": 124854488,
+  "sha256": "8e8fc603951bf3a26790ca3fed86b17c9fb83c57d8751b8482ea092fd8975f27",
+  "main_class": "org.bukkit.craftbukkit.Main",
+  "binary_deltas_required": false,
+  "source_revision": "e688b58",
+  "current_runtime_sources_match": true,
+  "server_sha256": "5882a7d57f03fe29f147c4b6fb87a7eb01ffaa68b57b87cf381a1fddabc3a2dc",
+  "server_manifest": "Manifest-Version: 1.0\r\nMain-Class: org.bukkit.craftbukkit.Main\r\nImplementation-Title: WaterMc\r\nImplementation-Version: 1.21.11-DEV-e688b58\r\nImplementation-Vendor: 2026-11-08 20:02:26 +0200\r\nSpecification-Title: WaterMc\r\nSpecification-Version: 1.21.11-R0.1-SNAPSHOT\r\nSpecification-Vendor: WaterMc\r\nBrand-Id: watermc:watermc\r\nBrand-Name: WaterMc\r\nBuild-Number: \r\nBuild-Time: 2026-11-08T18:02:54.811801900Z\r\nGit-Branch: watermc/1.21.11\r\nGit-Commit: e688b58\r\nIncluded-Mappings-Hash: 00670993F075250631FECD404CAEA3C58DBD56862E26F91D\r\n B02838AB9D2A9D53\r\n\r\nName: org/bukkit\r\nSealed: true\r\n\r\nName: net/bukkit\r\nSealed: true\r\n\r\nName: com/bukkit\r\nSealed: true\r\n\r\n",
+  "server_classes": 10525,
+  "historical_report": true,
+  "superseded_for_current_artifact_by": "docs/final-distribution-verification-2026-11-12.json"
+}

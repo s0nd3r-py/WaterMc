@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/world/level/material/FlowingFluid.java b/java/net/minecraft/world/level/material/FlowingFluid.java
+index 1317b7d93cfc5d1b9c4843ece862e940076c18bf..48c130a65567d040b878f330a33b93d531f75440 100644
+--- a/java/net/minecraft/world/level/material/FlowingFluid.java
++++ b/java/net/minecraft/world/level/material/FlowingFluid.java
+@@ -478,7 +478,7 @@ public abstract class FlowingFluid extends Fluid {
+         BlockGetter level, BlockPos pos, BlockState state, Direction direction, BlockPos spreadPos, BlockState spreadState, FluidState fluidState
+     ) {
+         return !this.isSourceBlockOfThisType(fluidState)
+-            && (spreadState.tagFlag & org.dreeam.leaf.util.BlockMasks.CAN_HOLD_ANY_FLUID) != 0 // Leaf - optimize canHoldAnyFluid
++            && (spreadState.tagFlag & me.s0nd3r.watermc.core.util.BlockMasks.CAN_HOLD_ANY_FLUID) != 0 // Leaf - optimize canHoldAnyFluid
+             && canPassThroughWall(direction, level, pos, state, spreadPos, spreadState);
+     }
+ 
+@@ -560,7 +560,7 @@ public abstract class FlowingFluid extends Fluid {
+     }
+ 
+     private static boolean canHoldFluid(BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
+-        return (state.tagFlag & org.dreeam.leaf.util.BlockMasks.CAN_HOLD_ANY_FLUID) != 0 && canHoldSpecificFluid(level, pos, state, fluid); // Leaf - optimize canHoldAnyFluid
++        return (state.tagFlag & me.s0nd3r.watermc.core.util.BlockMasks.CAN_HOLD_ANY_FLUID) != 0 && canHoldSpecificFluid(level, pos, state, fluid); // Leaf - optimize canHoldAnyFluid
+     }
+ 
+     private static boolean canHoldSpecificFluid(BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {

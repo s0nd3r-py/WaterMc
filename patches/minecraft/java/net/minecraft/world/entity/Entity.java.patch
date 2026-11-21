@@ -1,0 +1,377 @@
+diff --git a/java/net/minecraft/world/entity/Entity.java b/java/net/minecraft/world/entity/Entity.java
+index 621006ced1b053c44ecc2187e03635bc188c58c3..554db0e9c3a59735dba2f42eb007c69e86a07b84 100644
+--- a/java/net/minecraft/world/entity/Entity.java
++++ b/java/net/minecraft/world/entity/Entity.java
+@@ -152,7 +152,7 @@ import org.jetbrains.annotations.Contract;
+ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
+ 
+-public abstract class Entity implements SyncedDataHolder, DebugValueSource, Nameable, ItemOwner, SlotProvider, EntityAccess, ScoreHolder, DataComponentGetter, ca.spottedleaf.moonrise.patches.chunk_system.entity.ChunkSystemEntity, ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerEntity, net.caffeinemc.mods.lithium.common.world.in_world_tracking.MaybeInLevelObject { // Paper - rewrite chunk system // Paper - optimise entity tracker // Leaf - Lithium - equipment tracking
++public abstract class Entity implements SyncedDataHolder, DebugValueSource, Nameable, ItemOwner, SlotProvider, EntityAccess, ScoreHolder, DataComponentGetter, ca.spottedleaf.moonrise.patches.chunk_system.entity.ChunkSystemEntity, ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerEntity, me.s0nd3r.watermc.engine.common.world.in_world_tracking.MaybeInLevelObject { // Paper - rewrite chunk system // Paper - optimise entity tracker // Leaf - Lithium - equipment tracking
+     public static javax.script.ScriptEngine scriptEngine = new javax.script.ScriptEngineManager().getEngineByName("rhino"); // Purpur - Configurable entity base attributes
+     // CraftBukkit start
+     private static final int CURRENT_LEVEL = 2;
+@@ -161,7 +161,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+     }
+ 
+     // Paper start - Share random for entities to make them more random
+-    public static RandomSource SHARED_RANDOM = org.dreeam.leaf.config.modules.opt.FastRNG.enabled ? org.dreeam.leaf.util.math.random.FasterRandomSource.SHARED_INSTANCE : new RandomRandomSource(); // Leaf - Faster random generator
++    public static RandomSource SHARED_RANDOM = me.s0nd3r.watermc.core.config.modules.opt.FastRNG.enabled ? me.s0nd3r.watermc.core.util.math.random.FasterRandomSource.SHARED_INSTANCE : new RandomRandomSource(); // Leaf - Faster random generator
+     // Paper start - replace random
+     private static final class RandomRandomSource extends ca.spottedleaf.moonrise.common.util.ThreadUnsafeRandom {
+         public RandomRandomSource() {
+@@ -267,6 +267,10 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+     public float yRotO;
+     public float xRotO;
+     private AABB bb = INITIAL_AABB;
++    // WaterMc start - packed entity bounds
++    /** Списки секций, хранящие плоскую копию габаритов этой сущности, и её номера в них. */
++    public final me.s0nd3r.watermc.world.EntityBoundsLinks waterBoundsLinks = new me.s0nd3r.watermc.world.EntityBoundsLinks();
++    // WaterMc end - packed entity bounds
+     private boolean boundingBoxChanged = false; // Gale - VMP - skip entity move if movement is zero
+     public boolean onGround;
+     public boolean horizontalCollision;
+@@ -291,7 +295,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+     public int tickCount;
+     private int remainingFireTicks;
+     public boolean wasTouchingWater;
+-    protected Object2DoubleMap<TagKey<Fluid>> fluidHeight = new org.dreeam.leaf.util.map.FluidHeightMap(); // Leaf - Replace fluid height map
++    protected Object2DoubleMap<TagKey<Fluid>> fluidHeight = new me.s0nd3r.watermc.core.util.map.FluidHeightMap(); // Leaf - Replace fluid height map
+     protected boolean wasEyeInWater;
+     // Leaf start - Optimize isEyeInFluid
+     // Remove original field since plugin should not direct access to it, and able to
+@@ -380,7 +384,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+     public int totalEntityAge; // Paper - age-like counter for all entities
+     private int lastTickTime; // Leaf - Rewrite entity despawn time
+     public boolean activatedPriorityReset = false; // Pufferfish - DAB
+-    public int activatedPriority = org.dreeam.leaf.config.modules.opt.DynamicActivationofBrain.maximumActivationPrio; // Pufferfish - DAB (golf score)
++    public int activatedPriority = me.s0nd3r.watermc.core.config.modules.opt.DynamicActivationofBrain.maximumActivationPrio; // Pufferfish - DAB (golf score)
+     public final io.papermc.paper.entity.activation.ActivationType activationType = io.papermc.paper.entity.activation.ActivationType.activationTypeFor(this); // Paper - EAR 2/tracking ranges
+     // Paper start - EAR 2
+     public final boolean defaultActivationState;
+@@ -485,7 +489,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+     }
+     // Paper end - rewrite chunk system
+     // Paper start - optimise collisions
+-    private static float[] calculateStepHeights(final AABB box, final List<VoxelShape> voxels, final List<AABB> aabbs, final float stepHeight,
++    private static float[] calculateStepHeights(final AABB box, final List<VoxelShape> voxels, final me.s0nd3r.watermc.math.FastAABB aabbs, final float stepHeight,
+                                                 final float collidedY) {
+         final FloatArraySet ret = new FloatArraySet();
+ 
+@@ -513,10 +517,8 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+         }
+ 
+         for (int i = 0, len = aabbs.size(); i < len; ++i) {
+-            final AABB shape = aabbs.get(i);
+-
+-            final float step1 = (float)(shape.minY - box.minY);
+-            final float step2 = (float)(shape.maxY - box.minY);
++            final float step1 = (float)(aabbs.minY(i) - box.minY);
++            final float step2 = (float)(aabbs.maxY(i) - box.minY);
+ 
+             if (!(step1 < 0.0f) && step1 != collidedY && !(step1 > stepHeight)) {
+                 ret.add(step1);
+@@ -966,7 +968,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+         }
+ 
+         if (this instanceof ServerPlayer) this.handlePortal(); // CraftBukkit - Moved up to postTick
+-        if (!org.dreeam.leaf.config.modules.opt.ReduceUselessPackets.disableUselessParticles && this.canSpawnSprintParticle()) { // Leaf - Disable Useless Particles
++        if (!me.s0nd3r.watermc.core.config.modules.opt.ReduceUselessPackets.disableUselessParticles && this.canSpawnSprintParticle()) { // Leaf - Disable Useless Particles
+             this.spawnSprintParticle();
+         }
+ 
+@@ -1023,7 +1025,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+             this.lastKnownPosition = this.position();
+         }
+ 
+-        this.lastKnownSpeed = this.position().subtract(this.lastKnownPosition);
++        this.lastKnownSpeed = this.position().equals(this.lastKnownPosition) ? Vec3.ZERO : this.position().subtract(this.lastKnownPosition); // WaterMc - Leaf: reduce computeSpeed Vec3 allocations
+         this.lastKnownPosition = this.position();
+     }
+ 
+@@ -1259,7 +1261,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+             }
+             // Paper end
+ 
+-            if (!org.dreeam.leaf.config.modules.opt.OptimizePlayerMovementProcessing.enabled) movement = this.maybeBackOffFromEdge(movement, type); // Leaf - Optimise player movement checks
++            if (!me.s0nd3r.watermc.core.config.modules.opt.OptimizePlayerMovementProcessing.enabled) movement = this.maybeBackOffFromEdge(movement, type); // Leaf - Optimise player movement checks
+             Vec3 vec3 = this.collide(movement);
+             double d = vec3.lengthSqr();
+             if (d > 1.0E-7 || movement.lengthSqr() - d < 1.0E-7) {
+@@ -1477,7 +1479,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+     }
+ 
+     private boolean isStateClimbable(BlockState state) {
+-        return (state.tagFlag & org.dreeam.leaf.util.BlockMasks.IS_STATE_CLIMBABLE) != 0; // Leaf - optimize isStateClimbable
++        return (state.tagFlag & me.s0nd3r.watermc.core.util.BlockMasks.IS_STATE_CLIMBABLE) != 0; // Leaf - optimize isStateClimbable
+     }
+ 
+     private boolean vibrationAndSoundEffectsFromBlock(BlockPos pos, BlockState state, boolean playStepSound, boolean broadcastGameEvent, Vec3 entityPos) {
+@@ -1562,9 +1564,9 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+                 } else {
+                     BlockState blockState = chunk.getBlockStateFinal(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+                     int flags = blockState.tagFlag;
+-                    return (!(yOffset <= 0.5) || (flags & org.dreeam.leaf.util.BlockMasks.FENCE_TAG) == 0)
+-                        && (flags & org.dreeam.leaf.util.BlockMasks.WALL_TAG) == 0
+-                        && (flags & org.dreeam.leaf.util.BlockMasks.FENCE_GATE_CL) == 0
++                    return (!(yOffset <= 0.5) || (flags & me.s0nd3r.watermc.core.util.BlockMasks.FENCE_TAG) == 0)
++                        && (flags & me.s0nd3r.watermc.core.util.BlockMasks.WALL_TAG) == 0
++                        && (flags & me.s0nd3r.watermc.core.util.BlockMasks.FENCE_GATE_CL) == 0
+                         ? blockPos.atY(Mth.floor(this.position.y - yOffset))
+                         : blockPos;
+                 }
+@@ -1648,68 +1650,67 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+ 
+         final AABB currentBox = this.getBoundingBox();
+ 
+-        // final List<VoxelShape> potentialCollisionsVoxel = new ArrayList<>(); // Leaf - cache collision list
+-        // final List<AABB> potentialCollisionsBB = new ArrayList<>(); // Leaf - cache collision list
++        try (me.s0nd3r.watermc.math.FastAABB collisions = me.s0nd3r.watermc.math.FastAABB.acquire()) {
+ 
+-        final AABB initialCollisionBox;
+-        if (xZero & zZero) {
+-            // note: xZero & zZero -> collision on x/z == 0 -> no step height calculation
+-            // this specifically optimises entities standing still
+-            initialCollisionBox = movement.y < 0.0 ?
+-                ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.cutDownwards(currentBox, movement.y) : ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.cutUpwards(currentBox, movement.y);
+-        } else {
+-            initialCollisionBox = currentBox.expandTowards(movement);
+-        }
+-
+-        org.dreeam.leaf.world.EntityCollisionCache entityCollisionCache = ((ServerLevel) this.level).entityCollisionCache; // Leaf - cache collision list
+-        ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.getEntityHardCollisions(
+-            this.level, (Entity)(Object)this, initialCollisionBox, entityCollisionCache.entityAABBs(), 0, null // Leaf - cache collision list
+-        );
++            final AABB initialCollisionBox;
++            if (xZero & zZero) {
++                // note: xZero & zZero -> collision on x/z == 0 -> no step height calculation
++                // this specifically optimises entities standing still
++                initialCollisionBox = movement.y < 0.0 ?
++                    ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.cutDownwards(currentBox, movement.y) : ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.cutUpwards(currentBox, movement.y);
++            } else {
++                initialCollisionBox = currentBox.expandTowards(movement);
++            }
+ 
+-        ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.getCollisionsForBlocksOrWorldBorder(
+-            this.level, (Entity)(Object)this, initialCollisionBox, entityCollisionCache.potentialCollisionsVoxel(), entityCollisionCache.potentialCollisionsBB(), // Leaf - cache collision list
+-            ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.COLLISION_FLAG_CHECK_BORDER, null
+-        );
+-        entityCollisionCache.potentialCollisionsBB().addAll(entityCollisionCache.entityAABBs()); // Leaf - cache collision list
+-        final Vec3 collided = ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.performCollisions(movement, currentBox, entityCollisionCache.potentialCollisionsVoxel(), entityCollisionCache.potentialCollisionsBB()); // Leaf - cache collision list
++            ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.getEntityHardCollisions(
++                this.level, (Entity)(Object)this, initialCollisionBox, collisions.entityBoxes(), 0, null
++            );
+ 
+-        final boolean collidedX = collided.x != movement.x;
+-        final boolean collidedY = collided.y != movement.y;
+-        final boolean collidedZ = collided.z != movement.z;
++            ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.getCollisionsForBlocksOrWorldBorderFlat(
++                this.level, (Entity)(Object)this, initialCollisionBox, collisions.voxels(), collisions,
++                ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.COLLISION_FLAG_CHECK_BORDER, null
++            );
++            collisions.addAll(collisions.entityBoxes());
++            collisions.resolve(movement.x, movement.y, movement.z, currentBox);
+ 
+-        final boolean collidedDownwards = collidedY && movement.y < 0.0;
++            final boolean collidedX = collisions.resultX() != movement.x;
++            final boolean collidedY = collisions.resultY() != movement.y;
++            final boolean collidedZ = collisions.resultZ() != movement.z;
+ 
+-        final double stepHeight;
++            final boolean collidedDownwards = collidedY && movement.y < 0.0;
+ 
+-        if ((!collidedDownwards && !this.onGround) || (!collidedX && !collidedZ) || (stepHeight = (double)this.maxUpStep()) <= 0.0) {
+-            entityCollisionCache.clear(); // Leaf - cache collision list
+-            return collided;
+-        }
++            final double stepHeight;
+ 
+-        final AABB collidedYBox = collidedDownwards ? currentBox.move(0.0, collided.y, 0.0) : currentBox;
+-        AABB stepRetrievalBox = collidedYBox.expandTowards(movement.x, stepHeight, movement.z);
+-        if (!collidedDownwards) {
+-            stepRetrievalBox = stepRetrievalBox.expandTowards(0.0, (double)-1.0E-5F, 0.0);
+-        }
++            if ((!collidedDownwards && !this.onGround) || (!collidedX && !collidedZ) || (stepHeight = (double)this.maxUpStep()) <= 0.0) {
+ 
+-        final List<VoxelShape> stepVoxels = new ArrayList<>();
+-        final List<AABB> stepAABBs = entityCollisionCache.entityAABBs(); // Leaf // Leaf - cache collision list
++                return collisions.movement();
++            }
+ 
+-        ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.getCollisionsForBlocksOrWorldBorder(
+-            this.level, (Entity)(Object)this, stepRetrievalBox, stepVoxels, stepAABBs,
+-            ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.COLLISION_FLAG_CHECK_BORDER, null
+-        );
++            final AABB collidedYBox = collidedDownwards ? currentBox.move(0.0, collisions.resultY(), 0.0) : currentBox;
++            AABB stepRetrievalBox = collidedYBox.expandTowards(movement.x, stepHeight, movement.z);
++            if (!collidedDownwards) {
++                stepRetrievalBox = stepRetrievalBox.expandTowards(0.0, (double)-1.0E-5F, 0.0);
++            }
+ 
+-        for (final float step : calculateStepHeights(collidedYBox, stepVoxels, stepAABBs, (float)stepHeight, (float)collided.y)) {
+-            final Vec3 stepResult = ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.performCollisions(new Vec3(movement.x, (double)step, movement.z), collidedYBox, stepVoxels, stepAABBs);
+-            if (stepResult.horizontalDistanceSqr() > collided.horizontalDistanceSqr()) {
+-                entityCollisionCache.clear(); // Leaf - cache collision list
+-                return stepResult.add(0.0, collidedYBox.minY - currentBox.minY, 0.0);
++            try (me.s0nd3r.watermc.math.FastAABB stepCollisions = me.s0nd3r.watermc.math.FastAABB.acquire()) {
++                stepCollisions.addAll(collisions.entityBoxes());
++                ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.getCollisionsForBlocksOrWorldBorderFlat(
++                    this.level, this, stepRetrievalBox, stepCollisions.voxels(), stepCollisions,
++                    ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.COLLISION_FLAG_CHECK_BORDER, null
++                );
++                final double collidedHorizontal = collisions.resultX()*collisions.resultX() + collisions.resultZ()*collisions.resultZ();
++                for (final float step : calculateStepHeights(collidedYBox, stepCollisions.voxels(), stepCollisions, (float)stepHeight, (float)collisions.resultY())) {
++                    stepCollisions.resolve(movement.x, (double)step, movement.z, collidedYBox);
++                    final double stepHorizontal = stepCollisions.resultX()*stepCollisions.resultX() + stepCollisions.resultZ()*stepCollisions.resultZ();
++                    if (stepHorizontal > collidedHorizontal) {
++                        return new Vec3(stepCollisions.resultX() + 0.0,
++                            stepCollisions.resultY() + (collidedYBox.minY - currentBox.minY), stepCollisions.resultZ() + 0.0);
++                    }
++                }
+             }
+-        }
+ 
+-        entityCollisionCache.clear(); // Leaf - cache collision list
+-        return collided;
++            return collisions.movement();
++        }
+         // Paper end - optimise collisions
+     }
+ 
+@@ -1875,7 +1876,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+                     } else {
+                         VoxelShape entityInsideCollisionShape = blockState.getEntityInsideCollisionShape(level, pos, this);
+                         boolean flag2 = entityInsideCollisionShape == Shapes.block()
+-                            || this.collidedWithShapeMovingFrom(from, to, entityInsideCollisionShape.move(new Vec3(pos))); // Leaf - optimize collidedAlongVector
++                            || this.collidedWithShapeMovingFrom(from, to, entityInsideCollisionShape.move(pos.getX(), pos.getY(), pos.getZ())); // Leaf - optimize collidedAlongVector
+                         final FluidState fluidState = blockState.getFluidState();
+                         boolean flag3 = !fluidState.isEmpty() && this.collidedWithFluid(fluidState, pos, from, to);
+                         if ((flag2 || flag3) && visited.add(pos.asLong())) {
+@@ -2254,7 +2255,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+ 
+         float f1 = Mth.floor(this.getY());
+ 
+-        if (!org.dreeam.leaf.config.modules.opt.ReduceUselessPackets.disableUselessParticles) { // Leaf - Disable Useless Particles
++        if (!me.s0nd3r.watermc.core.config.modules.opt.ReduceUselessPackets.disableUselessParticles) { // Leaf - Disable Useless Particles
+         for (int i = 0; i < 1.0F + this.dimensions.width() * 20.0F; i++) {
+             double d = (this.random.nextDouble() * 2.0 - 1.0) * this.dimensions.width();
+             double d1 = (this.random.nextDouble() * 2.0 - 1.0) * this.dimensions.width();
+@@ -3678,6 +3679,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+         } else if (this.level.purpurConfig.entitiesCanUsePortals || this instanceof ServerPlayer) { // Purpur - Entities can use portals
+             if (this.portalProcess == null || !this.portalProcess.isSamePortal(portal)) {
+                 this.portalProcess = new PortalProcessor(portal, pos.immutable());
++                me.s0nd3r.watermc.world.PortalSearchPrefetcher.onPortalEnter(this, portal); // WaterMc - DivineMC (BX-Team, GPL-3.0) async portal pre-search, off by default
+             } else if (!this.portalProcess.isInsidePortalThisTick()) {
+                 this.portalProcess.updateEntryPosition(pos.immutable());
+                 this.portalProcess.setAsInsidePortalThisTick(true);
+@@ -3706,7 +3708,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+ 
+     // Leaf start - SparklyPaper - parallel world ticking - mark pending teleport to prevent clearing portal process
+     private void handleTeleport(ServerLevel serverLevel) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
+             pwt$handleTeleport(serverLevel);
+         } else {
+             TeleportTransition portalDestination = this.portalProcess.getPortalDestination(serverLevel, this);
+@@ -3777,8 +3779,9 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+     }
+ 
+     public boolean isOnFire() {
+-        boolean flag = this.level() != null && this.level().isClientSide();
+-        return !this.fireImmune() && (this.remainingFireTicks > 0 || flag && this.getSharedFlag(FLAG_ONFIRE));
++        // WaterMc start - Leaf: Short-circuit isOnFire checks (the client-side flag branch is never true on a dedicated server)
++        return this.remainingFireTicks > 0 && !this.fireImmune();
++        // WaterMc end
+     }
+ 
+     public boolean isPassenger() {
+@@ -3891,7 +3894,9 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+ 
+     public @Nullable PlayerTeam getTeam() {
+         if (!this.level().paperConfig().scoreboards.allowNonPlayerEntitiesOnScoreboards && !(this instanceof Player)) { return null; } // Paper - Perf: Disable Scoreboards for non players by default
+-        return this.level().getScoreboard().getPlayersTeam(this.getScoreboardName());
++        final net.minecraft.world.scores.Scoreboard scoreboard = this.level().getScoreboard(); // WaterMc - entity team fast path
++        if (!(this instanceof Player) && !scoreboard.waterHasEntityTeamEntries()) { return null; } // WaterMc - no entity can be on a team: skip hashing the UUID string
++        return scoreboard.getPlayersTeam(this.getScoreboardName());
+     }
+ 
+     public final boolean isAlliedTo(@Nullable Entity entity) {
+@@ -4035,7 +4040,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+     }
+ 
+     protected static void sendBubbleColumnParticles(Level level, BlockPos pos) {
+-        if (org.dreeam.leaf.config.modules.opt.ReduceUselessPackets.disableUselessParticles) return; // Leaf - Disable Useless Particles
++        if (me.s0nd3r.watermc.core.config.modules.opt.ReduceUselessPackets.disableUselessParticles) return; // Leaf - Disable Useless Particles
+         if (level instanceof ServerLevel serverLevel) {
+             for (int i = 0; i < 2; i++) {
+                 serverLevel.sendParticles(
+@@ -4325,7 +4330,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+     }
+ 
+     private @Nullable Entity teleportCrossDimension(ServerLevel oldLevel, ServerLevel newLevel, TeleportTransition teleportTransition) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(newLevel, "Cannot teleport entity to another world off-main, from world[" + oldLevel.getWorld().getName() + "] to world[" + newLevel.getWorld().getName() + "]"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(newLevel, "Cannot teleport entity to another world off-main, from world[" + oldLevel.getWorld().getName() + "] to world[" + newLevel.getWorld().getName() + "]"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
+         List<Entity> passengers = this.getPassengers();
+         List<Entity> list = new ArrayList<>(passengers.size());
+         this.ejectPassengers();
+@@ -4722,6 +4727,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+         if (len > 64) maxZ = minZ + 64.0;
+         this.bb = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
+         // CraftBukkit end
++        this.waterBoundsLinks.write(this.bb); // WaterMc - packed entity bounds
+     }
+ 
+     public final float getEyeHeight(Pose pose) {
+@@ -5316,7 +5322,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+             }
+ 
+             this.levelCallback.onMove();
+-            if ((!org.dreeam.leaf.config.modules.opt.OptimizeWaypoint.enabled || blockUpdated) && !this.firstTick && this.level instanceof ServerLevel serverLevel && !this.isRemoved()) { // Leaf - optimize waypoint
++            if ((!me.s0nd3r.watermc.core.config.modules.opt.OptimizeWaypoint.enabled || blockUpdated) && !this.firstTick && this.level instanceof ServerLevel serverLevel && !this.isRemoved()) { // Leaf - optimize waypoint
+                 if (this instanceof WaypointTransmitter waypointTransmitter && waypointTransmitter.isTransmittingWaypoint()) {
+                     serverLevel.getWaypointManager().updateWaypoint(waypointTransmitter);
+                 }
+@@ -5338,15 +5344,15 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+         }
+         // Paper end - Block invalid positions and bounding box
+         // Leaves start - Lithium Sleeping Block Entity
+-        if (!org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) return;
++        if (!me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) return;
+         if (this instanceof ItemEntity) {
+             long sectionKey = ca.spottedleaf.moonrise.common.util.CoordinateUtils.getChunkSectionKey(this);
+-            net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionItemEntityMovementTracker tracker = net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionItemEntityMovementTracker.itemEntityMovementTrackerMap.get(new net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.ChunkSectionIdentifier(sectionKey, level.getMinecraftWorld().uuid));
++            me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionItemEntityMovementTracker tracker = me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionItemEntityMovementTracker.itemEntityMovementTrackerMap.get(new me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.ChunkSectionIdentifier(sectionKey, level.getMinecraftWorld().uuid));
+             if (tracker != null) tracker.notifyAllListeners(level.getGameTime());
+         }
+         else if (this instanceof net.minecraft.world.entity.vehicle.ContainerEntity) {
+             long sectionKey = ca.spottedleaf.moonrise.common.util.CoordinateUtils.getChunkSectionKey(this);
+-            net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionInventoryEntityTracker tracker = net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionInventoryEntityTracker.containerEntityMovementTrackerMap.get(new net.caffeinemc.mods.lithium.common.tracking.entity.ChunkSectionEntityMovementTracker.ChunkSectionIdentifier(sectionKey, level.getMinecraftWorld().uuid));
++            me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionInventoryEntityTracker tracker = me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionInventoryEntityTracker.containerEntityMovementTrackerMap.get(new me.s0nd3r.watermc.engine.common.tracking.entity.ChunkSectionEntityMovementTracker.ChunkSectionIdentifier(sectionKey, level.getMinecraftWorld().uuid));
+             if (tracker != null) tracker.notifyAllListeners(level.getGameTime());
+         }
+         // Leaves end - Lithium Sleeping Block Entity
+@@ -5775,21 +5781,21 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+         final double dx = this.getX() - entity.getX();
+         final double dy = this.getY() - entity.getY();
+         final double dz = this.getZ() - entity.getZ();
+-        return (float) Math.sqrt(org.dreeam.leaf.util.LeafConstants.ENABLE_FMA ? Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)) : dx * dx + dy * dy + dz * dz);
++        return (float) Math.sqrt(me.s0nd3r.watermc.core.util.WaterConstants.ENABLE_FMA ? Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)) : dx * dx + dy * dy + dz * dz);
+     }
+ 
+     public final double distanceToSqr(final double x, final double y, final double z) {
+         final double dx = this.getX() - x;
+         final double dy = this.getY() - y;
+         final double dz = this.getZ() - z;
+-        return org.dreeam.leaf.util.LeafConstants.ENABLE_FMA ? Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)) : dx * dx + dy * dy + dz * dz;
++        return me.s0nd3r.watermc.core.util.WaterConstants.ENABLE_FMA ? Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)) : dx * dx + dy * dy + dz * dz;
+     }
+ 
+     public final double distanceToSqr(Vec3 pos) {
+         final double dx = this.getX() - pos.x;
+         final double dy = this.getY() - pos.y;
+         final double dz = this.getZ() - pos.z;
+-        return org.dreeam.leaf.util.LeafConstants.ENABLE_FMA ? Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)) : dx * dx + dy * dy + dz * dz;
++        return me.s0nd3r.watermc.core.util.WaterConstants.ENABLE_FMA ? Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)) : dx * dx + dy * dy + dz * dz;
+     }
+ 
+     public double distanceToSqr(Entity entity) {

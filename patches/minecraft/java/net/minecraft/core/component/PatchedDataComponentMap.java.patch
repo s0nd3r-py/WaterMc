@@ -1,0 +1,121 @@
+diff --git a/java/net/minecraft/core/component/PatchedDataComponentMap.java b/java/net/minecraft/core/component/PatchedDataComponentMap.java
+index 285aabb234463e34ed426be04eb7cc582d3e9ba1..61d87c8c7cd2d9d397f06e06858fe52620b6773f 100644
+--- a/java/net/minecraft/core/component/PatchedDataComponentMap.java
++++ b/java/net/minecraft/core/component/PatchedDataComponentMap.java
+@@ -14,11 +14,12 @@ import java.util.Map.Entry;
+ import java.util.stream.Collectors;
+ import org.jspecify.annotations.Nullable;
+ 
+-public final class PatchedDataComponentMap implements DataComponentMap, net.caffeinemc.mods.lithium.common.util.change_tracking.ChangePublisher<PatchedDataComponentMap> { // Leaf - Lithium - equipment tracking
++public final class PatchedDataComponentMap implements DataComponentMap, me.s0nd3r.watermc.engine.common.util.change_tracking.ChangePublisher<PatchedDataComponentMap> { // Leaf - Lithium - equipment tracking
+     private final DataComponentMap prototype;
+     private Reference2ObjectMap<DataComponentType<?>, Optional<?>> patch;
+     private boolean copyOnWrite;
+-    private net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<PatchedDataComponentMap> subscriber; // Leaf - Lithium - equipment tracking
++    private int waterMaxStackSize; // WaterMc - Leaf/Leaves Fork: cache item max stack size (Lumine1909/Leaves_Fork, GPL-3.0-only)
++    private me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<PatchedDataComponentMap> subscriber; // Leaf - Lithium - equipment tracking
+ 
+     public PatchedDataComponentMap(DataComponentMap prototype) {
+         this(prototype, Reference2ObjectMaps.emptyMap(), true);
+@@ -28,6 +29,7 @@ public final class PatchedDataComponentMap implements DataComponentMap, net.caff
+         this.prototype = prototype;
+         this.patch = patch;
+         this.copyOnWrite = copyOnWrite;
++        this.waterMaxStackSize = this.getOrDefault(DataComponents.MAX_STACK_SIZE, 1); // WaterMc - cache item max stack size
+     }
+ 
+     public static PatchedDataComponentMap fromPatch(DataComponentMap prototype, DataComponentPatch patch) {
+@@ -76,6 +78,8 @@ public final class PatchedDataComponentMap implements DataComponentMap, net.caff
+             optional = (Optional<T>)this.patch.put(component, Optional.ofNullable(value));
+         }
+ 
++        this.waterMaxStackSizeChanged(component); // WaterMc - cache item max stack size
++        this.waterReleaseIfEmpty(); // WaterMc - shared empty patch
+         return optional != null ? optional.orElse(object) : object;
+     }
+ 
+@@ -93,6 +97,8 @@ public final class PatchedDataComponentMap implements DataComponentMap, net.caff
+             optional = (Optional<? extends T>)this.patch.remove(component);
+         }
+ 
++        this.waterMaxStackSizeChanged(component); // WaterMc - cache item max stack size
++        this.waterReleaseIfEmpty(); // WaterMc - shared empty patch
+         return (T)(optional != null ? optional.orElse(null) : object);
+     }
+ 
+@@ -102,6 +108,7 @@ public final class PatchedDataComponentMap implements DataComponentMap, net.caff
+         for (Entry<DataComponentType<?>, Optional<?>> entry : Reference2ObjectMaps.fastIterable(patch.map)) {
+             this.applyPatch(entry.getKey(), entry.getValue());
+         }
++        this.waterReleaseIfEmpty(); // WaterMc - shared empty patch
+     }
+ 
+     private void applyPatch(DataComponentType<?> component, Optional<?> value) {
+@@ -117,19 +124,46 @@ public final class PatchedDataComponentMap implements DataComponentMap, net.caff
+         } else {
+             this.patch.remove(component);
+         }
++        this.waterMaxStackSizeChanged(component); // WaterMc - cache item max stack size
+     }
+ 
+     public void restorePatch(DataComponentPatch patch) {
+         this.ensureMapOwnership();
+         this.patch.clear();
+         this.patch.putAll(patch.map);
++        this.waterMaxStackSizeChanged(null); // WaterMc - cache item max stack size
++        this.waterReleaseIfEmpty(); // WaterMc - shared empty patch
+     }
+ 
+     public void clearPatch() {
+         this.ensureMapOwnership();
+         this.patch.clear();
++        this.waterMaxStackSizeChanged(null); // WaterMc - cache item max stack size
++        this.waterReleaseIfEmpty(); // WaterMc - shared empty patch
+     }
+ 
++    // WaterMc start - shared empty patch (idea from FerriteCore, malte0811, MIT): an emptied patch drops its own
++    // map for the shared immutable one; copyOnWrite makes the next mutation allocate a fresh map again.
++    private void waterReleaseIfEmpty() {
++        if (this.patch.isEmpty() && !this.copyOnWrite) {
++            this.patch = Reference2ObjectMaps.emptyMap();
++            this.copyOnWrite = true;
++        }
++    }
++    // WaterMc end - shared empty patch
++
++    // WaterMc start - cache item max stack size: every mutation of the patch goes through set/remove/applyPatch/restorePatch/clearPatch
++    public int waterMaxStackSize() {
++        return this.waterMaxStackSize;
++    }
++
++    private void waterMaxStackSizeChanged(@Nullable DataComponentType<?> changed) {
++        if (changed == null || changed == DataComponents.MAX_STACK_SIZE) {
++            this.waterMaxStackSize = this.getOrDefault(DataComponents.MAX_STACK_SIZE, 1);
++        }
++    }
++    // WaterMc end
++
+     public void setAll(DataComponentMap map) {
+         for (TypedDataComponent<?> typedDataComponent : map) {
+             typedDataComponent.applyTo(this);
+@@ -230,16 +264,16 @@ public final class PatchedDataComponentMap implements DataComponentMap, net.caff
+ 
+     // Leaf start - Lithium - equipment tracking
+     @Override
+-    public void lithium$subscribe(net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<PatchedDataComponentMap> subscriber, int subscriberData) {
++    public void lithium$subscribe(me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<PatchedDataComponentMap> subscriber, int subscriberData) {
+         if (subscriberData != 0) {
+             throw new UnsupportedOperationException("ComponentMapImpl does not support subscriber data");
+         }
+-        this.subscriber = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.combine(this.subscriber, 0, subscriber, 0);
++        this.subscriber = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.combine(this.subscriber, 0, subscriber, 0);
+     }
+ 
+     @Override
+-    public int lithium$unsubscribe(net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<PatchedDataComponentMap> subscriber) {
+-        this.subscriber = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.without(this.subscriber, subscriber);
++    public int lithium$unsubscribe(me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<PatchedDataComponentMap> subscriber) {
++        this.subscriber = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.without(this.subscriber, subscriber);
+         return 0;
+     }
+     // Leaf end - Lithium - equipment tracking

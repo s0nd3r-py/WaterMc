@@ -1,0 +1,13 @@
+diff --git a/java/ca/spottedleaf/dataconverter/minecraft/versions/V4290.java b/java/ca/spottedleaf/dataconverter/minecraft/versions/V4290.java
+index 98311af4cc0256399f0cf782c744b268497b86fc..70dead0695e703a172bd8d9fbc4fcc0cb9942b4c 100644
+--- a/java/ca/spottedleaf/dataconverter/minecraft/versions/V4290.java
++++ b/java/ca/spottedleaf/dataconverter/minecraft/versions/V4290.java
+@@ -254,7 +254,7 @@ public final class V4290 {
+                         return ret;
+                     }
+                 } catch (final JsonParseException ex) {
+-                    if (org.galemc.gale.configuration.GaleGlobalConfiguration.get().logToConsole.invalidLegacyTextComponent) LOGGER.error("Failed to convert json to nbt: " + unparsedJson, ex); // Leaf - do not log invalid flatten text component parse
++                    if (me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().logToConsole.invalidLegacyTextComponent) LOGGER.error("Failed to convert json to nbt: " + unparsedJson, ex); // Leaf - do not log invalid flatten text component parse
+                 }
+ 
+                 return null;

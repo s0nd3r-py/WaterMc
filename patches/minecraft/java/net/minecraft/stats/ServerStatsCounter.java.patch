@@ -1,0 +1,31 @@
+diff --git a/java/net/minecraft/stats/ServerStatsCounter.java b/java/net/minecraft/stats/ServerStatsCounter.java
+index a697c066efd6b63ec5e14144ed050430197ae889..0a69f67803bc8d98549775680674edb00caaf2bd 100644
+--- a/java/net/minecraft/stats/ServerStatsCounter.java
++++ b/java/net/minecraft/stats/ServerStatsCounter.java
+@@ -90,7 +90,7 @@ public class ServerStatsCounter extends StatsCounter {
+ 
+     public void save() {
+         if (org.spigotmc.SpigotConfig.disableStatSaving) return; // Spigot
+-        if (org.dreeam.leaf.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) return; // Leaf - Add read-only mode for Linear v2
++        if (me.s0nd3r.watermc.core.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) return; // Leaf - Add read-only mode for Linear v2
+         try {
+             FileUtil.createDirectoriesSafe(this.file.getParent());
+ 
+@@ -105,7 +105,7 @@ public class ServerStatsCounter extends StatsCounter {
+     @Override
+     public void setValue(Player player, Stat<?> stat, int value) {
+         if (org.spigotmc.SpigotConfig.disableStatSaving) return; // Spigot
+-        if (org.dreeam.leaf.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) return; // Leaf - Add read-only mode for Linear v2
++        if (me.s0nd3r.watermc.core.config.modules.misc.RegionFormatConfig.isReadOnlyMode()) return; // Leaf - Add read-only mode for Linear v2
+         if (stat.getType() == Stats.CUSTOM && stat.getValue() instanceof final net.minecraft.resources.Identifier key && org.spigotmc.SpigotConfig.forcedStats.get(key) != null) return; // Paper - disable saving forced stats
+         super.setValue(player, stat, value);
+         this.dirty.add(stat);
+@@ -127,7 +127,7 @@ public class ServerStatsCounter extends StatsCounter {
+         this.stats
+             .putAll(
+                 STATS_CODEC.parse(dynamic.get("stats").orElseEmptyMap())
+-                    .resultOrPartial(string -> {if (org.galemc.gale.configuration.GaleGlobalConfiguration.get().logToConsole.invalidStatistics) LOGGER.error("Failed to parse statistics for {}: {}", this.file, string);}) // Gale - EMC - do not log invalid statistics
++                    .resultOrPartial(string -> {if (me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().logToConsole.invalidStatistics) LOGGER.error("Failed to parse statistics for {}: {}", this.file, string);}) // Gale - EMC - do not log invalid statistics
+                     .orElse(Map.of())
+             );
+     }

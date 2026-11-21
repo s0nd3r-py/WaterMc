@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/network/chat/SignedMessageChain.java b/java/net/minecraft/network/chat/SignedMessageChain.java
+index cba4ee50f4e55415f337b225bc0a7122f18f4a31..54900748dad5196b0e3a8f4683ddb3b772dd0d26 100644
+--- a/java/net/minecraft/network/chat/SignedMessageChain.java
++++ b/java/net/minecraft/network/chat/SignedMessageChain.java
+@@ -44,7 +44,7 @@ public class SignedMessageChain {
+                     SignedMessageLink signedMessageLink = SignedMessageChain.this.nextLink;
+                     if (signedMessageLink == null) {
+                         throw new SignedMessageChain.DecodeException(SignedMessageChain.DecodeException.CHAIN_BROKEN);
+-                    } else if (org.galemc.gale.configuration.GaleGlobalConfiguration.get().misc.verifyChatOrder && body.timeStamp().isBefore(SignedMessageChain.this.lastTimeStamp)) { // Gale - Pufferfish - make chat order verification configurable
++                    } else if (me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().misc.verifyChatOrder && body.timeStamp().isBefore(SignedMessageChain.this.lastTimeStamp)) { // Gale - Pufferfish - make chat order verification configurable
+                         this.setChainBroken();
+                         throw new SignedMessageChain.DecodeException(SignedMessageChain.DecodeException.OUT_OF_ORDER_CHAT, org.bukkit.event.player.PlayerKickEvent.Cause.OUT_OF_ORDER_CHAT); // Paper - kick event causes
+                     } else {
+@@ -54,7 +54,7 @@ public class SignedMessageChain {
+                             this.setChainBroken();
+                             throw new SignedMessageChain.DecodeException(SignedMessageChain.DecodeException.INVALID_SIGNATURE);
+                         } else {
+-                            if (org.galemc.gale.configuration.GaleGlobalConfiguration.get().logToConsole.chat.expiredMessageWarning && playerChatMessage.hasExpiredServer(Instant.now())) { // Gale - do not log expired message warnings
++                            if (me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().logToConsole.chat.expiredMessageWarning && playerChatMessage.hasExpiredServer(Instant.now())) { // Gale - do not log expired message warnings
+                                 SignedMessageChain.LOGGER.warn("Received expired chat: '{}'. Is the client/server system time unsynchronized?", body.content());
+                             }
+ 

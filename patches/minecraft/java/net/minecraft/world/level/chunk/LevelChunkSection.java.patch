@@ -1,0 +1,16 @@
+diff --git a/java/net/minecraft/world/level/chunk/LevelChunkSection.java b/java/net/minecraft/world/level/chunk/LevelChunkSection.java
+index b2157681449f1fc5461ac3f7ccb91c61043416ab..4c554d6e9bc0ac7c8acc13e2956edb17cc4942ef 100644
+--- a/java/net/minecraft/world/level/chunk/LevelChunkSection.java
++++ b/java/net/minecraft/world/level/chunk/LevelChunkSection.java
+@@ -212,9 +212,9 @@ public class LevelChunkSection implements ca.spottedleaf.moonrise.patches.block_
+             final net.minecraft.util.BitStorage storage = data.storage();
+ 
+             final it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<it.unimi.dsi.fastutil.shorts.ShortArrayList> counts;
+-            if (paletteSize == 1) {
++            if (paletteSize == 1 || storage instanceof me.s0nd3r.watermc.storage.WaterSectionStorage flat && flat.isCompact()) {
+                 counts = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>(1);
+-                counts.put(0, FULL_LIST);
++                counts.put(storage.get(0), FULL_LIST);
+             } else {
+                 counts = ((ca.spottedleaf.moonrise.patches.block_counting.BlockCountingBitStorage)storage).moonrise$countEntries();
+             }

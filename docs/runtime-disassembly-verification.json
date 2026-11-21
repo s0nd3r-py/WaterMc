@@ -1,0 +1,39 @@
+{
+  "compared_classes": [
+    "ca.spottedleaf.dataconverter.minecraft.versions.V1955$1",
+    "ca.spottedleaf.dataconverter.minecraft.versions.V1955$2",
+    "ca.spottedleaf.dataconverter.minecraft.versions.V2527$1",
+    "ca.spottedleaf.dataconverter.minecraft.versions.V4658$1",
+    "ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader$PlayerChunkLoaderData$1",
+    "ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader$PlayerChunkLoaderData$2",
+    "ca.spottedleaf.moonrise.patches.chunk_system.player.RegionizedPlayerChunkLoader$PlayerChunkLoaderData$3",
+    "io.papermc.paper.configuration.PaperConfigurations$1",
+    "net.minecraft.nbt.SnbtGrammar$1",
+    "net.minecraft.nbt.SnbtGrammar$2",
+    "net.minecraft.nbt.SnbtGrammar$3",
+    "net.minecraft.nbt.SnbtGrammar$4",
+    "net.minecraft.nbt.SnbtGrammar$5",
+    "net.minecraft.server.commands.DebugCommand$TraceCustomExecutor$1",
+    "net.minecraft.server.level.ServerLevel$1",
+    "net.minecraft.server.level.ServerLevel$EntityCallbacks",
+    "net.minecraft.world.inventory.BrewingStandMenu$1",
+    "org.bukkit.craftbukkit.CraftOfflinePlayer$1",
+    "org.bukkit.craftbukkit.inventory.CraftItemStack$3"
+  ],
+  "javap_code_and_descriptors_match": true,
+  "excluded_expected_code_changes": [
+    "net/minecraft/server/level/ServerLevel.class",
+    "net/minecraft/world/ticks/LevelTicks.class",
+    "org/dreeam/leaf/config/modules/water/ExplosionPacketCoalescing.class",
+    "org/watermc/network/ExplosionPacketLimiter$PlayerState.class",
+    "org/watermc/network/ExplosionPacketLimiter.class"
+  ],
+  "comparison_omits": [
+    "debug tables/parameter names",
+    "constant pool indices"
+  ],
+  "baseline_server_sha256": "06c6abbd99e613c710e88f184b9aa26914de346a1090b5813d12fb599212babe",
+  "current_server_sha256": "5882a7d57f03fe29f147c4b6fb87a7eb01ffaa68b57b87cf381a1fddabc3a2dc",
+  "historical_report": true,
+  "superseded_for_current_artifact_by": "docs/final-distribution-verification-2026-11-12.json"
+}

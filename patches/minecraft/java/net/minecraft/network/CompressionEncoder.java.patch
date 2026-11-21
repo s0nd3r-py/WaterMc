@@ -1,0 +1,161 @@
+diff --git a/java/net/minecraft/network/CompressionEncoder.java b/java/net/minecraft/network/CompressionEncoder.java
+index 1baa8daf880c5f87f1d72ecf0e1b93c7f749648d..47164b8c82b2c336d780ae0ece875b492adabcd2 100644
+--- a/java/net/minecraft/network/CompressionEncoder.java
++++ b/java/net/minecraft/network/CompressionEncoder.java
+@@ -1,104 +1,70 @@
+ package net.minecraft.network;
+ 
++import com.velocitypowered.natives.compression.VelocityCompressor;
++import com.velocitypowered.natives.util.MoreByteBufUtils;
+ import io.netty.buffer.ByteBuf;
+ import io.netty.channel.ChannelHandlerContext;
+-import io.netty.handler.codec.MessageToByteEncoder;
++import io.netty.handler.codec.MessageToMessageEncoder;
++import java.util.List;
+ import java.util.zip.Deflater;
++import me.s0nd3r.watermc.network.SharedPacketCompressionCache;
+ 
+-public class CompressionEncoder extends MessageToByteEncoder<ByteBuf> {
+-    @javax.annotation.Nullable private final byte[] encodeBuf; // Paper - Use Velocity cipher
+-    @javax.annotation.Nullable // Paper - Use Velocity cipher
+-    private final Deflater deflater;
+-    @javax.annotation.Nullable private final com.velocitypowered.natives.compression.VelocityCompressor compressor; // Paper - Use Velocity cipher
++public class CompressionEncoder extends MessageToMessageEncoder<ByteBuf> {
++    @javax.annotation.Nullable private final byte[] encodeBuf;
++    @javax.annotation.Nullable private final Deflater deflater;
++    @javax.annotation.Nullable private final VelocityCompressor compressor;
++    private final SharedPacketCompressionCache shared;
+     private int threshold;
+ 
+-    // Paper start - Use Velocity cipher
+-    public CompressionEncoder(int threshold) {
+-        this(null, threshold);
++    public CompressionEncoder(int threshold) { this(null, threshold); }
++    public CompressionEncoder(@javax.annotation.Nullable VelocityCompressor compressor, int threshold) {
++        this(compressor, threshold, SharedPacketCompressionCache.GLOBAL);
+     }
+-    public CompressionEncoder(@javax.annotation.Nullable com.velocitypowered.natives.compression.VelocityCompressor compressor, int threshold) {
++    public CompressionEncoder(@javax.annotation.Nullable VelocityCompressor compressor, int threshold, SharedPacketCompressionCache shared) {
+         this.threshold = threshold;
+-        if (compressor == null) {
+-            this.encodeBuf = new byte[8192];
+-            this.deflater = new Deflater();
+-        } else {
+-            this.encodeBuf = null;
+-            this.deflater = null;
+-        }
+         this.compressor = compressor;
+-        // Paper end - Use Velocity cipher
++        this.shared = shared;
++        this.encodeBuf = compressor == null ? new byte[8192] : null;
++        this.deflater = compressor == null ? new Deflater() : null;
+     }
+-
+-    @Override
+-    protected void encode(ChannelHandlerContext ctx, ByteBuf encodingByteBuf, ByteBuf byteBuf) throws Exception { // Paper - Use Velocity cipher
+-        int i = encodingByteBuf.readableBytes();
+-        if (i > 8388608) {
+-            throw new IllegalArgumentException("Packet too big (is " + i + ", should be less than 8388608)");
+-        } else {
+-            if (i < this.threshold) {
+-                VarInt.write(byteBuf, 0);
+-                byteBuf.writeBytes(encodingByteBuf);
++    @Override protected void encode(ChannelHandlerContext ctx, ByteBuf input, List<Object> output) throws Exception {
++        int length = input.readableBytes();
++        if (length > 8388608) throw new IllegalArgumentException("Packet too big: " + length);
++        ByteBuf frame = length != 0 && length >= this.threshold && length >= SharedPacketCompressionCache.MINIMUM_BYTES
++            ? this.shared.acquire(input, () -> this.encodeFresh(ctx, input)) : this.encodeFresh(ctx, input);
++        output.add(frame);
++    }
++    private ByteBuf encodeFresh(ChannelHandlerContext ctx, ByteBuf input) throws Exception {
++        int length = input.readableBytes();
++        ByteBuf frame = this.compressor == null ? ctx.alloc().ioBuffer(Math.min(length + 5, 8192))
++            : MoreByteBufUtils.preferredBuffer(ctx.alloc(), this.compressor, length + 5);
++        try {
++            if (length == 0 || length < this.threshold) {
++                VarInt.write(frame, 0);
++                frame.writeBytes(input, input.readerIndex(), length);
+             } else {
+-                if (this.deflater != null) { // Paper - Use Velocity cipher
+-                byte[] bytes = new byte[i];
+-                encodingByteBuf.readBytes(bytes);
+-                VarInt.write(byteBuf, bytes.length);
+-                this.deflater.setInput(bytes, 0, i);
+-                this.deflater.finish();
+-
+-                while (!this.deflater.finished()) {
+-                    int i1 = this.deflater.deflate(this.encodeBuf);
+-                    byteBuf.writeBytes(this.encodeBuf, 0, i1);
+-                }
+-
+-                this.deflater.reset();
+-                    // Paper start - Use Velocity cipher
+-                    return;
+-                }
+-
+-                VarInt.write(byteBuf, i);
+-                final ByteBuf compatibleIn = com.velocitypowered.natives.util.MoreByteBufUtils.ensureCompatible(ctx.alloc(), this.compressor, encodingByteBuf);
+-                try {
+-                    this.compressor.deflate(compatibleIn, byteBuf);
+-                } finally {
+-                    compatibleIn.release();
++                VarInt.write(frame, length);
++                if (this.deflater != null) {
++                    byte[] bytes = new byte[length];
++                    input.getBytes(input.readerIndex(), bytes);
++                    try {
++                        this.deflater.setInput(bytes);
++                        this.deflater.finish();
++                        while (!this.deflater.finished()) frame.writeBytes(this.encodeBuf, 0, this.deflater.deflate(this.encodeBuf));
++                    } finally { this.deflater.reset(); }
++                } else {
++                    ByteBuf compatible = MoreByteBufUtils.ensureCompatible(ctx.alloc(), this.compressor, input.duplicate());
++                    try { this.compressor.deflate(compatible, frame); }
++                    finally { compatible.release(); }
+                 }
+             }
+-        }
+-    }
+-
+-    public int getThreshold() {
+-        return this.threshold;
+-    }
+-
+-    public void setThreshold(int threshold) {
+-        this.threshold = threshold;
++            return frame;
++        } catch (Throwable failure) { frame.release(); throw failure; }
+     }
+-
+-    // Paper start - Use Velocity cipher
+-    @Override
+-    protected ByteBuf allocateBuffer(ChannelHandlerContext ctx, ByteBuf msg, boolean preferDirect) throws Exception {
+-        if (this.compressor != null) {
+-            // We allocate bytes to be compressed plus 1 byte. This covers two cases:
+-            //
+-            // - Compression
+-            //    According to https://github.com/ebiggers/libdeflate/blob/master/libdeflate.h#L103,
+-            //    if the data compresses well (and we do not have some pathological case) then the maximum
+-            //    size the compressed size will ever be is the input size minus one.
+-            // - Uncompressed
+-            //    This is fairly obvious - we will then have one more than the uncompressed size.
+-            final int initialBufferSize = msg.readableBytes() + 1;
+-            return com.velocitypowered.natives.util.MoreByteBufUtils.preferredBuffer(ctx.alloc(), this.compressor, initialBufferSize);
+-        }
+-
+-        return super.allocateBuffer(ctx, msg, preferDirect);
+-    }
+-
+-    @Override
+-    public void handlerRemoved(ChannelHandlerContext ctx) {
+-        if (this.compressor != null) {
+-            this.compressor.close();
+-        }
++    public int getThreshold() { return this.threshold; }
++    public void setThreshold(int threshold) { this.threshold = threshold; }
++    @Override public void handlerRemoved(ChannelHandlerContext ctx) {
++        if (this.compressor != null) this.compressor.close();
++        if (this.deflater != null) this.deflater.end();
+     }
+-    // Paper end - Use Velocity cipher
+ }

@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/block/SculkSensorBlock.java b/java/net/minecraft/world/level/block/SculkSensorBlock.java
+index c8d27c4848efa2dcb988eded8b80b526565a16ac..c9361909a14aac4c5e6a6179b94473acc6686fe7 100644
+--- a/java/net/minecraft/world/level/block/SculkSensorBlock.java
++++ b/java/net/minecraft/world/level/block/SculkSensorBlock.java
+@@ -174,7 +174,7 @@ public class SculkSensorBlock extends BaseEntityBlock implements SimpleWaterlogg
+                 (level1, pos, state1, blockEntity) -> {
+                     final VibrationSystem.Data vibrationData = blockEntity.getVibrationData();
+                     VibrationSystem.Ticker.tick(level1, vibrationData, blockEntity.getVibrationUser());
+-                    if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled
++                    if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled
+                         && vibrationData.getCurrentVibration() == null
+                         && vibrationData.getSelectionStrategy().chosenCandidate(Long.MAX_VALUE).isEmpty()) {
+                         blockEntity.lithium$startSleeping();

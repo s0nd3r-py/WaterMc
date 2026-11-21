@@ -1,0 +1,44 @@
+diff --git a/java/net/minecraft/world/entity/ai/behavior/MoveToTargetSink.java b/java/net/minecraft/world/entity/ai/behavior/MoveToTargetSink.java
+index 55a2d8b66b076bc50adc425457a64d8540ce2d78..2358b91230206f3cee7688bb9821c0f0fe163caf 100644
+--- a/java/net/minecraft/world/entity/ai/behavior/MoveToTargetSink.java
++++ b/java/net/minecraft/world/entity/ai/behavior/MoveToTargetSink.java
+@@ -52,10 +52,10 @@ public class MoveToTargetSink extends Behavior<Mob> {
+             Brain<?> brain = owner.getBrain();
+             WalkTarget walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET).get();
+             boolean flag = this.reachedTarget(owner, walkTarget);
+-            if (!org.dreeam.leaf.config.modules.async.AsyncPathfinding.enabled && !flag && this.tryComputePath(owner, walkTarget, level.getGameTime())) { // Kaiiju - petal - async path processing - Async path processing means we can't know if the path is reachable here
++            if (!me.s0nd3r.watermc.core.config.modules.async.AsyncPathfinding.enabled && !flag && this.tryComputePath(owner, walkTarget, level.getGameTime())) { // Kaiiju - petal - async path processing - Async path processing means we can't know if the path is reachable here
+                 this.lastTargetPos = walkTarget.getTarget().currentBlockPosition();
+                 return true;
+-            } else if (org.dreeam.leaf.config.modules.async.AsyncPathfinding.enabled && !flag) { return true; // Kaiiju - petal - async path processing
++            } else if (me.s0nd3r.watermc.core.config.modules.async.AsyncPathfinding.enabled && !flag) { return true; // Kaiiju - petal - async path processing
+             } else {
+                 brain.eraseMemory(MemoryModuleType.WALK_TARGET);
+                 if (flag) {
+@@ -69,7 +69,7 @@ public class MoveToTargetSink extends Behavior<Mob> {
+ 
+     @Override
+     protected boolean canStillUse(ServerLevel level, Mob entity, long gameTime) {
+-        if (org.dreeam.leaf.config.modules.async.AsyncPathfinding.enabled && !this.finishedProcessing) return true; // Kaiiju - petal - async path processing - wait for processing
++        if (me.s0nd3r.watermc.core.config.modules.async.AsyncPathfinding.enabled && !this.finishedProcessing) return true; // Kaiiju - petal - async path processing - wait for processing
+         if (this.path != null && this.lastTargetPos != null) {
+             Optional<WalkTarget> memory = entity.getBrain().getMemory(MemoryModuleType.WALK_TARGET);
+             boolean flag = memory.map(MoveToTargetSink::isWalkTargetSpectator).orElse(false);
+@@ -97,7 +97,7 @@ public class MoveToTargetSink extends Behavior<Mob> {
+     @Override
+     protected void start(ServerLevel level, Mob entity, long gameTime) {
+         // Kaiiju start - petal - async path processing - start processing
+-        if (org.dreeam.leaf.config.modules.async.AsyncPathfinding.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.AsyncPathfinding.enabled) {
+             Brain<?> brain = entity.getBrain();
+             WalkTarget walkTarget = brain.getMemory(MemoryModuleType.WALK_TARGET).get();
+ 
+@@ -114,7 +114,7 @@ public class MoveToTargetSink extends Behavior<Mob> {
+     @Override
+     protected void tick(ServerLevel level, Mob owner, long gameTime) {
+         // Kaiiju start - petal - async path processing
+-        if (org.dreeam.leaf.config.modules.async.AsyncPathfinding.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.AsyncPathfinding.enabled) {
+             if (this.path != null && !this.path.isProcessed()) return; // wait for processing
+ 
+             if (!this.finishedProcessing) {

@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java b/java/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
+index d5a128556e371628cd9ce9963e53d9acd97101f0..e199125cef8810ebe08478b56b90cae362691b00 100644
+--- a/java/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
++++ b/java/net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator.java
+@@ -261,7 +261,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+     ) {
+         if (!SharedConstants.DEBUG_DISABLE_CARVERS) {
+             BiomeManager biomeManager1 = biomeManager.withDifferentSource((x, y, z) -> this.biomeSource.getNoiseBiome(x, y, z, random.sampler()));
+-            WorldgenRandom worldgenRandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(RandomSupport.generateUniqueSeed()) : new LegacyRandomSource(RandomSupport.generateUniqueSeed())); // Leaf - Faster random generator
++            WorldgenRandom worldgenRandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(RandomSupport.generateUniqueSeed()) : new LegacyRandomSource(RandomSupport.generateUniqueSeed())); // Leaf - Faster random generator
+             int i = 8;
+             ChunkPos pos = chunk.getPos();
+             NoiseChunk noiseChunk = chunk.getOrCreateNoiseChunk(chunkAccess -> this.createNoiseChunk(chunkAccess, structureManager, Blender.of(region), random));
+@@ -441,7 +441,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
+         if (!this.settings.value().disableMobGeneration()) {
+             ChunkPos center = region.getCenter();
+             Holder<Biome> biome = region.getBiome(center.getWorldPosition().atY(region.getMaxY()));
+-            WorldgenRandom worldgenRandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(RandomSupport.generateUniqueSeed()) : new LegacyRandomSource(RandomSupport.generateUniqueSeed())); // Leaf - Faster random generator
++            WorldgenRandom worldgenRandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(RandomSupport.generateUniqueSeed()) : new LegacyRandomSource(RandomSupport.generateUniqueSeed())); // Leaf - Faster random generator
+             worldgenRandom.setDecorationSeed(region.getSeed(), center.getMinBlockX(), center.getMinBlockZ());
+             NaturalSpawner.spawnMobsForChunkGeneration(region, biome, center, worldgenRandom);
+         }

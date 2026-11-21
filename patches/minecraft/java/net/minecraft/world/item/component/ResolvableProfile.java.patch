@@ -1,0 +1,30 @@
+diff --git a/java/net/minecraft/world/item/component/ResolvableProfile.java b/java/net/minecraft/world/item/component/ResolvableProfile.java
+index 16ea3364aa60ed404752be40cfdf08cc676caa50..92242417e926fa071c38acceb9cb8407297ddd0c 100644
+--- a/java/net/minecraft/world/item/component/ResolvableProfile.java
++++ b/java/net/minecraft/world/item/component/ResolvableProfile.java
+@@ -73,14 +73,14 @@ public abstract sealed class ResolvableProfile implements TooltipProvider permit
+         if (nameOrId.left().isEmpty()) {
+             return nameOrId;
+         }
+-        return org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.enforceSkullValidation && !net.minecraft.util.StringUtil.isValidPlayerNameVanilla(nameOrId.left().get()) ? Either.left("INVALID_OWNER") : nameOrId;
++        return me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.enforceSkullValidation && !net.minecraft.util.StringUtil.isValidPlayerNameVanilla(nameOrId.left().get()) ? Either.left("INVALID_OWNER") : nameOrId;
+     }
+ 
+     private static Optional<String> sanitizePartialPlayerName(Optional<String> name) {
+         if (name.isEmpty()) {
+             return name;
+         }
+-        return org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.enforceSkullValidation && !net.minecraft.util.StringUtil.isValidPlayerNameVanilla(name.get()) ? Optional.of("INVALID_OWNER") : name;
++        return me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.enforceSkullValidation && !net.minecraft.util.StringUtil.isValidPlayerNameVanilla(name.get()) ? Optional.of("INVALID_OWNER") : name;
+     }
+ 
+     private static Either<GameProfile, ResolvableProfile.Partial> sanitizeStaticPlayerName(Either<GameProfile, ResolvableProfile.Partial> contents) {
+@@ -88,7 +88,7 @@ public abstract sealed class ResolvableProfile implements TooltipProvider permit
+             return contents;
+         }
+         GameProfile gameProfile = contents.left().get();
+-        return org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.enforceSkullValidation && !net.minecraft.util.StringUtil.isValidPlayerNameVanilla(gameProfile.name()) ? Either.left(new GameProfile(gameProfile.id(), "INVALID_OWNER", gameProfile.properties())) : contents;
++        return me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.enforceSkullValidation && !net.minecraft.util.StringUtil.isValidPlayerNameVanilla(gameProfile.name()) ? Either.left(new GameProfile(gameProfile.id(), "INVALID_OWNER", gameProfile.properties())) : contents;
+     }
+     // Leaf end - Configurable vanilla username check - Enforce skull validation
+ 

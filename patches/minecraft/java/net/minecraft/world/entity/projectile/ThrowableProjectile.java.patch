@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/projectile/ThrowableProjectile.java b/java/net/minecraft/world/entity/projectile/ThrowableProjectile.java
+index b4cecd58a0e63542aaa3846a0a24ae4e395868ba..81e3f4893559be26632a4a9daf14e746d56993f6 100644
+--- a/java/net/minecraft/world/entity/projectile/ThrowableProjectile.java
++++ b/java/net/minecraft/world/entity/projectile/ThrowableProjectile.java
+@@ -111,7 +111,7 @@ public abstract class ThrowableProjectile extends Projectile {
+ 
+     private void handleFirstTickBubbleColumn() {
+         if (this.firstTick) {
+-            for (BlockPos blockPos : org.dreeam.leaf.util.list.SimpleBlockPosIterator.iterable(this.getBoundingBox())) { // Leaf - Sakura - optimise check inside blocks
++            for (BlockPos blockPos : me.s0nd3r.watermc.core.util.list.SimpleBlockPosIterator.iterable(this.getBoundingBox())) { // Leaf - Sakura - optimise check inside blocks
+                 BlockState blockState = this.level().getBlockState(blockPos);
+                 if (blockState.is(Blocks.BUBBLE_COLUMN)) {
+                     blockState.entityInside(this.level(), blockPos, this, InsideBlockEffectApplier.NOOP, true);

@@ -1,0 +1,71 @@
+diff --git a/java/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/EntityLookup.java b/java/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/EntityLookup.java
+index c1d24cff2af534edfb9fcc45f3cf2b31eb04c6de..af4351807326ce496fee01846fe28be6448bc01b 100644
+--- a/java/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/EntityLookup.java
++++ b/java/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/EntityLookup.java
+@@ -259,7 +259,7 @@ public abstract class EntityLookup implements LevelEntityGetter<Entity> {
+             final Boolean ticketBlockBefore = this.blockTicketUpdates();
+             try {
+                 // Leaf start - Rewrite entity despawn time
+-                if (org.dreeam.leaf.config.modules.opt.DespawnTime.proactiveWeakLoading) {
++                if (me.s0nd3r.watermc.core.config.modules.opt.DespawnTime.proactiveWeakLoading) {
+                     boolean isWeakNow = newVisibility == Visibility.TRACKED;
+                     boolean wasWeakBefore = oldVisibility == Visibility.TRACKED;
+ 
+@@ -513,7 +513,7 @@ public abstract class EntityLookup implements LevelEntityGetter<Entity> {
+                 LOGGER.warn("Failed to remove entity " + entity + " from entity slices (" + sectionX + "," + sectionZ + ")");
+             }
+         }
+-        if (org.dreeam.leaf.config.modules.opt.DespawnTime.proactiveWeakLoading) entity.leaf$isWeakLoaded = false; // Leaf - Rewrite entity despawn time
++        if (me.s0nd3r.watermc.core.config.modules.opt.DespawnTime.proactiveWeakLoading) entity.leaf$isWeakLoaded = false; // Leaf - Rewrite entity despawn time
+         ((ChunkSystemEntity)entity).moonrise$setSectionX(Integer.MIN_VALUE);
+         ((ChunkSystemEntity)entity).moonrise$setSectionY(Integer.MIN_VALUE);
+         ((ChunkSystemEntity)entity).moonrise$setSectionZ(Integer.MIN_VALUE);
+@@ -633,6 +633,48 @@ public abstract class EntityLookup implements LevelEntityGetter<Entity> {
+         }
+     }
+ 
++    // Leaf start - optimize entity activation (hayanesuru, GPL-3.0): every entity of each FULL chunk touching the box, each chunk once
++    public final void leaf$getEntities(final AABB box, final it.unimi.dsi.fastutil.longs.LongOpenHashSet chunkSet, final it.unimi.dsi.fastutil.objects.ObjectArrayList<Entity> into) {
++        final int minChunkX = (Mth.floor(box.minX) - 2) >> 4;
++        final int minChunkZ = (Mth.floor(box.minZ) - 2) >> 4;
++        final int maxChunkX = (Mth.floor(box.maxX) + 2) >> 4;
++        final int maxChunkZ = (Mth.floor(box.maxZ) + 2) >> 4;
++
++        final int minRegionX = minChunkX >> REGION_SHIFT;
++        final int minRegionZ = minChunkZ >> REGION_SHIFT;
++        final int maxRegionX = maxChunkX >> REGION_SHIFT;
++        final int maxRegionZ = maxChunkZ >> REGION_SHIFT;
++
++        for (int currRegionZ = minRegionZ; currRegionZ <= maxRegionZ; ++currRegionZ) {
++            final int minZ = currRegionZ == minRegionZ ? minChunkZ & REGION_MASK : 0;
++            final int maxZ = currRegionZ == maxRegionZ ? maxChunkZ & REGION_MASK : REGION_MASK;
++
++            for (int currRegionX = minRegionX; currRegionX <= maxRegionX; ++currRegionX) {
++                final ChunkSlicesRegion region = this.getRegion(currRegionX, currRegionZ);
++
++                if (region == null) {
++                    continue;
++                }
++
++                final int minX = currRegionX == minRegionX ? minChunkX & REGION_MASK : 0;
++                final int maxX = currRegionX == maxRegionX ? maxChunkX & REGION_MASK : REGION_MASK;
++
++                for (int currZ = minZ; currZ <= maxZ; ++currZ) {
++                    for (int currX = minX; currX <= maxX; ++currX) {
++                        final ChunkEntitySlices chunk = region.get(currX | (currZ << REGION_SHIFT));
++                        if (chunk == null || !chunk.status.isOrAfter(FullChunkStatus.FULL)) {
++                            continue;
++                        }
++                        if (chunkSet.add(CoordinateUtils.getChunkKey((currRegionX << REGION_SHIFT) | currX, (currRegionZ << REGION_SHIFT) | currZ))) {
++                            chunk.leaf$getAllEntities(into);
++                        }
++                    }
++                }
++            }
++        }
++    }
++    // Leaf end - optimize entity activation
++
+     public void getHardCollidingEntities(final Entity except, final AABB box, final List<Entity> into, final Predicate<? super Entity> predicate) {
+         final int minChunkX = (Mth.floor(box.minX) - 2) >> 4;
+         final int minChunkZ = (Mth.floor(box.minZ) - 2) >> 4;

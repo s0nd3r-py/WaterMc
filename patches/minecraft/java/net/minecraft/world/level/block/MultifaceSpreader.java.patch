@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/block/MultifaceSpreader.java b/java/net/minecraft/world/level/block/MultifaceSpreader.java
+index 1dcb4634a489916b1c7a2b10ac16ad4a7962fb41..297ef7b857f64cc7eeceb3da24dc413ab061011c 100644
+--- a/java/net/minecraft/world/level/block/MultifaceSpreader.java
++++ b/java/net/minecraft/world/level/block/MultifaceSpreader.java
+@@ -149,7 +149,7 @@ public class MultifaceSpreader {
+             // Leaf start - Null handling on MultifaceSpreader
+             // Check for null
+             if (pos.source() == null || pos.pos() == null) {
+-                org.dreeam.leaf.config.LeafConfig.LOGGER.warn("Invalid SpreadPos with null source or position: {}", pos);
++                me.s0nd3r.watermc.core.config.WaterConfig.LOGGER.warn("Invalid SpreadPos with null source or position: {}", pos);
+                 return false;
+             }
+             // Leaf end - Null handling on MultifaceSpreader

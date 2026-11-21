@@ -1,0 +1,117 @@
+diff --git a/java/net/minecraft/server/level/ChunkMap.java b/java/net/minecraft/server/level/ChunkMap.java
+index ace8962353cb54fce23f696157524d615c89a762..894ea07c073d07feaad309c7d4b957e0805f561e 100644
+--- a/java/net/minecraft/server/level/ChunkMap.java
++++ b/java/net/minecraft/server/level/ChunkMap.java
+@@ -1077,7 +1077,7 @@ public class ChunkMap extends SimpleRegionStorage implements ChunkHolder.PlayerP
+ 
+     protected void tick() {
+         // Leaf start - Multithreaded tracker
+-        if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled) {
++        if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled) {
+             final ServerLevel level = this.level;
+             level.leaf$asyncTracker.tick(level);
+             return;
+@@ -1265,7 +1265,7 @@ public class ChunkMap extends SimpleRegionStorage implements ChunkHolder.PlayerP
+             }
+         }
+ 
+-        public final Set<ServerPlayerConnection> seenBy = org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled ? it.unimi.dsi.fastutil.objects.ReferenceSets.synchronize(new SeenBySet()) : new SeenBySet(); // Paper - Perf: optimise map impl
++        public final Set<ServerPlayerConnection> seenBy = me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled ? it.unimi.dsi.fastutil.objects.ReferenceSets.synchronize(new SeenBySet()) : new SeenBySet(); // Paper - Perf: optimise map impl
+         private volatile boolean seenByUpdated = false;
+         private volatile ServerPlayerConnection[] seenByArray = EMPTY_OBJECT_ARRAY;
+         public ServerPlayerConnection[] seenBy() {
+@@ -1456,6 +1456,7 @@ public class ChunkMap extends SimpleRegionStorage implements ChunkHolder.PlayerP
+                     }
+                 }
+                 flag = flag && this.entity.broadcastToPlayer(player) && ChunkMap.this.isChunkTracked(player, this.entity.chunkPosition().x, this.entity.chunkPosition().z);
++                flag = flag && !me.s0nd3r.watermc.culling.EntityCullingManager.isCulled(player, this.entity); // WaterMc - raytrace entity culling (DivineMC port), off by default
+                 // Paper end - Configurable entity tracking range by Y
+                 // CraftBukkit start - respect vanish API
+                 if (flag && !player.getBukkitEntity().canSeeChunkMapUpdatePlayer(this.entity.getBukkitEntity())) { // Paper - only consider hits // SparklyPaper - optimize canSee checks
+@@ -1509,7 +1510,7 @@ public class ChunkMap extends SimpleRegionStorage implements ChunkHolder.PlayerP
+         }
+ 
+         // Leaf start - Multithreaded tracker
+-        public final boolean leaf$tick(final org.dreeam.leaf.async.tracker.TrackerCtx ctx, final ca.spottedleaf.moonrise.common.misc.NearbyPlayers.TrackedChunk chunk) {
++        public final boolean leaf$tick(final me.s0nd3r.watermc.core.async.tracker.TrackerCtx ctx, final ca.spottedleaf.moonrise.common.misc.NearbyPlayers.TrackedChunk chunk) {
+             if (chunk == null || chunk.playersTracking.isEmpty()) {
+                 this.lastChunkUpdate = -1L;
+                 this.lastTrackedChunk = null;
+@@ -1597,28 +1598,39 @@ public class ChunkMap extends SimpleRegionStorage implements ChunkHolder.PlayerP
+             }
+         }
+ 
++        // WaterMc start - hoist per-entity invariants out of the per-player loop
++        /** Y tracking range of this entity, or {@code -1} when unlimited. Evaluated once per update pass. */
++        private double trackingRangeY() {
++            if (!level.paperConfig().entities.trackingRangeY.enabled) {
++                return -1;
++            }
++            return level.paperConfig().entities.trackingRangeY.get(this.entity, -1);
++        }
++
+         private boolean updatePlayerMulti(ServerPlayer player) {
++            return this.updatePlayerMulti(player, this.getEffectiveRange(), this.trackingRangeY(), this.entity.getX(), this.entity.getY(), this.entity.getZ(), this.entity.chunkPosition().x, this.entity.chunkPosition().z);
++        }
++
++        private boolean updatePlayerMulti(final ServerPlayer player, final int effectiveRange, final double rangeY,
++                                          final double entityX, final double entityY, final double entityZ,
++                                          final int entityChunkX, final int entityChunkZ) {
+             org.spigotmc.AsyncCatcher.catchOp("player tracker update"); // Spigot
+             if (player != this.entity) {
+                 // Paper start - remove allocation of Vec3D here
+-                // Vec3 vec3 = player.position().subtract(this.entity.position());
+-                double vec3_dx = player.getX() - this.entity.getX();
+-                double vec3_dz = player.getZ() - this.entity.getZ();
++                double vec3_dx = player.getX() - entityX;
++                double vec3_dz = player.getZ() - entityZ;
+                 // Paper end - remove allocation of Vec3D here
+                 int playerViewDistance = ChunkMap.this.getPlayerViewDistance(player);
+-                double d = Math.min(this.getEffectiveRange(), playerViewDistance * 16);
++                double d = Math.min(effectiveRange, playerViewDistance * 16);
+                 double d1 = vec3_dx * vec3_dx + vec3_dz * vec3_dz; // Paper
+                 double d2 = d * d;
+                 // Paper start - Configurable entity tracking range by Y
+                 boolean flag = d1 <= d2;
+-                if (flag && level.paperConfig().entities.trackingRangeY.enabled) {
+-                    double rangeY = level.paperConfig().entities.trackingRangeY.get(this.entity, -1);
+-                    if (rangeY != -1) {
+-                        double vec3_dy = player.getY() - this.entity.getY();
+-                        flag = vec3_dy * vec3_dy <= rangeY * rangeY;
+-                    }
++                if (flag && rangeY != -1) {
++                    double vec3_dy = player.getY() - entityY;
++                    flag = vec3_dy * vec3_dy <= rangeY * rangeY;
+                 }
+-                flag = flag && this.entity.broadcastToPlayer(player) && ChunkMap.this.isChunkTracked(player, this.entity.chunkPosition().x, this.entity.chunkPosition().z);
++                flag = flag && this.entity.broadcastToPlayer(player) && ChunkMap.this.isChunkTracked(player, entityChunkX, entityChunkZ);
+                 // Paper end - Configurable entity tracking range by Y
+                 // CraftBukkit start - respect vanish API
+                 if (flag && !player.getBukkitEntity().canSeeChunkMapUpdatePlayer(this.entity.getBukkitEntity())) { // Paper - only consider hits // SparklyPaper - optimize canSee checks
+@@ -1648,12 +1660,24 @@ public class ChunkMap extends SimpleRegionStorage implements ChunkHolder.PlayerP
+         }
+ 
+         public void updatePlayers(List<ServerPlayer> playersList) {
++            if (playersList.isEmpty()) {
++                return;
++            }
++            // Range (incl. passengers), Y-range config lookup, position and chunk are per-entity: compute once, not per player.
++            final int effectiveRange = this.getEffectiveRange();
++            final double rangeY = this.trackingRangeY();
++            final double entityX = this.entity.getX();
++            final double entityY = this.entity.getY();
++            final double entityZ = this.entity.getZ();
++            final int entityChunkX = this.entity.chunkPosition().x;
++            final int entityChunkZ = this.entity.chunkPosition().z;
+             boolean updated = false;
+-            for (ServerPlayer serverPlayer : playersList) {
+-                updated |= this.updatePlayerMulti(serverPlayer);
++            for (int i = 0, size = playersList.size(); i < size; ++i) {
++                updated |= this.updatePlayerMulti(playersList.get(i), effectiveRange, rangeY, entityX, entityY, entityZ, entityChunkX, entityChunkZ);
+             }
+             if (updated) seenByUpdated();
+         }
++        // WaterMc end - hoist per-entity invariants out of the per-player loop
+         // Leaf end - Multithreaded tracker
+     }
+ }

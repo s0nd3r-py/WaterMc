@@ -1,0 +1,39 @@
+diff --git a/java/net/minecraft/util/RandomSource.java b/java/net/minecraft/util/RandomSource.java
+index d6e86369689e5651698a569ef32d6e4cf4bb6229..d34c412892920d358bb11c2e4133004e60d7d94b 100644
+--- a/java/net/minecraft/util/RandomSource.java
++++ b/java/net/minecraft/util/RandomSource.java
+@@ -18,26 +18,26 @@ public interface RandomSource {
+     // Leaf start - Faster random generator
+     @Deprecated
+     static RandomSource createThreadSafe() {
+-        return org.dreeam.leaf.config.modules.opt.FastRNG.enabled
+-                ? new org.dreeam.leaf.util.math.random.FasterRandomSource(RandomSupport.generateUniqueSeed())
++        return me.s0nd3r.watermc.core.config.modules.opt.FastRNG.enabled
++                ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(RandomSupport.generateUniqueSeed())
+                 : new ThreadSafeLegacyRandomSource(RandomSupport.generateUniqueSeed());
+     }
+ 
+     static RandomSource create(long seed) {
+-        return org.dreeam.leaf.config.modules.opt.FastRNG.enabled
+-                ? new org.dreeam.leaf.util.math.random.FasterRandomSource(seed)
++        return me.s0nd3r.watermc.core.config.modules.opt.FastRNG.enabled
++                ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(seed)
+                 : new LegacyRandomSource(seed);
+     }
+ 
+     static RandomSource createForSlimeChunk(long seed) {
+-        return org.dreeam.leaf.config.modules.opt.FastRNG.enabled && !org.dreeam.leaf.config.modules.opt.FastRNG.useLegacyForSlimeChunk
+-                ? new org.dreeam.leaf.util.math.random.FasterRandomSource(seed)
++        return me.s0nd3r.watermc.core.config.modules.opt.FastRNG.enabled && !me.s0nd3r.watermc.core.config.modules.opt.FastRNG.useLegacyForSlimeChunk
++                ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(seed)
+                 : new LegacyRandomSource(seed);
+     }
+ 
+     static RandomSource createNewThreadLocalInstance() {
+-        return org.dreeam.leaf.config.modules.opt.FastRNG.enabled
+-                ? new org.dreeam.leaf.util.math.random.FasterRandomSource(RandomSupport.generateUniqueSeed())
++        return me.s0nd3r.watermc.core.config.modules.opt.FastRNG.enabled
++                ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(RandomSupport.generateUniqueSeed())
+                 : new SingleThreadedRandomSource(ThreadLocalRandom.current().nextLong());
+     }
+ 

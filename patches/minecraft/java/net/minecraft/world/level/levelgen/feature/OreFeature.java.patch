@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/levelgen/feature/OreFeature.java b/java/net/minecraft/world/level/levelgen/feature/OreFeature.java
+index d14609e932f2ce4e97d1e354b424cc3ec86bd25b..3c73033acb52da090f6011acf583de161ceeee0b 100644
+--- a/java/net/minecraft/world/level/levelgen/feature/OreFeature.java
++++ b/java/net/minecraft/world/level/levelgen/feature/OreFeature.java
+@@ -69,7 +69,7 @@ public class OreFeature extends Feature<OreConfiguration> {
+         int height
+     ) {
+         int i = 0;
+-        BitSet bitSet = org.dreeam.leaf.util.cache.CachedOrNewBitsGetter.getCachedOrNewBitSet(width * height * width); // Leaf - C2ME - Reduce Allocations
++        BitSet bitSet = me.s0nd3r.watermc.core.util.cache.CachedOrNewBitsGetter.getCachedOrNewBitSet(width * height * width); // Leaf - C2ME - Reduce Allocations
+         BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
+         int i1 = config.size;
+         double[] doubles = new double[i1 * 4];

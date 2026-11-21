@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/levelgen/structure/structures/EndCityStructure.java b/java/net/minecraft/world/level/levelgen/structure/structures/EndCityStructure.java
+index 807881ab3b647bff515df627543b8a2e1cad3c3f..230ad1e0445ecc7bd8ad81444055bb73e044fe89 100644
+--- a/java/net/minecraft/world/level/levelgen/structure/structures/EndCityStructure.java
++++ b/java/net/minecraft/world/level/levelgen/structure/structures/EndCityStructure.java
+@@ -10,7 +10,7 @@ import net.minecraft.world.level.levelgen.structure.Structure;
+ import net.minecraft.world.level.levelgen.structure.StructurePiece;
+ import net.minecraft.world.level.levelgen.structure.StructureType;
+ import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
+-//import su.plo.matter.WorldgenCryptoRandom; // Leaf - Matter - Secure Seed
++//import me.s0nd3r.watermc.seed.WorldgenCryptoRandom; // Leaf - Matter - Secure Seed
+ 
+ public class EndCityStructure extends Structure {
+     public static final MapCodec<EndCityStructure> CODEC = simpleCodec(EndCityStructure::new);

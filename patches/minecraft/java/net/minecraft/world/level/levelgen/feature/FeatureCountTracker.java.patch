@@ -1,0 +1,25 @@
+diff --git a/java/net/minecraft/world/level/levelgen/feature/FeatureCountTracker.java b/java/net/minecraft/world/level/levelgen/feature/FeatureCountTracker.java
+index aeee8637249afa2b2df98acdec39e1f6a2b58131..b48768e0fa34482d48c0c78af103989098a8825c 100644
+--- a/java/net/minecraft/world/level/levelgen/feature/FeatureCountTracker.java
++++ b/java/net/minecraft/world/level/levelgen/feature/FeatureCountTracker.java
+@@ -1,8 +1,8 @@
+ package net.minecraft.world.level.levelgen.feature;
+ 
+-import com.google.common.cache.CacheBuilder;
+-import com.google.common.cache.CacheLoader;
+-import com.google.common.cache.LoadingCache;
++import me.s0nd3r.watermc.util.WaterCaches;
++import com.github.benmanes.caffeine.cache.CacheLoader;
++import com.github.benmanes.caffeine.cache.LoadingCache;
+ import com.mojang.logging.LogUtils;
+ import it.unimi.dsi.fastutil.objects.Object2IntMap;
+ import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+@@ -20,7 +20,7 @@ import org.slf4j.Logger;
+ 
+ public class FeatureCountTracker {
+     private static final Logger LOGGER = LogUtils.getLogger();
+-    private static final LoadingCache<ServerLevel, FeatureCountTracker.LevelData> data = CacheBuilder.newBuilder()
++    private static final LoadingCache<ServerLevel, FeatureCountTracker.LevelData> data = WaterCaches.newBuilder()
+         .weakKeys()
+         .expireAfterAccess(5L, TimeUnit.MINUTES)
+         .build(new CacheLoader<ServerLevel, FeatureCountTracker.LevelData>() {

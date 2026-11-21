@@ -1,0 +1,44 @@
+diff --git a/java/net/minecraft/world/level/block/HopperBlock.java b/java/net/minecraft/world/level/block/HopperBlock.java
+index c00492a16ac13cb3e9f34011d643d0c1b47f6029..b4323c6b36b524afbe76c0e98e221e8198d73f42 100644
+--- a/java/net/minecraft/world/level/block/HopperBlock.java
++++ b/java/net/minecraft/world/level/block/HopperBlock.java
+@@ -37,7 +37,7 @@ import net.minecraft.world.phys.shapes.Shapes;
+ import net.minecraft.world.phys.shapes.VoxelShape;
+ import org.jspecify.annotations.Nullable;
+ 
+-public class HopperBlock extends BaseEntityBlock implements net.caffeinemc.mods.lithium.common.block.entity.ShapeUpdateHandlingBlockBehaviour { // Leaves - Lithium Sleeping Block Entity
++public class HopperBlock extends BaseEntityBlock implements me.s0nd3r.watermc.engine.common.block.entity.ShapeUpdateHandlingBlockBehaviour { // Leaves - Lithium Sleeping Block Entity
+     public static final MapCodec<HopperBlock> CODEC = simpleCodec(HopperBlock::new);
+     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING_HOPPER;
+     public static final BooleanProperty ENABLED = BlockStateProperties.ENABLED;
+@@ -99,10 +99,10 @@ public class HopperBlock extends BaseEntityBlock implements net.caffeinemc.mods.
+             this.checkPoweredState(level, pos, state);
+             // Leaves start - Lithium Sleeping Block Entity
+             //invalidate caches of nearby hoppers when placing an update suppressed hopper
+-            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && level.getBlockState(pos) != state) {
++            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && level.getBlockState(pos) != state) {
+                 for (Direction direction : UPDATE_SHAPE_ORDER) {
+                     BlockEntity hopper = level.lithium$getLoadedExistingBlockEntity(pos.relative(direction));
+-                    if (hopper instanceof net.caffeinemc.mods.lithium.common.hopper.UpdateReceiver updateReceiver) {
++                    if (hopper instanceof me.s0nd3r.watermc.engine.common.hopper.UpdateReceiver updateReceiver) {
+                         updateReceiver.lithium$invalidateCacheOnNeighborUpdate(direction == Direction.DOWN);
+                     }
+                 }
+@@ -122,7 +122,7 @@ public class HopperBlock extends BaseEntityBlock implements net.caffeinemc.mods.
+ 
+     @Override
+     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && level.lithium$getLoadedExistingBlockEntity(pos) instanceof net.caffeinemc.mods.lithium.common.hopper.UpdateReceiver updateReceiver) updateReceiver.lithium$invalidateCacheOnUndirectedNeighborUpdate(); // Leaves - Lithium Sleeping Block Entity /* invalidate cache when the block is replaced */
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && level.lithium$getLoadedExistingBlockEntity(pos) instanceof me.s0nd3r.watermc.engine.common.hopper.UpdateReceiver updateReceiver) updateReceiver.lithium$invalidateCacheOnUndirectedNeighborUpdate(); // Leaves - Lithium Sleeping Block Entity /* invalidate cache when the block is replaced */
+         this.checkPoweredState(level, pos, state);
+     }
+ 
+@@ -191,7 +191,7 @@ public class HopperBlock extends BaseEntityBlock implements net.caffeinemc.mods.
+         boolean above = posFrom.getY() == myPos.getY() + 1;
+         if (above || posFrom.getX() == myPos.getX() + facing.getStepX() && posFrom.getY() == myPos.getY() + facing.getStepY() && posFrom.getZ() == myPos.getZ() + facing.getStepZ()) {
+             BlockEntity hopper = ((net.minecraft.world.level.Level) world).lithium$getLoadedExistingBlockEntity(myPos);
+-            if (hopper instanceof net.caffeinemc.mods.lithium.common.hopper.UpdateReceiver updateReceiver) {
++            if (hopper instanceof me.s0nd3r.watermc.engine.common.hopper.UpdateReceiver updateReceiver) {
+                 updateReceiver.lithium$invalidateCacheOnNeighborUpdate(above);
+             }
+         }

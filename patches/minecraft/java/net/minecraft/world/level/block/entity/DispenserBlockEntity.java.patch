@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/world/level/block/entity/DispenserBlockEntity.java b/java/net/minecraft/world/level/block/entity/DispenserBlockEntity.java
+index b592a3bb2cdf084934555d2ee5bb8d46500d8a0d..91e851dcf045e672b020f82d489d0e97a1cacccf 100644
+--- a/java/net/minecraft/world/level/block/entity/DispenserBlockEntity.java
++++ b/java/net/minecraft/world/level/block/entity/DispenserBlockEntity.java
+@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
+ import net.minecraft.world.level.storage.ValueInput;
+ import net.minecraft.world.level.storage.ValueOutput;
+ 
+-public class DispenserBlockEntity extends RandomizableContainerBlockEntity implements net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker, net.caffeinemc.mods.lithium.api.inventory.LithiumInventory { // Leaves - Lithium Sleeping Block Entity
++public class DispenserBlockEntity extends RandomizableContainerBlockEntity implements me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker, me.s0nd3r.watermc.engine.api.inventory.LithiumInventory { // Leaves - Lithium Sleeping Block Entity
+     public static final int CONTAINER_SIZE = 9;
+     private static final Component DEFAULT_NAME = Component.translatable("container.dispenser");
+     private NonNullList<ItemStack> items = NonNullList.withSize(9, ItemStack.EMPTY);
+@@ -135,7 +135,7 @@ public class DispenserBlockEntity extends RandomizableContainerBlockEntity imple
+     @Override
+     protected void setItems(NonNullList<ItemStack> items) {
+         this.items = items;
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) this.lithium$emitStackListReplaced(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) this.lithium$emitStackListReplaced(); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     @Override

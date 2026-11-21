@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/server/ReloadableServerResources.java b/java/net/minecraft/server/ReloadableServerResources.java
+index 873ec52322be56497ebef4758823180c5e83e2ba..6fd309b2cf37bbc85208eb09b36ad49fc3bcbe07 100644
+--- a/java/net/minecraft/server/ReloadableServerResources.java
++++ b/java/net/minecraft/server/ReloadableServerResources.java
+@@ -100,7 +100,7 @@ public class ReloadableServerResources {
+                             backgroundExecutor,
+                             gameExecutor,
+                             DATA_RELOAD_INITIAL_TASK,
+-                            !org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_PROFILER // Leaf - Configurable vanilla profiler
++                            !me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_PROFILER // Leaf - Configurable vanilla profiler
+                         )
+                         .done()
+                         .thenApply(object -> reloadableServerResources);

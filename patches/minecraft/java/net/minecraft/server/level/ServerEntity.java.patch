@@ -1,0 +1,67 @@
+diff --git a/java/net/minecraft/server/level/ServerEntity.java b/java/net/minecraft/server/level/ServerEntity.java
+index 9e12f50d758af4a22db0135a0960878568268311..2fe804db02996d84a02fd8c93afc0fbe9f615228 100644
+--- a/java/net/minecraft/server/level/ServerEntity.java
++++ b/java/net/minecraft/server/level/ServerEntity.java
+@@ -203,7 +203,7 @@ public class ServerEntity {
+                 } // Leaf - Multithreaded tracker - diff on change
+                 // Gale end - Airplane - better checking for useless move packets
+ 
+-                if (org.dreeam.leaf.config.modules.opt.ReduceUselessPackets.reduceUselessEntityMovePackets && !onGroundChanged && isUselessMoveEntityPacket(packet)) packet = null; // Purpur - Dont send useless entity packets
++                if (me.s0nd3r.watermc.core.config.modules.opt.ReduceUselessPackets.reduceUselessEntityMovePackets && !onGroundChanged && isUselessMoveEntityPacket(packet)) packet = null; // Purpur - Dont send useless entity packets
+ 
+                 if (this.entity.needsSync || this.trackDelta || this.entity instanceof LivingEntity && ((LivingEntity)this.entity).isFallFlying()) {
+                     Vec3 deltaMovement = this.entity.getDeltaMovement();
+@@ -221,7 +221,7 @@ public class ServerEntity {
+                                         )
+                                     )
+                                 );
+-                        } else if (!org.dreeam.leaf.config.modules.opt.ReduceUselessPackets.filterClientboundSetEntityMotionPacket || // Canvas - filter ClientboundSetEntityMotionPacket
++                        } else if (!me.s0nd3r.watermc.core.config.modules.opt.ReduceUselessPackets.filterClientboundSetEntityMotionPacket || // Canvas - filter ClientboundSetEntityMotionPacket
+                             (this.entity instanceof net.minecraft.world.entity.item.ItemEntity && flag1) ||
+                             this.entity instanceof net.minecraft.world.entity.projectile.EyeOfEnder ||
+                             this.entity instanceof net.minecraft.world.entity.animal.squid.Squid ||
+@@ -333,7 +333,7 @@ public class ServerEntity {
+     }
+ 
+     public void removePairing(ServerPlayer player) {
+-        if (org.dreeam.leaf.config.modules.async.MultithreadedTracker.enabled) { ((ServerLevel) this.entity.level()).leaf$asyncTracker.ctx().stopSeenByPlayer(player.connection, this.entity); return; } // Leaf - Multithreaded tracker
++        if (me.s0nd3r.watermc.core.config.modules.async.MultithreadedTracker.enabled) { ((ServerLevel) this.entity.level()).leaf$asyncTracker.ctx().stopSeenByPlayer(player.connection, this.entity); return; } // Leaf - Multithreaded tracker
+         this.entity.stopSeenByPlayer(player);
+         player.connection.send(new ClientboundRemoveEntitiesPacket(this.entity.getId()));
+     }
+@@ -448,7 +448,7 @@ public class ServerEntity {
+     }
+ 
+     // Leaf start - Multithreaded tracker
+-    public void leaf$sendChanges(org.dreeam.leaf.async.tracker.TrackerCtx ctx, ChunkMap.TrackedEntity tracker, boolean force) {
++    public void leaf$sendChanges(me.s0nd3r.watermc.core.async.tracker.TrackerCtx ctx, ChunkMap.TrackedEntity tracker, boolean force) {
+         if (this.forceStateResync && !force) {
+             this.forceStateResync = false;
+             ctx.forceResync(tracker);
+@@ -550,7 +550,7 @@ public class ServerEntity {
+                 }
+                 // Gale end - Airplane - better checking for useless move packets
+ 
+-                if (org.dreeam.leaf.config.modules.opt.ReduceUselessPackets.reduceUselessEntityMovePackets && !onGroundChanged && isUselessMoveEntityPacket(packet)) packet = null; // Purpur - Dont send useless entity packets
++                if (me.s0nd3r.watermc.core.config.modules.opt.ReduceUselessPackets.reduceUselessEntityMovePackets && !onGroundChanged && isUselessMoveEntityPacket(packet)) packet = null; // Purpur - Dont send useless entity packets
+ 
+                 if (this.entity.needsSync || this.trackDelta || this.entity instanceof LivingEntity && ((LivingEntity)this.entity).isFallFlying()) {
+                     Vec3 deltaMovement = this.entity.getDeltaMovement();
+@@ -563,7 +563,7 @@ public class ServerEntity {
+                                     new ClientboundSetEntityMotionPacket(this.entity.getId(), this.lastSentMovement),
+                                     new ClientboundProjectilePowerPacket(abstractHurtingProjectile.getId(), abstractHurtingProjectile.accelerationPower)
+                                 )));
+-                            } else if (!org.dreeam.leaf.config.modules.opt.ReduceUselessPackets.filterClientboundSetEntityMotionPacket || // Canvas - filter ClientboundSetEntityMotionPacket
++                            } else if (!me.s0nd3r.watermc.core.config.modules.opt.ReduceUselessPackets.filterClientboundSetEntityMotionPacket || // Canvas - filter ClientboundSetEntityMotionPacket
+                                 (this.entity instanceof net.minecraft.world.entity.item.ItemEntity && flag1) ||
+                                 this.entity instanceof net.minecraft.world.entity.projectile.EyeOfEnder ||
+                                 this.entity instanceof net.minecraft.world.entity.animal.squid.Squid ||
+@@ -608,7 +608,7 @@ public class ServerEntity {
+         }
+     }
+ 
+-    private void leaf$HandleMinecartPosRot(org.dreeam.leaf.async.tracker.TrackerCtx ctx, ChunkMap.TrackedEntity tracker, NewMinecartBehavior behavior, byte yRot, byte xRot, boolean dirty) {
++    private void leaf$HandleMinecartPosRot(me.s0nd3r.watermc.core.async.tracker.TrackerCtx ctx, ChunkMap.TrackedEntity tracker, NewMinecartBehavior behavior, byte yRot, byte xRot, boolean dirty) {
+         ctx.sendDirtyEntityData(tracker);
+         if (behavior.lerpSteps.isEmpty()) {
+             Vec3 deltaMovement = this.entity.getDeltaMovement();

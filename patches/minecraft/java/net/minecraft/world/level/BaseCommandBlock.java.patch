@@ -1,0 +1,51 @@
+diff --git a/java/net/minecraft/world/level/BaseCommandBlock.java b/java/net/minecraft/world/level/BaseCommandBlock.java
+index 183ad542a6589071a37f1036b9bbe7dd141f7ed8..4279a9f9af8315f577d8e6be9581aafecafbe351 100644
+--- a/java/net/minecraft/world/level/BaseCommandBlock.java
++++ b/java/net/minecraft/world/level/BaseCommandBlock.java
+@@ -115,6 +115,11 @@ public abstract class BaseCommandBlock {
+                         if (!event.callEvent()) {
+                             return true;
+                         }
++                        // WaterMc start - command block parse cache (idea: DivineMC, BX-Team, GPL-3.0), off by default
++                        if (me.s0nd3r.watermc.core.config.modules.opt.CommandBlockParseCache.enabled) {
++                            this.waterPerformCached(level, commandSourceStack, net.minecraft.commands.Commands.trimOptionalPrefix(event.getCommand()));
++                        } else
++                        // WaterMc end
+                         level.getServer().getCommands().performPrefixedCommand(commandSourceStack, event.getCommand());
+                         // Paper end - ServerCommandEvent
+                     }
+@@ -137,6 +142,34 @@ public abstract class BaseCommandBlock {
+         }
+     }
+ 
++    // WaterMc start - command block parse cache
++    // The parsed tree is reused only while the command text, the dispatcher and the root node of the command's
++    // first word are the same objects as at parse time (a plugin re-registering the command replaces that node).
++    // Each run puts the fresh source into the cached context, as vanilla functions reuse parsed commands.
++    private @Nullable String waterParsedCommand;
++    private com.mojang.brigadier.@Nullable ParseResults<CommandSourceStack> waterParsed;
++    private com.mojang.brigadier.@Nullable CommandDispatcher<CommandSourceStack> waterParsedDispatcher;
++    private com.mojang.brigadier.tree.@Nullable CommandNode<CommandSourceStack> waterParsedHead;
++
++    private void waterPerformCached(ServerLevel level, CommandSourceStack source, String command) {
++        final net.minecraft.commands.Commands commands = level.getServer().getCommands();
++        final com.mojang.brigadier.CommandDispatcher<CommandSourceStack> dispatcher = commands.getDispatcher();
++        final int space = command.indexOf(' ');
++        final com.mojang.brigadier.tree.CommandNode<CommandSourceStack> head = dispatcher.getRoot().getChild(space < 0 ? command : command.substring(0, space));
++        com.mojang.brigadier.ParseResults<CommandSourceStack> parsed = this.waterParsed;
++        if (parsed == null || dispatcher != this.waterParsedDispatcher || head != this.waterParsedHead || !command.equals(this.waterParsedCommand)) {
++            parsed = dispatcher.parse(command, source);
++            this.waterParsed = parsed;
++            this.waterParsedCommand = command;
++            this.waterParsedDispatcher = dispatcher;
++            this.waterParsedHead = head;
++        } else {
++            parsed.getContext().withSource(source);
++        }
++        commands.performCommand(parsed, command);
++    }
++    // WaterMc end
++
+     public BaseCommandBlock.CloseableCommandBlockSource createSource(ServerLevel level) { // Paper - public, remove nullable
+         return new BaseCommandBlock.CloseableCommandBlockSource(level, this.trackOutput); // Paper - add back source when output disabled
+     }

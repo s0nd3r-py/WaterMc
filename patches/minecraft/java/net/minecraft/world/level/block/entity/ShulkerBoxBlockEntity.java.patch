@@ -1,0 +1,40 @@
+diff --git a/java/net/minecraft/world/level/block/entity/ShulkerBoxBlockEntity.java b/java/net/minecraft/world/level/block/entity/ShulkerBoxBlockEntity.java
+index e751683aa52da7e850f793916fdfb75b4b43297b..9bc2c52a16c493c47b9729e57a41790a7bf929f1 100644
+--- a/java/net/minecraft/world/level/block/entity/ShulkerBoxBlockEntity.java
++++ b/java/net/minecraft/world/level/block/entity/ShulkerBoxBlockEntity.java
+@@ -32,7 +32,7 @@ import net.minecraft.world.phys.AABB;
+ import net.minecraft.world.phys.Vec3;
+ import org.jspecify.annotations.Nullable;
+ 
+-public class ShulkerBoxBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer, net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker, net.caffeinemc.mods.lithium.common.block.entity.SleepingBlockEntity, net.caffeinemc.mods.lithium.api.inventory.LithiumInventory { // Leaves - Lithium Sleeping Block Entity
++public class ShulkerBoxBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer, me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker, me.s0nd3r.watermc.engine.common.block.entity.SleepingBlockEntity, me.s0nd3r.watermc.engine.api.inventory.LithiumInventory { // Leaves - Lithium Sleeping Block Entity
+     public static final int COLUMNS = 9;
+     public static final int ROWS = 3;
+     public static final int CONTAINER_SIZE = 27;
+@@ -134,7 +134,7 @@ public class ShulkerBoxBlockEntity extends RandomizableContainerBlockEntity impl
+                     doNeighborUpdates(level, pos, state);
+                 }
+         }
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && this.animationStatus == ShulkerBoxBlockEntity.AnimationStatus.CLOSED && this.progressOld == 0.0f && this.progress == 0.0f) this.lithium$startSleeping(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && this.animationStatus == ShulkerBoxBlockEntity.AnimationStatus.CLOSED && this.progressOld == 0.0f && this.progress == 0.0f) this.lithium$startSleeping(); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     public ShulkerBoxBlockEntity.AnimationStatus getAnimationStatus() {
+@@ -175,7 +175,7 @@ public class ShulkerBoxBlockEntity extends RandomizableContainerBlockEntity impl
+ 
+     @Override
+     public boolean triggerEvent(int id, int type) {
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && this.sleepingTicker != null) this.wakeUpNow(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && this.sleepingTicker != null) this.wakeUpNow(); // Leaves - Lithium Sleeping Block Entity
+         if (id == 1) {
+             this.openCount = type;
+             if (type == 0) {
+@@ -267,7 +267,7 @@ public class ShulkerBoxBlockEntity extends RandomizableContainerBlockEntity impl
+     @Override
+     protected void setItems(NonNullList<ItemStack> items) {
+         this.itemStacks = items;
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) this.lithium$emitStackListReplaced(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) this.lithium$emitStackListReplaced(); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     @Override

@@ -1,0 +1,11 @@
+config-version: "3.0"
+performance:
+  reduce-packets:
+    reduce-entity-motion-packets: true
+    tnt-fuse:
+      enabled: true
+      resync-interval: 10
+network:
+  explosion-packet-limit:
+    enabled: true
+    max-packets-per-player-per-tick: 8

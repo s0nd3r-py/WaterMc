@@ -1,0 +1,54 @@
+diff --git a/java/net/minecraft/world/entity/ExperienceOrb.java b/java/net/minecraft/world/entity/ExperienceOrb.java
+index 7487d0d2c50fb86ceba3519269867e2488ee3bc5..00196c6912ce2ae35157c0a3c0bf2c62668569c3 100644
+--- a/java/net/minecraft/world/entity/ExperienceOrb.java
++++ b/java/net/minecraft/world/entity/ExperienceOrb.java
+@@ -242,8 +242,13 @@ public class ExperienceOrb extends Entity {
+ 
+     private void scanForMerges() {
+         if (this.level() instanceof ServerLevel) {
++            // WaterMc start - Leaf: Cache XP orb merge parameters (HaHaWTH, GPL-3.0-only); per-type entity index instead of a class scan
++            final int groupsPerArea = io.papermc.paper.configuration.GlobalConfiguration.get().misc.xpOrbGroupsPerArea.or(ORB_GROUPS_PER_AREA);
++            final int id = this.getId();
++            final int value = this.getValue();
+             for (ExperienceOrb experienceOrb : this.level()
+-                .getEntities(EntityTypeTest.forClass(ExperienceOrb.class), this.getBoundingBox().inflate(0.5), this::canMerge)) {
++                .getEntities(EntityType.EXPERIENCE_ORB, this.getBoundingBox().inflate(0.5), orb -> orb != this && canMerge(orb, id, value, groupsPerArea))) {
++            // WaterMc end
+                 this.merge(experienceOrb);
+             }
+         }
+@@ -271,10 +276,12 @@ public class ExperienceOrb extends Entity {
+     private static boolean tryMergeToExisting(ServerLevel level, Vec3 pos, int amount) {
+         // Paper - TODO some other event for this kind of merge
+         AABB aabb = AABB.ofSize(pos, 1.0, 1.0, 1.0);
+-        int randomInt = level.getRandom().nextInt(io.papermc.paper.configuration.GlobalConfiguration.get().misc.xpOrbGroupsPerArea.or(ORB_GROUPS_PER_AREA)); // Paper - Configure how many orb groups per area
+-        List<ExperienceOrb> entities = level.getEntities(
+-            EntityTypeTest.forClass(ExperienceOrb.class), aabb, experienceOrb1 -> canMerge(experienceOrb1, randomInt, amount)
+-        );
++        final int groupsPerArea = io.papermc.paper.configuration.GlobalConfiguration.get().misc.xpOrbGroupsPerArea.or(ORB_GROUPS_PER_AREA); // WaterMc - Leaf: Cache XP orb merge parameters
++        int randomInt = level.getRandom().nextInt(groupsPerArea); // Paper - Configure how many orb groups per area
++        // WaterMc start - only the first match is used: stop at it, and search the per-type index
++        List<ExperienceOrb> entities = new java.util.ArrayList<>(1);
++        level.getEntities(EntityType.EXPERIENCE_ORB, aabb, experienceOrb1 -> canMerge(experienceOrb1, randomInt, amount, groupsPerArea), entities, 1);
++        // WaterMc end
+         if (!entities.isEmpty()) {
+             ExperienceOrb experienceOrb = entities.get(0);
+             experienceOrb.count++;
+@@ -285,13 +292,11 @@ public class ExperienceOrb extends Entity {
+         }
+     }
+ 
+-    private boolean canMerge(ExperienceOrb orb) {
+-        return orb != this && canMerge(orb, this.getId(), this.getValue());
+-    }
+-
+-    private static boolean canMerge(ExperienceOrb orb, int amount, int other) {
+-        return !orb.isRemoved() && (orb.getId() - amount) % io.papermc.paper.configuration.GlobalConfiguration.get().misc.xpOrbGroupsPerArea.or(ORB_GROUPS_PER_AREA) == 0 && orb.getValue() == other; // Paper - Configure how many orbs will merge together
++    // WaterMc start - Leaf: Cache XP orb merge parameters (the config lookup is done once per scan, not per candidate)
++    private static boolean canMerge(ExperienceOrb orb, int amount, int other, int groupsPerArea) {
++        return !orb.isRemoved() && (orb.getId() - amount) % groupsPerArea == 0 && orb.getValue() == other; // Paper - Configure how many orbs will merge together
+     }
++    // WaterMc end
+ 
+     private void merge(ExperienceOrb orb) {
+         // Paper start - call orb merge event

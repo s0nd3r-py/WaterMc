@@ -1,0 +1,10 @@
+{
+  "minecraft": "1.21.11",
+  "leafRepository": "https://github.com/Winds-Studio/Leaf",
+  "leafBranch": "ver/1.21.11",
+  "waterCommit": "79bc48020e9f5b77bc68b487ccfc3083815dcedb",
+  "minecraftSourceCommit": "fd012345c0554dc4fed8fd12d84bb0a470cb4046",
+  "paperServerCommit": "f2c2d1b0f924778c4ed6902d2a23f74a1e961569",
+  "paperCommit": "c5eb0790f199da6c38d0a650e1e5cd5415b28185",
+  "sourceLayout": "fully materialized; no source patch application or regeneration"
+}

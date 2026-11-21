@@ -1,0 +1,248 @@
+diff --git a/java/net/minecraft/server/players/PlayerList.java b/java/net/minecraft/server/players/PlayerList.java
+index ccf2a7d2fbff4bfc9b6e4606059b4b2863071a08..7d672d6a8a960b24f1c8031bb654e2f7e4ae8197 100644
+--- a/java/net/minecraft/server/players/PlayerList.java
++++ b/java/net/minecraft/server/players/PlayerList.java
+@@ -10,7 +10,6 @@ import java.io.IOException;
+ import java.net.SocketAddress;
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+-import java.text.SimpleDateFormat;
+ import java.time.Instant;
+ import java.util.EnumSet;
+ import java.util.List;
+@@ -104,15 +103,14 @@ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
+ 
+ public abstract class PlayerList {
+-    public static final File USERBANLIST_FILE = new File("banned-players.json");
+-    public static final File IPBANLIST_FILE = new File("banned-ips.json");
+-    public static final File OPLIST_FILE = new File("ops.json");
+-    public static final File WHITELIST_FILE = new File("whitelist.json");
++    public static final File USERBANLIST_FILE = me.s0nd3r.watermc.bootstrap.ServerLayout.current().dataFileLegacy("banned-players.wdb"); // WaterMc - data/*.wdb (imported from *.json once)
++    public static final File IPBANLIST_FILE = me.s0nd3r.watermc.bootstrap.ServerLayout.current().dataFileLegacy("banned-ips.wdb"); // WaterMc - data/*.wdb (imported from *.json once)
++    public static final File OPLIST_FILE = me.s0nd3r.watermc.bootstrap.ServerLayout.current().dataFileLegacy("ops.wdb"); // WaterMc - data/*.wdb (imported from *.json once)
++    public static final File WHITELIST_FILE = me.s0nd3r.watermc.bootstrap.ServerLayout.current().dataFileLegacy("whitelist.wdb"); // WaterMc - data/*.wdb (imported from *.json once)
+     public static final Component CHAT_FILTERED_FULL = Component.translatable("chat.filtered_full");
+     public static final Component DUPLICATE_LOGIN_DISCONNECT_MESSAGE = Component.translatable("multiplayer.disconnect.duplicate_login");
+     private static final Logger LOGGER = LogUtils.getLogger();
+     public static final int SEND_PLAYER_INFO_INTERVAL = 600;
+-    private static final SimpleDateFormat BAN_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z", Locale.ROOT);
+     private final MinecraftServer server;
+     public final List<ServerPlayer> players = new java.util.concurrent.CopyOnWriteArrayList(); // CraftBukkit - ArrayList -> CopyOnWriteArrayList: Iterator safety
+     private final Map<UUID, ServerPlayer> playersByUUID = Maps.newHashMap();
+@@ -157,7 +155,7 @@ public abstract class PlayerList {
+     abstract public void loadAndSaveFiles(); // Paper - fix converting txt to json file; moved from DedicatedPlayerList constructor
+ 
+     // Leaves start - replay mod api
+-    public void placeNewPhotographer(Connection connection, org.leavesmc.leaves.replay.ServerPhotographer player, ServerLevel worldserver) {
++    public void placeNewPhotographer(Connection connection, me.s0nd3r.watermc.integration.replay.ServerPhotographer player, ServerLevel worldserver) {
+         player.isRealPlayer = true; // Paper
+         player.loginTime = System.currentTimeMillis(); // Paper
+ 
+@@ -214,7 +212,7 @@ public abstract class PlayerList {
+             return;
+         }
+ 
+-        // org.leavesmc.leaves.protocol.core.LeavesProtocolManager.handlePlayerJoin(player); // Leaves - protocol
++        // me.s0nd3r.watermc.integration.protocol.core.LeavesProtocolManager.handlePlayerJoin(player); // Leaves - protocol
+ 
+         final List<ServerPlayer> onlinePlayers = Lists.newArrayListWithExpectedSize(this.players.size() - 1);
+         for (int i = 0; i < this.players.size(); ++i) {
+@@ -225,7 +223,7 @@ public abstract class PlayerList {
+             }
+ 
+             // Leaves start - skip photographer
+-            if (entityplayer1 instanceof org.leavesmc.leaves.replay.ServerPhotographer) {
++            if (entityplayer1 instanceof me.s0nd3r.watermc.integration.replay.ServerPhotographer) {
+                 continue;
+             }
+             // Leaves end - skip photographer
+@@ -266,7 +264,7 @@ public abstract class PlayerList {
+     // Leaves end - replay mod api
+ 
+     public void placeNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie cookie) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureOnlyTickThread("Cannot place new player off-main"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureOnlyTickThread("Cannot place new player off-main"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
+         player.isRealPlayer = true; // Paper
+         player.loginTime = System.currentTimeMillis(); // Paper - Replace OfflinePlayer#getLastPlayed
+         NameAndId nameAndId = player.nameAndId();
+@@ -368,11 +366,11 @@ public abstract class PlayerList {
+ 
+         player.didPlayerJoinEvent = true; // Gale - EMC - do not process chat/commands before player has joined
+ 
+-        org.leavesmc.leaves.protocol.core.LeavesProtocolManager.handlePlayerJoin(player); // Leaves - protocol
++        me.s0nd3r.watermc.integration.protocol.core.LeavesProtocolManager.handlePlayerJoin(player); // Leaves - protocol
+ 
+         final net.kyori.adventure.text.Component jm = playerJoinEvent.joinMessage();
+ 
+-        if (org.dreeam.leaf.config.modules.misc.ConnectionMessage.joinEnabled && jm != null && !jm.equals(net.kyori.adventure.text.Component.empty())) { // Paper - Adventure // Leaf - Configurable connection message - join message
++        if (me.s0nd3r.watermc.core.config.modules.misc.ConnectionMessage.joinEnabled && jm != null && !jm.equals(net.kyori.adventure.text.Component.empty())) { // Paper - Adventure // Leaf - Configurable connection message - join message
+             joinMessage = io.papermc.paper.adventure.PaperAdventure.asVanilla(jm); // Paper - Adventure
+             this.server.getPlayerList().broadcastSystemMessage(joinMessage, false); // Paper - Adventure
+         }
+@@ -438,7 +436,7 @@ public abstract class PlayerList {
+         }
+         // Paper end - Configurable player collision
+         org.purpurmc.purpur.task.BossBarTask.addToAll(player); // Purpur - Implement TPSBar
+-        if (org.galemc.gale.configuration.GaleGlobalConfiguration.get().logToConsole.playerLoginLocations) { // Gale - JettPack - make logging login location configurable
++        if (me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().logToConsole.playerLoginLocations) { // Gale - JettPack - make logging login location configurable
+         // CraftBukkit start - moved down
+         LOGGER.info(
+             "{}[{}] logged in with entity id {} at ([{}]{}, {}, {})", // CraftBukkit - add world name
+@@ -549,7 +547,7 @@ public abstract class PlayerList {
+     }
+ 
+     protected void save(ServerPlayer player) {
+-        if (player instanceof org.leavesmc.leaves.replay.ServerPhotographer) return; // Leaves - skip photographer
++        if (player instanceof me.s0nd3r.watermc.integration.replay.ServerPhotographer) return; // Leaves - skip photographer
+         if (!player.getBukkitEntity().isPersistent()) return; // CraftBukkit
+         player.lastSave = MinecraftServer.currentTick; // Paper - Incremental chunk and player saving
+         this.playerIo.save(player);
+@@ -565,7 +563,7 @@ public abstract class PlayerList {
+     }
+ 
+     // Leaves start - replay mod api
+-    public void removePhotographer(org.leavesmc.leaves.replay.ServerPhotographer entityplayer) {
++    public void removePhotographer(me.s0nd3r.watermc.integration.replay.ServerPhotographer entityplayer) {
+         ServerLevel worldserver = entityplayer.level();
+ 
+         entityplayer.awardStat(Stats.LEAVE_GAME);
+@@ -608,8 +606,8 @@ public abstract class PlayerList {
+     public net.kyori.adventure.text.@Nullable Component remove(ServerPlayer player, net.kyori.adventure.text.Component leaveMessage) {
+         // Paper end - Fix kick event leave message not being sent
+         org.purpurmc.purpur.task.BossBarTask.removeFromAll(player.getBukkitEntity()); // Purpur - Implement TPSBar
+-        org.leavesmc.leaves.protocol.core.LeavesProtocolManager.handlePlayerLeave(player); // Leaves - protocol
+-        org.dreeam.leaf.protocol.Protocols.disconnected(player); // Leaf - Protocol core
++        me.s0nd3r.watermc.integration.protocol.core.LeavesProtocolManager.handlePlayerLeave(player); // Leaves - protocol
++        me.s0nd3r.watermc.core.protocol.Protocols.disconnected(player); // Leaf - Protocol core
+         net.minecraft.server.network.ServerGamePacketListenerImpl.afkCooldown.remove(player.getBukkitEntity().getUniqueId()); // Leaf - Improve Purpur AFK system
+         ServerLevel serverLevel = player.level();
+         player.awardStat(Stats.LEAVE_GAME);
+@@ -678,7 +676,7 @@ public abstract class PlayerList {
+         this.players.remove(player);
+         this.realPlayers.remove(player); // Leaves - replay api
+         this.playersByName.remove(player.getScoreboardName().toLowerCase(java.util.Locale.ROOT)); // Spigot
+-        if (org.dreeam.leaf.config.modules.misc.VanillaUsernameCheck.allowOldPlayersJoin) this.playedPlayers.remove(player.getGameProfile().name()); // Leaf - Configurable vanilla username check
++        if (me.s0nd3r.watermc.core.config.modules.misc.VanillaUsernameCheck.allowOldPlayersJoin) this.playedPlayers.remove(player.getGameProfile().name()); // Leaf - Configurable vanilla username check
+         this.removeFromSendAllPlayerInfoBuckets(player); // Gale - Purpur - spread out sending all player info
+         this.server.getCustomBossEvents().onPlayerDisconnect(player);
+         UUID uuid = player.getUUID();
+@@ -720,6 +718,7 @@ public abstract class PlayerList {
+     }
+     // Paper end - PlayerLoginEvent
+     public LoginResult canPlayerLogin(SocketAddress socketAddress, NameAndId nameAndId) { // Paper - PlayerLoginEvent
++        if (me.s0nd3r.watermc.diagnostics.WaterDrain.isDraining()) return new LoginResult(Component.literal(me.s0nd3r.watermc.diagnostics.WaterDrain.RESTART_MESSAGE), org.bukkit.event.player.PlayerLoginEvent.Result.KICK_OTHER); // WaterMc - /watermc drain
+         LoginResult whitelistEventResult; // Paper
+         // Paper start - Fix MC-158900
+         UserBanListEntry userBanListEntry;
+@@ -728,7 +727,7 @@ public abstract class PlayerList {
+             MutableComponent mutableComponent = Component.translatable("multiplayer.disconnect.banned.reason", userBanListEntry.getReasonMessage());
+             if (userBanListEntry.getExpires() != null) {
+                 mutableComponent.append(
+-                    Component.translatable("multiplayer.disconnect.banned.expiration", BAN_DATE_FORMAT.format(userBanListEntry.getExpires()))
++                    Component.translatable("multiplayer.disconnect.banned.expiration", me.s0nd3r.watermc.util.WaterDateFormats.format(me.s0nd3r.watermc.util.WaterDateFormats.BAN_EXPIRATION, userBanListEntry.getExpires()))
+                 );
+             }
+ 
+@@ -742,7 +741,7 @@ public abstract class PlayerList {
+             MutableComponent mutableComponent = Component.translatable("multiplayer.disconnect.banned_ip.reason", ipBanListEntry.getReasonMessage());
+             if (ipBanListEntry.getExpires() != null) {
+                 mutableComponent.append(
+-                    Component.translatable("multiplayer.disconnect.banned_ip.expiration", BAN_DATE_FORMAT.format(ipBanListEntry.getExpires()))
++                    Component.translatable("multiplayer.disconnect.banned_ip.expiration", me.s0nd3r.watermc.util.WaterDateFormats.format(me.s0nd3r.watermc.util.WaterDateFormats.BAN_EXPIRATION, ipBanListEntry.getExpires()))
+                 );
+             }
+ 
+@@ -777,7 +776,7 @@ public abstract class PlayerList {
+     // Paper start - respawn event
+     public ServerPlayer respawn(ServerPlayer player, boolean keepInventory, Entity.RemovalReason reason, org.bukkit.event.player.PlayerRespawnEvent.RespawnReason respawnReason) {
+         // Leaf start - SparklyPaper - parallel world ticking
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && !this.server.isSameThread()) {
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && !this.server.isSameThread()) {
+             // Respawning is a complex operation that modifies global player lists and can interact with multiple
+             // worlds. It must be executed on the main server thread to ensure thread safety. We block the
+             // calling (world) thread to wait for the result, preserving the synchronous API contract of this method.
+@@ -1078,6 +1077,7 @@ public abstract class PlayerList {
+     }
+ 
+     public void op(NameAndId nameAndId, Optional<LevelBasedPermissionSet> permissions, Optional<Boolean> bypassesPlayerLimit) {
++        me.s0nd3r.watermc.diagnostics.SecurityAudit.opGranted(nameAndId.name()); // WaterMc - security audit
+         this.ops
+             .add(
+                 new ServerOpListEntry(
+@@ -1092,6 +1092,7 @@ public abstract class PlayerList {
+ 
+     public void deop(NameAndId nameAndId) {
+         if (this.ops.remove(nameAndId)) {
++            me.s0nd3r.watermc.diagnostics.SecurityAudit.opRemoved(nameAndId.name()); // WaterMc - security audit
+             ServerPlayer player = this.getPlayer(nameAndId.id());
+             if (player != null) {
+                 this.sendPlayerPermissionLevel(player);
+@@ -1265,7 +1266,7 @@ public abstract class PlayerList {
+         //player.connection.send(new ClientboundSetSimulationDistancePacket(io.papermc.paper.FeatureHooks.getSimulationDistance(level))); // Paper - rewrite chunk system
+         // Paper end - view distances
+ 
+-        org.leavesmc.leaves.protocol.XaeroMapProtocol.onSendWorldInfo(player); // Leaves - xaero map protocol
++        me.s0nd3r.watermc.integration.protocol.XaeroMapProtocol.onSendWorldInfo(player); // Leaves - xaero map protocol
+ 
+         if (level.isRaining()) {
+             // CraftBukkit start - handle player weather
+@@ -1404,7 +1405,7 @@ public abstract class PlayerList {
+     public void broadcastChatMessage(PlayerChatMessage message, Predicate<ServerPlayer> shouldFilterMessageTo, @Nullable ServerPlayer sender, ChatType.Bound boundChatType, @Nullable Function<net.kyori.adventure.audience.Audience, Component> unsignedFunction) {
+         // Paper end
+         boolean flag = this.verifyChatTrusted(message);
+-        this.server.logChatMessage((unsignedFunction == null ? message.decoratedContent() : unsignedFunction.apply(this.server.console)), boundChatType, !org.dreeam.leaf.config.modules.network.ChatMessageSignature.enabled || flag || !org.galemc.gale.configuration.GaleGlobalConfiguration.get().logToConsole.chat.notSecureMarker ? null : "Not Secure"); // Paper // Gale - do not log Not Secure marker // Leaf - Mirai - Configurable chat message signatures
++        this.server.logChatMessage((unsignedFunction == null ? message.decoratedContent() : unsignedFunction.apply(this.server.console)), boundChatType, !me.s0nd3r.watermc.core.config.modules.network.ChatMessageSignature.enabled || flag || !me.s0nd3r.watermc.tuning.configuration.TuningGlobalConfiguration.get().logToConsole.chat.notSecureMarker ? null : "Not Secure"); // Paper // Gale - do not log Not Secure marker // Leaf - Mirai - Configurable chat message signatures
+         OutgoingChatMessage outgoingChatMessage = OutgoingChatMessage.create(message);
+         boolean flag1 = false;
+ 
+@@ -1429,7 +1430,7 @@ public abstract class PlayerList {
+     }
+ 
+     public boolean verifyChatTrusted(PlayerChatMessage message) {
+-        if (!org.dreeam.leaf.config.modules.network.ChatMessageSignature.enabled) return true; // Leaf - Mirai - Configurable chat message signatures
++        if (!me.s0nd3r.watermc.core.config.modules.network.ChatMessageSignature.enabled) return true; // Leaf - Mirai - Configurable chat message signatures
+         return message.hasSignature() && !message.hasExpiredServer(Instant.now());
+     }
+ 
+@@ -1567,7 +1568,7 @@ public abstract class PlayerList {
+             serverPlayer.connection.send(clientboundUpdateRecipesPacket);
+             serverPlayer.getRecipeBook().sendInitialRecipeBook(serverPlayer);
+         }
+-        org.leavesmc.leaves.protocol.core.LeavesProtocolManager.handleDataPackReload(); // Leaves - protocol core
++        me.s0nd3r.watermc.integration.protocol.core.LeavesProtocolManager.handleDataPackReload(); // Leaves - protocol core
+     }
+ 
+     public boolean isAllowCommandsForAllPlayers() {
+@@ -1576,12 +1577,12 @@ public abstract class PlayerList {
+ 
+     // Leaf start - Configurable connection message
+     private net.kyori.adventure.text.Component getJoinMsg(MutableComponent defaultJoinMsg, org.bukkit.craftbukkit.entity.CraftPlayer player) {
+-        if (org.dreeam.leaf.config.modules.misc.ConnectionMessage.joinEnabled) {
+-            if ("default".equals(org.dreeam.leaf.config.modules.misc.ConnectionMessage.joinMessage)) {
++        if (me.s0nd3r.watermc.core.config.modules.misc.ConnectionMessage.joinEnabled) {
++            if ("default".equals(me.s0nd3r.watermc.core.config.modules.misc.ConnectionMessage.joinMessage)) {
+                 return io.papermc.paper.adventure.PaperAdventure.asAdventure(defaultJoinMsg);
+             }
+ 
+-            final String joinMessage = org.dreeam.leaf.config.modules.misc.ConnectionMessage.joinMessage
++            final String joinMessage = me.s0nd3r.watermc.core.config.modules.misc.ConnectionMessage.joinMessage
+                 .replace("<player_name>", player.getName());
+ 
+             return net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(joinMessage)
+@@ -1593,12 +1594,12 @@ public abstract class PlayerList {
+     }
+ 
+     private net.kyori.adventure.text.Component getQuitMsg(net.kyori.adventure.text.Component defaultJoinMsg, org.bukkit.craftbukkit.entity.CraftPlayer player) {
+-        if (org.dreeam.leaf.config.modules.misc.ConnectionMessage.quitEnabled) {
+-            if ("default".equals(org.dreeam.leaf.config.modules.misc.ConnectionMessage.quitMessage)) {
++        if (me.s0nd3r.watermc.core.config.modules.misc.ConnectionMessage.quitEnabled) {
++            if ("default".equals(me.s0nd3r.watermc.core.config.modules.misc.ConnectionMessage.quitMessage)) {
+                 return defaultJoinMsg;
+             }
+ 
+-            final String quitMessage = org.dreeam.leaf.config.modules.misc.ConnectionMessage.quitMessage
++            final String quitMessage = me.s0nd3r.watermc.core.config.modules.misc.ConnectionMessage.quitMessage
+                 .replace("<player_name>", player.getName());
+ 
+             return net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(quitMessage)

@@ -1,0 +1,48 @@
+diff --git a/java/net/minecraft/world/level/chunk/LevelChunk.java b/java/net/minecraft/world/level/chunk/LevelChunk.java
+index 43b5506797a52fb954a60301d41d72591427abfe..eaabe6cee78d67b96f7a0d2d96cd366e79cbc3a3 100644
+--- a/java/net/minecraft/world/level/chunk/LevelChunk.java
++++ b/java/net/minecraft/world/level/chunk/LevelChunk.java
+@@ -85,7 +85,7 @@ public class LevelChunk extends ChunkAccess implements DebugValueSource, ca.spot
+             return "<null>";
+         }
+     };
+-    private final Map<BlockPos, LevelChunk.RebindableTickingBlockEntityWrapper> tickersInLevel = org.dreeam.leaf.config.modules.opt.OptimizeBlockEntities.enabled ? new it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<>() : Maps.newHashMap(); // Leaf - Optimise BlockEntities tickersInLevel
++    private final Map<BlockPos, LevelChunk.RebindableTickingBlockEntityWrapper> tickersInLevel = me.s0nd3r.watermc.core.config.modules.opt.OptimizeBlockEntities.enabled ? new it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<>() : Maps.newHashMap(); // Leaf - Optimise BlockEntities tickersInLevel
+     public boolean loaded;
+     public final ServerLevel level; // CraftBukkit - type
+     private @Nullable Supplier<FullChunkStatus> fullStatus;
+@@ -433,7 +433,7 @@ public class LevelChunk extends ChunkAccess implements DebugValueSource, ca.spot
+ 
+     @Override
+     public @Nullable BlockState setBlockState(BlockPos pos, BlockState state, @Block.UpdateFlags int flags) {
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, pos, "Updating block asynchronously"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) ca.spottedleaf.moonrise.common.util.TickThread.ensureTickThread(this.level, pos, "Updating block asynchronously"); // Leaf - SparklyPaper - parallel world ticking (additional concurrency issues logs)
+         int y = pos.getY();
+         LevelChunkSection section = this.getSection(this.getSectionIndex(y));
+         boolean hasOnlyAir = section.hasOnlyAir();
+@@ -458,7 +458,7 @@ public class LevelChunk extends ChunkAccess implements DebugValueSource, ca.spot
+                 Heightmap heightmap1 = this.heightmaps.get(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES);
+                 Heightmap heightmap2 = this.heightmaps.get(Heightmap.Types.OCEAN_FLOOR);
+                 Heightmap heightmap3 = this.heightmaps.get(Heightmap.Types.WORLD_SURFACE);
+-                net.caffeinemc.mods.lithium.common.world.chunk.heightmap.CombinedHeightmapUpdate.updateHeightmaps(heightmap0, heightmap1, heightmap2, heightmap3, this, i, y, i2, state);
++                me.s0nd3r.watermc.engine.common.world.chunk.heightmap.CombinedHeightmapUpdate.updateHeightmaps(heightmap0, heightmap1, heightmap2, heightmap3, this, i, y, i2, state);
+                 // Leaf end - Lithium - combined heightmap update
+                 boolean hasOnlyAir1 = section.hasOnlyAir();
+                 if (hasOnlyAir != hasOnlyAir1) {
+@@ -994,14 +994,14 @@ public class LevelChunk extends ChunkAccess implements DebugValueSource, ca.spot
+                     (pos, ticker1) -> {
+                         TickingBlockEntity tickingBlockEntity = this.createTicker(blockEntity, ticker);
+                         if (ticker1 != null) {
+-                            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && blockEntity instanceof net.caffeinemc.mods.lithium.common.block.entity.SleepingBlockEntity sleepingBlockEntity) sleepingBlockEntity.lithium$setTickWrapper(ticker1); // Leaves - Lithium Sleeping Block Entity
++                            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && blockEntity instanceof me.s0nd3r.watermc.engine.common.block.entity.SleepingBlockEntity sleepingBlockEntity) sleepingBlockEntity.lithium$setTickWrapper(ticker1); // Leaves - Lithium Sleeping Block Entity
+                             ticker1.rebind(tickingBlockEntity);
+                             return (LevelChunk.RebindableTickingBlockEntityWrapper)ticker1;
+                         } else if (this.isInLevel()) {
+                             LevelChunk.RebindableTickingBlockEntityWrapper rebindableTickingBlockEntityWrapper = new LevelChunk.RebindableTickingBlockEntityWrapper(
+                                 tickingBlockEntity
+                             );
+-                            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && blockEntity instanceof net.caffeinemc.mods.lithium.common.block.entity.SleepingBlockEntity sleepingBlockEntity) sleepingBlockEntity.lithium$setTickWrapper(rebindableTickingBlockEntityWrapper); // Leaves - Lithium Sleeping Block Entity
++                            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && blockEntity instanceof me.s0nd3r.watermc.engine.common.block.entity.SleepingBlockEntity sleepingBlockEntity) sleepingBlockEntity.lithium$setTickWrapper(rebindableTickingBlockEntityWrapper); // Leaves - Lithium Sleeping Block Entity
+                             this.level.addBlockEntityTicker(rebindableTickingBlockEntityWrapper);
+                             return rebindableTickingBlockEntityWrapper;
+                         } else {

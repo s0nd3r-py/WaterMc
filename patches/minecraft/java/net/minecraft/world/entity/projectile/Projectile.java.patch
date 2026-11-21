@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/projectile/Projectile.java b/java/net/minecraft/world/entity/projectile/Projectile.java
+index a145dde3da6e5b51402fe5a7c61d9af6884b1385..8e9a021f94cb8b08ca25fbd945d9378e68b4178c 100644
+--- a/java/net/minecraft/world/entity/projectile/Projectile.java
++++ b/java/net/minecraft/world/entity/projectile/Projectile.java
+@@ -48,7 +48,7 @@ public abstract class Projectile extends Entity implements TraceableEntity {
+ 
+     protected Projectile(EntityType<? extends Projectile> type, Level level) {
+         super(type, level);
+-        this.preventMoveIntoWeakLoadedChunks = org.dreeam.leaf.config.modules.fixes.PreventMoveIntoWeakLoadedChunks.isProjectileEnabled(); // Leaf - Prevent entity from moving into weak loaded chunks
++        this.preventMoveIntoWeakLoadedChunks = me.s0nd3r.watermc.core.config.modules.fixes.PreventMoveIntoWeakLoadedChunks.isProjectileEnabled(); // Leaf - Prevent entity from moving into weak loaded chunks
+     }
+ 
+     // Gale start - Airplane - reduce projectile chunk loading

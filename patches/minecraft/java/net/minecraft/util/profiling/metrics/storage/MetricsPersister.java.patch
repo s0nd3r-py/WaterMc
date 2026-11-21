@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/util/profiling/metrics/storage/MetricsPersister.java b/java/net/minecraft/util/profiling/metrics/storage/MetricsPersister.java
+index bc3a7206c0eefea58dd5455bbeca50b686616e75..b384cad2741befed3522d634f34a80ae4f93868d 100644
+--- a/java/net/minecraft/util/profiling/metrics/storage/MetricsPersister.java
++++ b/java/net/minecraft/util/profiling/metrics/storage/MetricsPersister.java
+@@ -26,7 +26,7 @@ import org.apache.commons.io.IOUtils;
+ import org.slf4j.Logger;
+ 
+ public class MetricsPersister {
+-    public static final Path PROFILING_RESULTS_DIR = Paths.get("debug/profiling");
++    public static final Path PROFILING_RESULTS_DIR = me.s0nd3r.watermc.bootstrap.ServerLayout.current().logsDir().resolve("debug").resolve("profiling") /* WaterMc - logs/debug */;
+     public static final String METRICS_DIR_NAME = "metrics";
+     public static final String DEVIATIONS_DIR_NAME = "deviations";
+     public static final String PROFILING_RESULT_FILENAME = "profiling.txt";

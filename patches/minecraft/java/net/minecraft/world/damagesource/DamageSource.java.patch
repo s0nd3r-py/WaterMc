@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/damagesource/DamageSource.java b/java/net/minecraft/world/damagesource/DamageSource.java
+index 629c8a97e12f10313bb4540cd9379e4fa3cbd544..c47d2a80b5e69bb8e3eaf4c095e6f71d5793d996 100644
+--- a/java/net/minecraft/world/damagesource/DamageSource.java
++++ b/java/net/minecraft/world/damagesource/DamageSource.java
+@@ -68,7 +68,7 @@ public class DamageSource {
+ 
+     public DamageSource eventEntityDamager(final Entity entity) {
+         if (this.directEntity != null) {
+-            throw new IllegalStateException("Cannot set an event damager when a direct entity is already set (if you think this is a Leaf bug, please report it at https://github.com/Winds-Studio/Leaf/issues)"); // Leaf - Rebrand
++            throw new IllegalStateException("Cannot set an event damager when a direct entity is already set (WaterMc)"); // Leaf - Rebrand
+         }
+         final DamageSource damageSource = this.copy();
+         damageSource.eventEntityDamager = entity;

@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/entity/ai/goal/TemptGoal.java b/java/net/minecraft/world/entity/ai/goal/TemptGoal.java
+index c2c96dc8e023d6b949cd35a2bca83eca583a4460..b910872214181d9851105ae5feb2fe6e152bc020 100644
+--- a/java/net/minecraft/world/entity/ai/goal/TemptGoal.java
++++ b/java/net/minecraft/world/entity/ai/goal/TemptGoal.java
+@@ -50,7 +50,7 @@ public class TemptGoal extends Goal {
+         this.targetingConditions = globalTemptationLookupIndex >= 0 ? TEMPT_TARGETING.copy() : TEMPT_TARGETING.copy().selector((entity, level) -> this.shouldFollow(entity)); // Paper - optimise temptation checks - skip selector if we have a lookup index.
+     }
+ 
+-    private final int leaf$internal = Math.max(1, reducedTickDelay(org.dreeam.leaf.config.modules.opt.EntityGoal.chanceTempt)); private int leaf$counter; // Leaf - configurable goal update interval
++    private final int leaf$internal = Math.max(1, reducedTickDelay(me.s0nd3r.watermc.core.config.modules.opt.EntityGoal.chanceTempt)); private int leaf$counter; // Leaf - configurable goal update interval
+     @Override
+     public boolean canUse() {
+         if (this.calmDown > 0) {

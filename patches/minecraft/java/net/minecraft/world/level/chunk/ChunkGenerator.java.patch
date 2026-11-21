@@ -1,0 +1,38 @@
+diff --git a/java/net/minecraft/world/level/chunk/ChunkGenerator.java b/java/net/minecraft/world/level/chunk/ChunkGenerator.java
+index 0bb00a7db3a43e91f36b8e7601d09abd07d53376..b076ca785fdea6b1c28cf008873febfc76f7ef3b 100644
+--- a/java/net/minecraft/world/level/chunk/ChunkGenerator.java
++++ b/java/net/minecraft/world/level/chunk/ChunkGenerator.java
+@@ -343,8 +343,8 @@ public abstract class ChunkGenerator {
+             Map<Integer, List<Structure>> map = registry.stream().collect(Collectors.groupingBy(structure1 -> structure1.step().ordinal()));
+             List<FeatureSorter.StepFeatureData> list = this.featuresPerStep.get();
+             // Leaf start - Matter - Secure Seed
+-            WorldgenRandom worldgenRandom = org.dreeam.leaf.config.modules.misc.SecureSeed.enabled
+-                ? new su.plo.matter.WorldgenCryptoRandom(blockPos.getX(), blockPos.getZ(), su.plo.matter.Globals.Salt.UNDEFINED, 0)
++            WorldgenRandom worldgenRandom = me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled
++                ? new me.s0nd3r.watermc.seed.WorldgenCryptoRandom(blockPos.getX(), blockPos.getZ(), me.s0nd3r.watermc.seed.Globals.Salt.UNDEFINED, 0)
+                 : new WorldgenRandom(new XoroshiroRandomSource(RandomSupport.generateUniqueSeed()));
+             // Leaf end - Matter - Secure Seed
+             long l = worldgenRandom.setDecorationSeed(level.getSeed(), blockPos.getX(), blockPos.getZ());
+@@ -458,7 +458,7 @@ public abstract class ChunkGenerator {
+             int x = chunk.getPos().x;
+             int z = chunk.getPos().z;
+             for (org.bukkit.generator.BlockPopulator populator : world.getPopulators()) {
+-                WorldgenRandom seededrandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(level.getSeed()) : new net.minecraft.world.level.levelgen.LegacyRandomSource(level.getSeed())); // Leaf - Faster random generator
++                WorldgenRandom seededrandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(level.getSeed()) : new net.minecraft.world.level.levelgen.LegacyRandomSource(level.getSeed())); // Leaf - Faster random generator
+                 seededrandom.setDecorationSeed(level.getSeed(), x, z);
+                 populator.populate(world, new org.bukkit.craftbukkit.util.RandomSourceWrapper.RandomWrapper(seededrandom), x, z, limitedRegion);
+             }
+@@ -600,10 +600,10 @@ public abstract class ChunkGenerator {
+                                 list1.addAll(list);
+                                 // Leaf start - Matter - Secure Seed
+                                 WorldgenRandom worldgenRandom;
+-                                if (org.dreeam.leaf.config.modules.misc.SecureSeed.enabled) {
+-                                    worldgenRandom = new su.plo.matter.WorldgenCryptoRandom(pos.x, pos.z, su.plo.matter.Globals.Salt.GENERATE_FEATURE, 0);
++                                if (me.s0nd3r.watermc.core.config.modules.misc.SecureSeed.enabled) {
++                                    worldgenRandom = new me.s0nd3r.watermc.seed.WorldgenCryptoRandom(pos.x, pos.z, me.s0nd3r.watermc.seed.Globals.Salt.GENERATE_FEATURE, 0);
+                                 } else {
+-                                    worldgenRandom = new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
++                                    worldgenRandom = new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(0L) : new LegacyRandomSource(0L)); // Leaf - Faster random generator
+                                     worldgenRandom.setLargeFeatureSeed(structureState.getLevelSeed(), pos.x, pos.z);
+                                 }
+                                 // Leaf end - Matter - Secure Seed

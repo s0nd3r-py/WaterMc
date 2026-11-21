@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/chunk/Strategy.java b/java/net/minecraft/world/level/chunk/Strategy.java
+index a08756342f3cdb3a1188b2e6e56c59c4742db0d1..1c208665c9b8e3d6e152342be9f9ed51a32c00c4 100644
+--- a/java/net/minecraft/world/level/chunk/Strategy.java
++++ b/java/net/minecraft/world/level/chunk/Strategy.java
+@@ -5,7 +5,7 @@ import net.minecraft.util.Mth;
+ 
+ public abstract class Strategy<T> {
+     // Leaf start - Lithium - faster hash palette
+-    private static final Palette.Factory HASH = net.caffeinemc.mods.lithium.common.world.chunk.LithiumHashPalette::create;
++    private static final Palette.Factory HASH = me.s0nd3r.watermc.engine.common.world.chunk.LithiumHashPalette::create;
+     //private static final Configuration HASH_3BIT = new Configuration.Simple(HASH, 3);
+     private static final Configuration HASH_4BIT = new Configuration.Simple(HASH, 4);
+     private static final Configuration HASH_5BIT = new Configuration.Simple(HASH, 5);

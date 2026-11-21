@@ -1,0 +1,112 @@
+diff --git a/java/net/minecraft/world/entity/ai/sensing/Sensor.java b/java/net/minecraft/world/entity/ai/sensing/Sensor.java
+index 1441f24413b10538e6bdc0f894234d96916c57dc..fa4b96d7678ac0fc547a9de3511481f697319221 100644
+--- a/java/net/minecraft/world/entity/ai/sensing/Sensor.java
++++ b/java/net/minecraft/world/entity/ai/sensing/Sensor.java
+@@ -14,19 +14,19 @@ public abstract class Sensor<E extends LivingEntity> {
+     private static final RandomSource RANDOM = RandomSource.createThreadSafe();
+     private static final int DEFAULT_SCAN_RATE = 20;
+     private static final int DEFAULT_TARGETING_RANGE = 16;
+-    private static final TargetingConditions TARGET_CONDITIONS = TargetingConditions.forNonCombat().range(16.0);
+-    private static final TargetingConditions TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING = TargetingConditions.forNonCombat()
++    private static final ThreadLocal<TargetingConditions> TARGET_CONDITIONS = ThreadLocal.withInitial(() -> TargetingConditions.forNonCombat().range(16.0)); // WaterMc - parallel sensor phase: per-thread (ranges are set per mob)
++    private static final ThreadLocal<TargetingConditions> TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING = ThreadLocal.withInitial(() -> TargetingConditions.forNonCombat()
+         .range(16.0)
+-        .ignoreInvisibilityTesting();
+-    private static final TargetingConditions ATTACK_TARGET_CONDITIONS = TargetingConditions.forCombat().range(16.0);
+-    private static final TargetingConditions ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING = TargetingConditions.forCombat()
++        .ignoreInvisibilityTesting()); // WaterMc - parallel sensor phase: per-thread (ranges are set per mob)
++    private static final ThreadLocal<TargetingConditions> ATTACK_TARGET_CONDITIONS = ThreadLocal.withInitial(() -> TargetingConditions.forCombat().range(16.0)); // WaterMc - parallel sensor phase: per-thread (ranges are set per mob)
++    private static final ThreadLocal<TargetingConditions> ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING = ThreadLocal.withInitial(() -> TargetingConditions.forCombat()
+         .range(16.0)
+-        .ignoreInvisibilityTesting();
+-    private static final TargetingConditions ATTACK_TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT = TargetingConditions.forCombat().range(16.0).ignoreLineOfSight();
+-    private static final TargetingConditions ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_AND_LINE_OF_SIGHT = TargetingConditions.forCombat()
++        .ignoreInvisibilityTesting()); // WaterMc - parallel sensor phase: per-thread (ranges are set per mob)
++    private static final ThreadLocal<TargetingConditions> ATTACK_TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT = ThreadLocal.withInitial(() -> TargetingConditions.forCombat().range(16.0).ignoreLineOfSight()); // WaterMc - parallel sensor phase: per-thread (ranges are set per mob)
++    private static final ThreadLocal<TargetingConditions> ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_AND_LINE_OF_SIGHT = ThreadLocal.withInitial(() -> TargetingConditions.forCombat()
+         .range(16.0)
+         .ignoreLineOfSight()
+-        .ignoreInvisibilityTesting();
++        .ignoreInvisibilityTesting()); // WaterMc - parallel sensor phase: per-thread (ranges are set per mob)
+     private final int scanRate;
+     private long timeToTick;
+     private final String configKey; // Paper - configurable sensor tick rate and timings
+@@ -51,19 +51,42 @@ public abstract class Sensor<E extends LivingEntity> {
+     public final void tick(ServerLevel level, E entity) {
+         if (--this.timeToTick <= 0L) {
+             this.timeToTick = java.util.Objects.requireNonNullElse(level.paperConfig().tickRates.sensor.get(entity.getType(), this.configKey), this.scanRate); // Paper - configurable sensor tick rate and timings
++            // WaterMc start - parallel sensor phase: the scan already ran in the pre-pass; the timer above stays vanilla
++            if (this.waterPrecomputed) {
++                this.waterPrecomputed = false;
++                this.updateTargetingConditionRanges(entity); // behaviours on this thread read these ranges, keep the vanilla sequence
++                return;
++            }
++            // WaterMc end
+             this.updateTargetingConditionRanges(entity);
+             this.doTick(level, entity);
+         }
+     }
+ 
++    // WaterMc start - parallel sensor phase (idea: DivineMC, BX-Team, GPL-3.0; timer handling rewritten)
++    // The pre-pass never touches timeToTick: it only runs the scan when the next brain tick would run it and marks it.
++    // The brain then counts down exactly as in vanilla (also when DAB or EAR skip brain ticks) and skips the second scan.
++    private volatile boolean waterPrecomputed;
++
++    public final boolean waterWantsPrecompute() {
++        return !this.waterPrecomputed && this.timeToTick <= 1L;
++    }
++
++    public final void waterPrecompute(ServerLevel level, E entity) {
++        this.updateTargetingConditionRanges(entity);
++        this.doTick(level, entity);
++        this.waterPrecomputed = true;
++    }
++    // WaterMc end
++
+     private void updateTargetingConditionRanges(E entity) {
+         double attributeValue = entity.getAttributeValue(Attributes.FOLLOW_RANGE);
+-        TARGET_CONDITIONS.range(attributeValue);
+-        TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING.range(attributeValue);
+-        ATTACK_TARGET_CONDITIONS.range(attributeValue);
+-        ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING.range(attributeValue);
+-        ATTACK_TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT.range(attributeValue);
+-        ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_AND_LINE_OF_SIGHT.range(attributeValue);
++        TARGET_CONDITIONS.get().range(attributeValue);
++        TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING.get().range(attributeValue);
++        ATTACK_TARGET_CONDITIONS.get().range(attributeValue);
++        ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING.get().range(attributeValue);
++        ATTACK_TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT.get().range(attributeValue);
++        ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_AND_LINE_OF_SIGHT.get().range(attributeValue);
+     }
+ 
+     protected abstract void doTick(ServerLevel level, E entity);
+@@ -72,14 +95,14 @@ public abstract class Sensor<E extends LivingEntity> {
+ 
+     public static boolean isEntityTargetable(ServerLevel level, LivingEntity entity, LivingEntity target) {
+         return entity.getBrain().isMemoryValue(MemoryModuleType.ATTACK_TARGET, target)
+-            ? TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING.test(level, entity, target)
+-            : TARGET_CONDITIONS.test(level, entity, target);
++            ? TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING.get().test(level, entity, target)
++            : TARGET_CONDITIONS.get().test(level, entity, target);
+     }
+ 
+     public static boolean isEntityAttackable(ServerLevel level, LivingEntity entity, LivingEntity target) {
+         return entity.getBrain().isMemoryValue(MemoryModuleType.ATTACK_TARGET, target)
+-            ? ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING.test(level, entity, target)
+-            : ATTACK_TARGET_CONDITIONS.test(level, entity, target);
++            ? ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING.get().test(level, entity, target)
++            : ATTACK_TARGET_CONDITIONS.get().test(level, entity, target);
+     }
+ 
+     public static BiPredicate<ServerLevel, LivingEntity> wasEntityAttackableLastNTicks(LivingEntity entity, int ticks) {
+@@ -88,8 +111,8 @@ public abstract class Sensor<E extends LivingEntity> {
+ 
+     public static boolean isEntityAttackableIgnoringLineOfSight(ServerLevel level, LivingEntity entity, LivingEntity target) {
+         return entity.getBrain().isMemoryValue(MemoryModuleType.ATTACK_TARGET, target)
+-            ? ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_AND_LINE_OF_SIGHT.test(level, entity, target)
+-            : ATTACK_TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT.test(level, entity, target);
++            ? ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_AND_LINE_OF_SIGHT.get().test(level, entity, target)
++            : ATTACK_TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT.get().test(level, entity, target);
+     }
+ 
+     static <T, U> BiPredicate<T, U> rememberPositives(int ticks, BiPredicate<T, U> predicate) {

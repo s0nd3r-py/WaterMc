@@ -1,0 +1,52 @@
+diff --git a/java/net/minecraft/world/level/levelgen/structure/structures/EndCityPieces.java b/java/net/minecraft/world/level/levelgen/structure/structures/EndCityPieces.java
+index 7879e5540999340bcf784c16897c6dcd645aafd0..242fc9a8f5f7774660d9be5bd5e0fbd07c03ba50 100644
+--- a/java/net/minecraft/world/level/levelgen/structure/structures/EndCityPieces.java
++++ b/java/net/minecraft/world/level/levelgen/structure/structures/EndCityPieces.java
+@@ -204,7 +204,7 @@ public class EndCityPieces {
+ 
+             if (!this.shipCreated && random.nextInt(10 - counter) == 0) {
+                 // Leaf start - Fix MC-152094
+-                if (org.dreeam.leaf.config.modules.fixes.MCBugFix.mc152094) {
++                if (me.s0nd3r.watermc.core.config.modules.fixes.MCBugFix.mc152094) {
+                     EndCityPieces.addHelper(
+                         pieces,
+                         EndCityPieces.addShipWithinReferenceBounds(
+@@ -304,7 +304,7 @@ public class EndCityPieces {
+         return endCityPiece;
+     }
+ 
+-    private static final ThreadLocal<org.dreeam.leaf.util.@org.jspecify.annotations.Nullable ReferenceBounds> TOWER_BOUNDS = new ThreadLocal<>(); // Leaf - Fix MC-152094
++    private static final ThreadLocal<me.s0nd3r.watermc.core.util.@org.jspecify.annotations.Nullable ReferenceBounds> TOWER_BOUNDS = new ThreadLocal<>(); // Leaf - Fix MC-152094
+     public static void startHouseTower(
+         StructureTemplateManager structureTemplateManager, BlockPos startPos, Rotation rotation, List<StructurePiece> pieces, RandomSource random
+     ) {
+@@ -319,9 +319,9 @@ public class EndCityPieces {
+         endCityPiece = addHelper(pieces, addPiece(structureTemplateManager, endCityPiece, new BlockPos(-1, 4, -1), "third_floor_1", rotation, false));
+         endCityPiece = addHelper(pieces, addPiece(structureTemplateManager, endCityPiece, new BlockPos(-1, 8, -1), "third_roof", rotation, true));
+         // Leaf start - Fix MC-152094
+-        if (org.dreeam.leaf.config.modules.fixes.MCBugFix.mc152094) {
++        if (me.s0nd3r.watermc.core.config.modules.fixes.MCBugFix.mc152094) {
+             try {
+-                TOWER_BOUNDS.set(org.dreeam.leaf.util.ReferenceBounds.around(startPos));
++                TOWER_BOUNDS.set(me.s0nd3r.watermc.core.util.ReferenceBounds.around(startPos));
+                 recursiveChildren(structureTemplateManager, TOWER_GENERATOR, 1, endCityPiece, null, pieces, random);
+             } finally {
+                 TOWER_BOUNDS.remove();
+@@ -346,7 +346,7 @@ public class EndCityPieces {
+         int requestedLocalZ,
+         Rotation rotation,
+         List<StructurePiece> currentBranchPieces,
+-        org.dreeam.leaf.util.ReferenceBounds referenceBounds
++        me.s0nd3r.watermc.core.util.ReferenceBounds referenceBounds
+     ) {
+         // Throw NPE if related vanilla logic changes in future Minecraft versions
+         java.util.Objects.requireNonNull(referenceBounds);
+@@ -368,7 +368,7 @@ public class EndCityPieces {
+                 return ship;
+             }
+         }
+-        org.dreeam.leaf.config.modules.fixes.MCBugFix.LOGGER.warn("Unable to find a valid ship position, end ship will continue to generate anyway.");
++        me.s0nd3r.watermc.core.config.modules.fixes.MCBugFix.LOGGER.warn("Unable to find a valid ship position, end ship will continue to generate anyway.");
+         return EndCityPieces.addPiece(
+             structureTemplateManager,
+             parent,

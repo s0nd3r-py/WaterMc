@@ -1,0 +1,22 @@
+diff --git a/java/net/minecraft/world/entity/ai/sensing/HoglinSpecificSensor.java b/java/net/minecraft/world/entity/ai/sensing/HoglinSpecificSensor.java
+index 744e962fc401aa9f07295d12b068aa9e2ebb96d0..946d223202d7afdd47587f581ee92807f9de3042 100644
+--- a/java/net/minecraft/world/entity/ai/sensing/HoglinSpecificSensor.java
++++ b/java/net/minecraft/world/entity/ai/sensing/HoglinSpecificSensor.java
+@@ -31,7 +31,7 @@ public class HoglinSpecificSensor extends Sensor<Hoglin> {
+     @Override
+     protected void doTick(ServerLevel level, Hoglin entity) {
+         Brain<?> brain = entity.getBrain();
+-        brain.setMemory(MemoryModuleType.NEAREST_REPELLENT, this.findNearestRepellent(level, entity));
++        brain.setMemory(MemoryModuleType.NEAREST_REPELLENT, me.s0nd3r.watermc.engine.common.ai.non_poi_block_search.CommonBlockSearchesCheckAndCache.hasNoMatch(level, entity, 8, 4, IS_VALID_REPELLENT_PREDICATE, true) ? java.util.Optional.empty() : this.findNearestRepellent(level, entity)); // Leaf - Lithium - optimize non-POI block searches
+         Optional<Piglin> optional = Optional.empty();
+         int i = 0;
+         List<Hoglin> list = Lists.newArrayList();
+@@ -59,6 +59,8 @@ public class HoglinSpecificSensor extends Sensor<Hoglin> {
+         brain.setMemory(MemoryModuleType.VISIBLE_ADULT_HOGLIN_COUNT, list.size());
+     }
+ 
++    private static final java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> IS_VALID_REPELLENT_PREDICATE = state -> state.is(BlockTags.HOGLIN_REPELLENTS); // Leaf - Lithium - optimize non-POI block searches
++
+     private Optional<BlockPos> findNearestRepellent(ServerLevel level, Hoglin hoglin) {
+         return BlockPos.findClosestMatch(hoglin.blockPosition(), 8, 4, pos -> level.getBlockState(pos).is(BlockTags.HOGLIN_REPELLENTS));
+     }

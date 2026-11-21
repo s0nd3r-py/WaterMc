@@ -1,0 +1,58 @@
+diff --git a/java/net/minecraft/world/level/block/entity/BrewingStandBlockEntity.java b/java/net/minecraft/world/level/block/entity/BrewingStandBlockEntity.java
+index 920d48842a47cf0f4ee597b72ba10bd6082491fc..411275af3df29532d9bac9f904f69eb821d6c279 100644
+--- a/java/net/minecraft/world/level/block/entity/BrewingStandBlockEntity.java
++++ b/java/net/minecraft/world/level/block/entity/BrewingStandBlockEntity.java
+@@ -26,7 +26,7 @@ import net.minecraft.world.level.storage.ValueInput;
+ import net.minecraft.world.level.storage.ValueOutput;
+ import org.jspecify.annotations.Nullable;
+ 
+-public class BrewingStandBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer, net.caffeinemc.mods.lithium.common.block.entity.inventory_change_tracking.InventoryChangeTracker, net.caffeinemc.mods.lithium.common.block.entity.SleepingBlockEntity, net.caffeinemc.mods.lithium.common.block.entity.SetChangedHandlingBlockEntity, net.caffeinemc.mods.lithium.api.inventory.LithiumInventory { // Leaves - Lithium Sleeping Block Entity-
++public class BrewingStandBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer, me.s0nd3r.watermc.engine.common.block.entity.inventory_change_tracking.InventoryChangeTracker, me.s0nd3r.watermc.engine.common.block.entity.SleepingBlockEntity, me.s0nd3r.watermc.engine.common.block.entity.SetChangedHandlingBlockEntity, me.s0nd3r.watermc.engine.api.inventory.LithiumInventory { // Leaves - Lithium Sleeping Block Entity-
+     private static final int INGREDIENT_SLOT = 3;
+     private static final int FUEL_SLOT = 4;
+     private static final int[] SLOTS_FOR_UP = new int[]{3};
+@@ -138,7 +138,7 @@ public class BrewingStandBlockEntity extends BaseContainerBlockEntity implements
+     }
+ 
+     public static void serverTick(Level level, BlockPos pos, BlockState state, BrewingStandBlockEntity blockEntity) {
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) blockEntity.checkSleep(state); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) blockEntity.checkSleep(state); // Leaves - Lithium Sleeping Block Entity
+         ItemStack itemStack = blockEntity.items.get(4);
+         if (blockEntity.fuel <= 0 && itemStack.is(ItemTags.BREWING_FUEL)) {
+             // CraftBukkit start
+@@ -156,7 +156,7 @@ public class BrewingStandBlockEntity extends BaseContainerBlockEntity implements
+                 itemStack.shrink(1);
+             }
+             // CraftBukkit end
+-            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) blockEntity.wakeUpNow(); // Leaves - Lithium Sleeping Block Entity
++            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) blockEntity.wakeUpNow(); // Leaves - Lithium Sleeping Block Entity
+             setChanged(level, pos, state);
+         }
+ 
+@@ -171,7 +171,7 @@ public class BrewingStandBlockEntity extends BaseContainerBlockEntity implements
+             } else if (!isBrewable || !itemStack1.is(blockEntity.ingredient)) {
+                 blockEntity.brewTime = 0;
+             }
+-            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) blockEntity.wakeUpNow(); // Leaves - Lithium Sleeping Block Entity
++            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) blockEntity.wakeUpNow(); // Leaves - Lithium Sleeping Block Entity
+             setChanged(level, pos, state);
+         } else if (isBrewable && blockEntity.fuel > 0) {
+             blockEntity.fuel--;
+@@ -184,7 +184,7 @@ public class BrewingStandBlockEntity extends BaseContainerBlockEntity implements
+             blockEntity.brewTime = event.getBrewingTime(); // 400 -> event.getTotalBrewTime() // Paper - use brewing time from event
+             // CraftBukkit end
+             blockEntity.ingredient = itemStack1.getItem();
+-            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) blockEntity.wakeUpNow(); // Leaves - Lithium Sleeping Block Entity
++            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) blockEntity.wakeUpNow(); // Leaves - Lithium Sleeping Block Entity
+             setChanged(level, pos, state);
+         }
+ 
+@@ -291,7 +291,7 @@ public class BrewingStandBlockEntity extends BaseContainerBlockEntity implements
+         }
+ 
+         this.fuel = input.getByteOr("Fuel", (byte)0);
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && this.isSleeping() && this.level != null) this.wakeUpNow(); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && this.isSleeping() && this.level != null) this.wakeUpNow(); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     @Override

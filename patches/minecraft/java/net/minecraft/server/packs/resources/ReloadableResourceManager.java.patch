@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/server/packs/resources/ReloadableResourceManager.java b/java/net/minecraft/server/packs/resources/ReloadableResourceManager.java
+index bef5e298acce72e35295dcea2a912512ee00f9fd..fcfbb4932d4a71c67fd935a973f735e8de74f570 100644
+--- a/java/net/minecraft/server/packs/resources/ReloadableResourceManager.java
++++ b/java/net/minecraft/server/packs/resources/ReloadableResourceManager.java
+@@ -43,7 +43,7 @@ public class ReloadableResourceManager implements ResourceManager, AutoCloseable
+         LOGGER.info("Reloading ResourceManager: {}", LogUtils.defer(() -> resourcePacks.stream().map(PackResources::packId).collect(Collectors.joining(", "))));
+         this.resources.close();
+         this.resources = new MultiPackResourceManager(this.type, resourcePacks);
+-        return SimpleReloadInstance.create(this.resources, this.listeners, backgroundExecutor, gameExecutor, waitingFor, !org.dreeam.leaf.util.LeafConstants.DISABLE_VANILLA_PROFILER); // Leaf - Configurable vanilla profiler
++        return SimpleReloadInstance.create(this.resources, this.listeners, backgroundExecutor, gameExecutor, waitingFor, !me.s0nd3r.watermc.core.util.WaterConstants.DISABLE_VANILLA_PROFILER); // Leaf - Configurable vanilla profiler
+     }
+ 
+     @Override

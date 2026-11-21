@@ -1,0 +1,31 @@
+diff --git a/java/net/minecraft/world/inventory/AbstractContainerMenu.java b/java/net/minecraft/world/inventory/AbstractContainerMenu.java
+index e02184d0d52e04b35c4fb3534027bef3e1276cbc..07696dabbd68cf0867f5809b15876c0bc1d99987 100644
+--- a/java/net/minecraft/world/inventory/AbstractContainerMenu.java
++++ b/java/net/minecraft/world/inventory/AbstractContainerMenu.java
+@@ -97,7 +97,7 @@ public abstract class AbstractContainerMenu {
+ 
+     protected AbstractContainerMenu(@Nullable MenuType<?> menuType, int containerId) {
+         // Leaf start - SparklyPaper - parallel world ticking (debugging)
+-        if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled && org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.logContainerCreationStacktraces) {
++        if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled && me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.logContainerCreationStacktraces) {
+             this.containerCreationStacktrace = new Throwable();
+         }
+         // Leaf end - SparklyPaper - parallel world ticking (debugging)
+@@ -262,7 +262,7 @@ public abstract class AbstractContainerMenu {
+         return list;
+     }
+ 
+-    private final org.dreeam.leaf.util.cache.CachedItemStackSupplier broadcastCarried = new org.dreeam.leaf.util.cache.CachedItemStackSupplier(); // Leaf - Reduce AbstractContainerMenu allocations
++    private final me.s0nd3r.watermc.core.util.cache.CachedItemStackSupplier broadcastCarried = new me.s0nd3r.watermc.core.util.cache.CachedItemStackSupplier(); // Leaf - Reduce AbstractContainerMenu allocations
+     public void broadcastChanges() {
+         for (int i = 0; i < this.slots.size(); i++) {
+             ItemStack item = this.slots.get(i).getItem();
+@@ -901,7 +901,7 @@ public abstract class AbstractContainerMenu {
+         } else {
+             float f = 0.0F;
+ 
+-            if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && container instanceof net.caffeinemc.mods.lithium.api.inventory.LithiumInventory optimizedInventory) return net.caffeinemc.mods.lithium.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory).getSignalStrength(container); // Leaves - Lithium Sleeping Block Entity
++            if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && container instanceof me.s0nd3r.watermc.engine.api.inventory.LithiumInventory optimizedInventory) return me.s0nd3r.watermc.engine.common.hopper.InventoryHelper.getLithiumStackList(optimizedInventory).getSignalStrength(container); // Leaves - Lithium Sleeping Block Entity
+             for (int i = 0; i < container.getContainerSize(); i++) {
+                 ItemStack item = container.getItem(i);
+                 if (!item.isEmpty()) {

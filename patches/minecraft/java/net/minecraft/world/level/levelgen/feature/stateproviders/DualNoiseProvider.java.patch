@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/levelgen/feature/stateproviders/DualNoiseProvider.java b/java/net/minecraft/world/level/levelgen/feature/stateproviders/DualNoiseProvider.java
+index a190b5e890cf34dd1aa46cb9e283f05154fbe3e5..0f9f02092c6a1426bd9891e1b13541e43a8a02c5 100644
+--- a/java/net/minecraft/world/level/levelgen/feature/stateproviders/DualNoiseProvider.java
++++ b/java/net/minecraft/world/level/levelgen/feature/stateproviders/DualNoiseProvider.java
+@@ -43,7 +43,7 @@ public class DualNoiseProvider extends NoiseProvider {
+         this.variety = variety;
+         this.slowNoiseParameters = slowNoiseParameters;
+         this.slowScale = slowScale;
+-        this.slowNoise = NormalNoise.create(new WorldgenRandom(org.dreeam.leaf.config.modules.opt.FastRNG.worldgenEnabled() ? new org.dreeam.leaf.util.math.random.FasterRandomSource(seed) : new LegacyRandomSource(seed)), slowNoiseParameters); // Leaf - Faster random generator
++        this.slowNoise = NormalNoise.create(new WorldgenRandom(me.s0nd3r.watermc.core.config.modules.opt.FastRNG.worldgenEnabled() ? new me.s0nd3r.watermc.core.util.math.random.FasterRandomSource(seed) : new LegacyRandomSource(seed)), slowNoiseParameters); // Leaf - Faster random generator
+     }
+ 
+     @Override

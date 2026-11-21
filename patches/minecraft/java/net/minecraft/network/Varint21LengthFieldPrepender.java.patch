@@ -1,0 +1,51 @@
+diff --git a/java/net/minecraft/network/Varint21LengthFieldPrepender.java b/java/net/minecraft/network/Varint21LengthFieldPrepender.java
+index 0506cba28a41dc468d133b608b7cb182d2847e88..3c4184effdb53e32e082a30cd162f156431894e2 100644
+--- a/java/net/minecraft/network/Varint21LengthFieldPrepender.java
++++ b/java/net/minecraft/network/Varint21LengthFieldPrepender.java
+@@ -1,25 +1,33 @@
+ package net.minecraft.network;
+ 
+ import io.netty.buffer.ByteBuf;
++import io.netty.buffer.CompositeByteBuf;
+ import io.netty.channel.ChannelHandlerContext;
+ import io.netty.channel.ChannelHandler.Sharable;
+ import io.netty.handler.codec.EncoderException;
+-import io.netty.handler.codec.MessageToByteEncoder;
++import io.netty.handler.codec.MessageToMessageEncoder;
++import java.util.List;
+ 
+ @Sharable
+-public class Varint21LengthFieldPrepender extends MessageToByteEncoder<ByteBuf> {
++public class Varint21LengthFieldPrepender extends MessageToMessageEncoder<ByteBuf> {
+     public static final int MAX_VARINT21_BYTES = 3;
+-
+-    @Override
+-    protected void encode(ChannelHandlerContext ctx, ByteBuf encoder, ByteBuf decoder) {
+-        int i = encoder.readableBytes();
+-        int byteSize = VarInt.getByteSize(i);
+-        if (byteSize > 3) {
+-            throw new EncoderException("Packet too large: size " + i + " is over 8");
+-        } else {
+-            decoder.ensureWritable(byteSize + i);
+-            VarInt.write(decoder, i);
+-            decoder.writeBytes(encoder, encoder.readerIndex(), i);
++    @Override protected void encode(ChannelHandlerContext ctx, ByteBuf input, List<Object> output) {
++        int length = input.readableBytes();
++        int prefix = VarInt.getByteSize(length);
++        if (prefix > MAX_VARINT21_BYTES) throw new EncoderException("Packet too large: " + length + " bytes");
++        ByteBuf header = ctx.alloc().directBuffer(prefix, prefix);
++        CompositeByteBuf frame = null;
++        try {
++            VarInt.write(header, length);
++            frame = ctx.alloc().compositeDirectBuffer(2);
++            frame.addComponent(true, header);
++            header = null;
++            frame.addComponent(true, input.retainedSlice(input.readerIndex(), length));
++            output.add(frame);
++            frame = null;
++        } finally {
++            if (header != null) header.release();
++            if (frame != null) frame.release();
+         }
+     }
+ }

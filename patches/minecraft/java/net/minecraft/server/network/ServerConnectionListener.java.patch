@@ -1,0 +1,12 @@
+diff --git a/java/net/minecraft/server/network/ServerConnectionListener.java b/java/net/minecraft/server/network/ServerConnectionListener.java
+index 4e6676b57f493ca90e058cdadf324d3627e270a9..fa60250955fd44985b3d7099d34fcfea08d8c1e6 100644
+--- a/java/net/minecraft/server/network/ServerConnectionListener.java
++++ b/java/net/minecraft/server/network/ServerConnectionListener.java
+@@ -70,6 +70,7 @@ public class ServerConnectionListener {
+         // Paper end - Unix domain socket support
+         synchronized (this.channels) {
+             EventLoopGroupHolder eventLoopGroupHolder = EventLoopGroupHolder.remote(address, this.server.useNativeTransport()); // Paper - Unix domain socket support
++            me.s0nd3r.watermc.diagnostics.NettyWatchdog.watch(eventLoopGroupHolder.eventLoopGroup()); // WaterMc - detect stuck network threads
+             // Paper start - Warn people with console access that HAProxy is in use.
+             if (io.papermc.paper.configuration.GlobalConfiguration.get().proxies.proxyProtocol) {
+                 LOGGER.warn("Using HAProxy, please ensure the server port is adequately firewalled.");

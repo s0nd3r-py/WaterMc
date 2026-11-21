@@ -1,0 +1,31 @@
+diff --git a/java/net/minecraft/world/level/block/entity/SculkShriekerBlockEntity.java b/java/net/minecraft/world/level/block/entity/SculkShriekerBlockEntity.java
+index 30e711cb4272cda6f0ef159f2f40080adab54b10..24018888f6a8933a68bc20554e6b6ff79129de4d 100644
+--- a/java/net/minecraft/world/level/block/entity/SculkShriekerBlockEntity.java
++++ b/java/net/minecraft/world/level/block/entity/SculkShriekerBlockEntity.java
+@@ -39,7 +39,7 @@ import net.minecraft.world.level.storage.ValueOutput;
+ import net.minecraft.world.phys.Vec3;
+ import org.jspecify.annotations.Nullable;
+ 
+-public class SculkShriekerBlockEntity extends BlockEntity implements GameEventListener.Provider<VibrationSystem.Listener>, VibrationSystem, net.caffeinemc.mods.lithium.common.block.entity.SleepingBlockEntity { // Leaves - Lithium Sleeping Block Entity
++public class SculkShriekerBlockEntity extends BlockEntity implements GameEventListener.Provider<VibrationSystem.Listener>, VibrationSystem, me.s0nd3r.watermc.engine.common.block.entity.SleepingBlockEntity { // Leaves - Lithium Sleeping Block Entity
+     private static final int WARNING_SOUND_RADIUS = 10;
+     private static final int WARDEN_SPAWN_ATTEMPTS = 20;
+     private static final int WARDEN_SPAWN_RANGE_XZ = 5;
+@@ -60,7 +60,7 @@ public class SculkShriekerBlockEntity extends BlockEntity implements GameEventLi
+ 
+     public SculkShriekerBlockEntity(BlockPos pos, BlockState blockState) {
+         super(BlockEntityType.SCULK_SHRIEKER, pos, blockState);
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled) this.vibrationListener.lithium$setGameEventCallback(this::wakeUpNow); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled) this.vibrationListener.lithium$setGameEventCallback(this::wakeUpNow); // Leaves - Lithium Sleeping Block Entity
+     }
+ 
+     @Override
+@@ -79,7 +79,7 @@ public class SculkShriekerBlockEntity extends BlockEntity implements GameEventLi
+         this.warningLevel = input.getIntOr("warning_level", 0);
+         this.vibrationData = input.read("listener", VibrationSystem.Data.CODEC).orElseGet(VibrationSystem.Data::new);
+         // Leaves start - Lithium Sleeping Block Entity
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && this.vibrationData.getSelectionStrategy().chosenCandidate(Long.MAX_VALUE).isPresent()) {
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && this.vibrationData.getSelectionStrategy().chosenCandidate(Long.MAX_VALUE).isPresent()) {
+             this.wakeUpNow();
+         }
+         // Leaves end - Lithium Sleeping Block Entity

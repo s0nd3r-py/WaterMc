@@ -1,0 +1,15 @@
+diff --git a/java/net/minecraft/world/level/block/PoweredRailBlock.java b/java/net/minecraft/world/level/block/PoweredRailBlock.java
+index b455d7193ece81af8d9197adb91c5aa896b607b4..e78480df9b19a55c5703057ea87299b096b1daa8 100644
+--- a/java/net/minecraft/world/level/block/PoweredRailBlock.java
++++ b/java/net/minecraft/world/level/block/PoweredRailBlock.java
+@@ -123,8 +123,8 @@ public class PoweredRailBlock extends BaseRailBlock {
+     @Override
+     protected void updateState(BlockState state, Level level, BlockPos pos, Block block) {
+         // Leaf start - Rail Optimization
+-        if (org.dreeam.leaf.config.modules.opt.OptimizedPoweredRails.enabled) {
+-            org.dreeam.leaf.world.block.OptimizedPoweredRails.updateState(this, state, level, pos);
++        if (me.s0nd3r.watermc.core.config.modules.opt.OptimizedPoweredRails.enabled) {
++            me.s0nd3r.watermc.core.world.block.OptimizedPoweredRails.updateState(this, state, level, pos);
+             return;
+         }
+         // Leaf end - Rail Optimization

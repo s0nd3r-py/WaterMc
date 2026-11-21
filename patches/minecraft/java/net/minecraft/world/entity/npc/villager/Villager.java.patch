@@ -1,0 +1,36 @@
+diff --git a/java/net/minecraft/world/entity/npc/villager/Villager.java b/java/net/minecraft/world/entity/npc/villager/Villager.java
+index 03d2cf4145e188bdb9474f6c3a43083170536c45..cfc16073cf5ffcee00d6ebe9b69e3db4b2ab8002 100644
+--- a/java/net/minecraft/world/entity/npc/villager/Villager.java
++++ b/java/net/minecraft/world/entity/npc/villager/Villager.java
+@@ -94,6 +94,13 @@ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
+ 
+ public class Villager extends AbstractVillager implements ReputationEventHandler, VillagerDataHolder {
++    // WaterMc start - the trade item shown in the hand is a display copy: shears must not take it (1.21.6+ dupe)
++    @Override
++    protected boolean canShearEquipment(net.minecraft.world.entity.player.Player player) {
++        return !me.s0nd3r.watermc.world.TradeDisplay.isShowing(this) && super.canShearEquipment(player);
++    }
++    // WaterMc end
++
+     private static final Logger LOGGER = LogUtils.getLogger();
+     private static final EntityDataAccessor<VillagerData> DATA_VILLAGER_DATA = SynchedEntityData.defineId(Villager.class, EntityDataSerializers.VILLAGER_DATA);
+     public static final int BREEDING_FOOD_THRESHOLD = 12;
+@@ -383,7 +390,7 @@ public class Villager extends AbstractVillager implements ReputationEventHandler
+         if (this.getUnhappyCounter() > 0) {
+             this.setUnhappyCounter(this.getUnhappyCounter() - 1);
+         }
+-        if (this.isEffectiveAi() && (!org.dreeam.leaf.config.modules.opt.SkipAIForNonAwareMob.enabled || this.aware)) { // Paper PR - Skip AI during inactive ticks for non-aware mobs
++        if (this.isEffectiveAi() && (!me.s0nd3r.watermc.core.config.modules.opt.SkipAIForNonAwareMob.enabled || this.aware)) { // Paper PR - Skip AI during inactive ticks for non-aware mobs
+             if (this.level().spigotConfig.tickInactiveVillagers) {
+                 this.customServerAiStep(this.level().getMinecraftWorld());
+             } else {
+@@ -801,7 +808,7 @@ public class Villager extends AbstractVillager implements ReputationEventHandler
+                 ServerLevel level = server.getLevel(pos.dimension());
+                 if (level != null) {
+                     // Leaf start - SparklyPaper - parallel world ticking - handling for releasing poi cross-dimension
+-                    if (org.dreeam.leaf.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
++                    if (me.s0nd3r.watermc.core.config.modules.async.SparklyPaperParallelWorldTicking.enabled) {
+                         Runnable releasePoiTask = () -> {
+                             PoiManager poiManager = level.getPoiManager();
+                             Optional<Holder<PoiType>> type = poiManager.getType(pos.pos());

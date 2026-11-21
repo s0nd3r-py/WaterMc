@@ -1,0 +1,33 @@
+diff --git a/java/net/minecraft/world/entity/ai/goal/RemoveBlockGoal.java b/java/net/minecraft/world/entity/ai/goal/RemoveBlockGoal.java
+index 83be00350765db043b6bf32e7814d9c7119eacc5..cc2904241581bb7697b13c81b3806e795f020cbe 100644
+--- a/java/net/minecraft/world/entity/ai/goal/RemoveBlockGoal.java
++++ b/java/net/minecraft/world/entity/ai/goal/RemoveBlockGoal.java
+@@ -40,7 +40,7 @@ public class RemoveBlockGoal extends MoveToBlockGoal {
+         } else if (this.nextStartTick > 0) {
+             this.nextStartTick--;
+             return false;
+-        } else if (this.findNearestBlock()) {
++        } else if (this.lithium$findNearestBlock(this::lithium$isValidTargetBlock, IS_VALID_TARGET_ABOVE_BIPREDICATE, false)) { // Leaf - Lithium - optimize non-POI block searches
+             this.nextStartTick = reducedTickDelay(20);
+             return true;
+         } else {
+@@ -146,6 +146,19 @@ public class RemoveBlockGoal extends MoveToBlockGoal {
+         }
+     }
+ 
++    // Leaf start - Lithium - optimize non-POI block searches: isValidTarget split so the block part can use palette maybeHas
++    private static final java.util.function.BiPredicate<ChunkAccess, BlockPos.MutableBlockPos> IS_VALID_TARGET_ABOVE_BIPREDICATE = RemoveBlockGoal::lithium$isValidTargetAbove;
++
++    private boolean lithium$isValidTargetBlock(final net.minecraft.world.level.block.state.BlockState blockState) {
++        return blockState.is(this.blockToRemove);
++    }
++
++    private static boolean lithium$isValidTargetAbove(final ChunkAccess chunkAccess, final BlockPos.MutableBlockPos mutable) {
++        return chunkAccess.getBlockState(mutable.move(0, 1, 0)).isAir()
++            && chunkAccess.getBlockState(mutable.move(0, 1, 0)).isAir();
++    }
++    // Leaf end - Lithium - optimize non-POI block searches
++
+     @Override
+     protected boolean isValidTarget(LevelReader level, BlockPos pos) {
+         ChunkAccess chunk = level.getChunkIfLoadedImmediately(pos.getX() >> 4, pos.getZ() >> 4); // Paper - Prevent AI rules from loading chunks

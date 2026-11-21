@@ -1,0 +1,73 @@
+# WaterScript — встроенный скриптовый движок WaterMc.
+# Файлы *.wsc из папки scripts/ загружаются при старте и по /watermc script reload.
+# Файлы и папки, имя которых начинается с "_", отключены: переименуйте этот файл
+# в example.wsc, чтобы включить пример.
+#
+# Блоки задаются отступом (4 пробела). Строки в кавычках, {выражение} внутри строки
+# подставляет значение. Цвета: &a, &6, &l и т.д. Комментарии начинаются с #.
+# Локальные переменные живут внутри обработчика, $переменные — общие и сохраняются
+# между перезапусками (data/script-variables.wdb).
+
+on load:
+    if $joins == none:
+        $joins = 0
+    log "пример загружен, всего входов: {$joins}"
+
+on join:
+    $joins += 1
+    send "&aПривет, &e{player.name}&a! Ты {$joins}-й гость сервера."
+    if not player.has_permission("example.vip"):
+        stop
+    wait 2 seconds
+    broadcast "&6VIP &e{player.name} &6зашёл на сервер"
+
+on break:
+    if block.type == "diamond_ore" and player.gamemode == "survival":
+        if chance(5):
+            player.give("diamond", 1)
+            send "&bУдача! Бонусный алмаз."
+
+on place:
+    if block.type == "tnt" and not player.has_permission("example.tnt"):
+        cancel
+        send "&cТНТ здесь ставить нельзя."
+
+command /heal target:
+    @permission "example.heal"
+    @description "Вылечить себя или другого игрока"
+    @usage "/heal [игрок]"
+    if target == none:
+        if player == none:
+            send "Из консоли укажите игрока: /heal <игрок>"
+            stop
+        set who to player
+    else:
+        set who to player(target)
+        if who == none:
+            send "&cИгрок {target} не в сети"
+            stop
+    who.heal()
+    send "&aВылечен: {who.name}"
+
+command /top:
+    @description "Список игроков онлайн"
+    set names to online_players()
+    if len(names) == 0:
+        send "Никого нет онлайн"
+        stop
+    send "&6Онлайн ({len(names)}): &f{join(names, ', ')}"
+
+function countdown_text(seconds):
+    if seconds <= 0:
+        return "&cСтарт!"
+    return "&e" + str(seconds) + "..."
+
+command /countdown:
+    @permission "example.countdown"
+    for i in [3, 2, 1, 0]:
+        broadcast countdown_text(i)
+        if i > 0:
+            wait 1 second
+
+every 30 minutes:
+    broadcast "&7Не забудьте проголосовать за сервер!"

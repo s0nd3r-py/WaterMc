@@ -1,0 +1,36 @@
+diff --git a/java/net/minecraft/util/EncoderCache.java b/java/net/minecraft/util/EncoderCache.java
+index bc4e938e7099dab8f13d675c1d4fe9557784fe04..acedaac1a2aad1db8c98e1d0ccf03edcdf10e7d0 100644
+--- a/java/net/minecraft/util/EncoderCache.java
++++ b/java/net/minecraft/util/EncoderCache.java
+@@ -1,8 +1,8 @@
+ package net.minecraft.util;
+ 
+-import com.google.common.cache.CacheBuilder;
+-import com.google.common.cache.CacheLoader;
+-import com.google.common.cache.LoadingCache;
++import me.s0nd3r.watermc.util.WaterCaches;
++import com.github.benmanes.caffeine.cache.CacheLoader;
++import com.github.benmanes.caffeine.cache.LoadingCache;
+ import com.mojang.datafixers.util.Pair;
+ import com.mojang.serialization.Codec;
+ import com.mojang.serialization.DataResult;
+@@ -13,9 +13,8 @@ public class EncoderCache {
+     final LoadingCache<EncoderCache.Key<?, ?>, DataResult<?>> cache;
+ 
+     public EncoderCache(int maxSize) {
+-        this.cache = CacheBuilder.newBuilder()
++        this.cache = WaterCaches.newBuilder()
+             .maximumSize(maxSize)
+-            .concurrencyLevel(1)
+             .softValues()
+             .build(new CacheLoader<EncoderCache.Key<?, ?>, DataResult<?>>() {
+                 @Override
+@@ -35,7 +34,7 @@ public class EncoderCache {
+             @Override
+             public <T> DataResult<T> encode(A input, DynamicOps<T> ops, T value) {
+                 return EncoderCache.this.cache
+-                    .getUnchecked(new EncoderCache.Key<>(codec, input, ops))
++                    .get(new EncoderCache.Key<>(codec, input, ops))
+                     .map(object -> (T) (object instanceof Tag tag ? tag.copy() : object));
+             }
+         };

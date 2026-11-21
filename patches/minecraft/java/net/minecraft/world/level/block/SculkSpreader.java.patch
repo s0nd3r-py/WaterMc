@@ -1,0 +1,13 @@
+diff --git a/java/net/minecraft/world/level/block/SculkSpreader.java b/java/net/minecraft/world/level/block/SculkSpreader.java
+index 3ba034ebe82ba078a2eb000aeb583663fc8384f1..3cd81d2822e0b8012cc53cc8cf3762ae0019f4c1 100644
+--- a/java/net/minecraft/world/level/block/SculkSpreader.java
++++ b/java/net/minecraft/world/level/block/SculkSpreader.java
+@@ -33,7 +33,7 @@ import net.minecraft.world.level.storage.ValueInput;
+ import net.minecraft.world.level.storage.ValueOutput;
+ import org.jspecify.annotations.Nullable;
+ 
+-public class SculkSpreader implements net.caffeinemc.mods.lithium.common.block.entity.sleeping_sculk.GameEventListenerWithCallback { // Leaves - Lithium Sleeping Block Entity
++public class SculkSpreader implements me.s0nd3r.watermc.engine.common.block.entity.sleeping_sculk.GameEventListenerWithCallback { // Leaves - Lithium Sleeping Block Entity
+     public static final int MAX_GROWTH_RATE_RADIUS = 24;
+     public static final int MAX_CHARGE = 1000;
+     public static final float MAX_DECAY_FACTOR = 0.5F;

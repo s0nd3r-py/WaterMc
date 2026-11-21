@@ -1,0 +1,149 @@
+diff --git a/java/net/minecraft/world/item/ItemStack.java b/java/net/minecraft/world/item/ItemStack.java
+index dca53271eb2deec06ff96bffeb6667387990fbdf..f76b9b9a723e4130c52fb729bfda3455700cb94d 100644
+--- a/java/net/minecraft/world/item/ItemStack.java
++++ b/java/net/minecraft/world/item/ItemStack.java
+@@ -102,7 +102,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
+ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
+ 
+-public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods.lithium.common.util.change_tracking.ChangePublisher<ItemStack>, net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<PatchedDataComponentMap> { // Leaf - Lithium - equipment tracking
++public final class ItemStack implements DataComponentHolder, me.s0nd3r.watermc.engine.common.util.change_tracking.ChangePublisher<ItemStack>, me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<PatchedDataComponentMap> { // Leaf - Lithium - equipment tracking
+     private static final List<Component> OP_NBT_WARNING = List.of(
+         Component.translatable("item.op_warning.line1").withStyle(ChatFormatting.RED, ChatFormatting.BOLD),
+         Component.translatable("item.op_warning.line2").withStyle(ChatFormatting.RED),
+@@ -173,7 +173,7 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+     PatchedDataComponentMap components;
+     private @Nullable Entity entityRepresentation;
+     // Leaf start - Lithium - equipment tracking
+-    private net.caffeinemc.mods.lithium.common.util.change_tracking.@Nullable ChangeSubscriber<ItemStack> subscriber;
++    private me.s0nd3r.watermc.engine.common.util.change_tracking.@Nullable ChangeSubscriber<ItemStack> subscriber;
+     private int subscriberData;
+     // Leaf end - Lithium - equipment tracking
+ 
+@@ -387,8 +387,9 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+             DataComponentPatch previousPatch = this.components.asPatch();
+             int oldCount = this.getCount();
+             ServerLevel serverLevel = (ServerLevel) context.getLevel();
++            final boolean captureTreeGeneration = item == Items.BONE_MEAL; // WaterMc - Leaf/Paper: Fix tree capture state leak
+ 
+-            if (!(item instanceof BucketItem/* || item instanceof SolidBucketItem*/)) { // if not bucket // Paper - Fix cancelled powdered snow bucket placement
++            if (!(item instanceof BucketItem/* || item instanceof SolidBucketItem*/) && item != Items.ENDER_EYE && item != Items.END_CRYSTAL) { // if not bucket // Paper - Fix cancelled powdered snow bucket placement // Leaf - propagate block destruction cancellation
+                 serverLevel.captureBlockStates = true;
+                 // special case bonemeal
+                 if (item == Items.BONE_MEAL) {
+@@ -407,6 +408,7 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+                 interactionResult = item.useOn(context);
+             } finally {
+                 serverLevel.captureBlockStates = false;
++                serverLevel.captureTreeGeneration = false; // WaterMc - Leaf/Paper: Fix tree capture state leak (always reset, even after an exception)
+                 // Paper start - Fix cancelled rooted dirt drops being duped
+                 if (capturedDrops != null) {
+                     serverLevel.captureDrops = null;
+@@ -417,8 +419,7 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+             int newCount = this.getCount();
+             this.setCount(oldCount);
+             this.restorePatch(previousPatch);
+-            if (interactionResult.consumesAction() && serverLevel.captureTreeGeneration && !serverLevel.capturedBlockStates.isEmpty()) {
+-                serverLevel.captureTreeGeneration = false;
++            if (interactionResult.consumesAction() && captureTreeGeneration && !serverLevel.capturedBlockStates.isEmpty()) { // WaterMc - Leaf/Paper: Fix tree capture state leak
+                 org.bukkit.Location location = org.bukkit.craftbukkit.util.CraftLocation.toBukkit(clickedPos, serverLevel);
+                 org.bukkit.TreeType treeType = net.minecraft.world.level.block.SaplingBlock.getTreeTypeRT(); // Leaf - SparklyPaper - parallel world ticking
+                 net.minecraft.world.level.block.SaplingBlock.setTreeTypeRT(null); // Leaf - SparklyPaper - parallel world ticking
+@@ -619,7 +620,7 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+     }
+ 
+     public int getMaxStackSize() {
+-        return this.getOrDefault(DataComponents.MAX_STACK_SIZE, 1);
++        return this.isEmpty() ? 1 : this.components.waterMaxStackSize(); // WaterMc - cached; an empty stack keeps the vanilla answer 1 (its components read as EMPTY)
+     }
+ 
+     public boolean isStackable() {
+@@ -1053,7 +1054,7 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+     // CraftBukkit end
+ 
+     public <T> @Nullable T set(DataComponentType<T> component, @Nullable T value) {
+-        if (org.dreeam.leaf.config.modules.opt.SleepingBlockEntity.enabled && component == DataComponents.ENCHANTMENTS && this.subscriber instanceof net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.EnchantmentSubscriber<ItemStack> enchantmentSubscriber) enchantmentSubscriber.lithium$notifyAfterEnchantmentChange(this, this.subscriberData); // Leaves - Lithium Sleeping Block Entity
++        if (me.s0nd3r.watermc.core.config.modules.opt.SleepingBlockEntity.enabled && component == DataComponents.ENCHANTMENTS && this.subscriber instanceof me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.EnchantmentSubscriber<ItemStack> enchantmentSubscriber) enchantmentSubscriber.lithium$notifyAfterEnchantmentChange(this, this.subscriberData); // Leaves - Lithium Sleeping Block Entity
+         return this.components.set(component, value);
+     }
+ 
+@@ -1410,7 +1411,7 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+     public void setCount(int count) {
+         // Leaf start - Lithium - equipment tracking
+         if (count != this.count) {
+-            if (this.subscriber instanceof net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.CountChangeSubscriber<ItemStack> countChangeSubscriber) {
++            if (this.subscriber instanceof me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.CountChangeSubscriber<ItemStack> countChangeSubscriber) {
+                 countChangeSubscriber.lithium$notifyCount(this, this.subscriberData, count);
+             }
+             if (count == 0) {
+@@ -1494,7 +1495,7 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+ 
+     // Leaf start - Lithium - equipment tracking
+     @Override
+-    public void lithium$subscribe(net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<ItemStack> subscriber, int subscriberData) {
++    public void lithium$subscribe(me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<ItemStack> subscriber, int subscriberData) {
+         if (this.isEmpty()) {
+             throw new IllegalStateException("Cannot subscribe to an empty ItemStack!");
+         }
+@@ -1502,8 +1503,8 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+         if (this.subscriber == null) {
+             this.startTrackingChanges();
+         }
+-        this.subscriber = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.combine(this.subscriber, this.subscriberData, subscriber, subscriberData);
+-        if (this.subscriber instanceof net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.Multi<?>) {
++        this.subscriber = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.combine(this.subscriber, this.subscriberData, subscriber, subscriberData);
++        if (this.subscriber instanceof me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.Multi<?>) {
+             this.subscriberData = 0;
+         } else {
+             this.subscriberData = subscriberData;
+@@ -1511,14 +1512,14 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+     }
+ 
+     @Override
+-    public int lithium$unsubscribe(net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<ItemStack> subscriber) {
++    public int lithium$unsubscribe(me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<ItemStack> subscriber) {
+         if (this.isEmpty()) {
+             throw new IllegalStateException("Cannot unsubscribe from an empty ItemStack!");
+         }
+ 
+-        int retval = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.dataOf(this.subscriber, subscriber, this.subscriberData);
+-        this.subscriberData = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.dataWithout(this.subscriber, subscriber, this.subscriberData);
+-        this.subscriber = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.without(this.subscriber, subscriber);
++        int retval = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.dataOf(this.subscriber, subscriber, this.subscriberData);
++        this.subscriberData = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.dataWithout(this.subscriber, subscriber, this.subscriberData);
++        this.subscriber = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.without(this.subscriber, subscriber);
+ 
+         if (this.subscriber == null) {
+             this.components.lithium$unsubscribe(this);
+@@ -1527,13 +1528,13 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+     }
+ 
+     @Override
+-    public void lithium$unsubscribeWithData(net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<ItemStack> subscriber, int subscriberData) {
++    public void lithium$unsubscribeWithData(me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<ItemStack> subscriber, int subscriberData) {
+         if (this.isEmpty()) {
+             throw new IllegalStateException("Cannot unsubscribe from an empty ItemStack!");
+         }
+ 
+-        this.subscriberData = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.dataWithout(this.subscriber, subscriber, this.subscriberData, subscriberData, true);
+-        this.subscriber = net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.without(this.subscriber, subscriber, subscriberData, true);
++        this.subscriberData = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.dataWithout(this.subscriber, subscriber, this.subscriberData, subscriberData, true);
++        this.subscriber = me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.without(this.subscriber, subscriber, subscriberData, true);
+ 
+         if (this.subscriber == null) {
+             this.components.lithium$unsubscribe(this);
+@@ -1541,12 +1542,12 @@ public final class ItemStack implements DataComponentHolder, net.caffeinemc.mods
+     }
+ 
+     @Override
+-    public boolean lithium$isSubscribedWithData(net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber<ItemStack> subscriber, int subscriberData) {
++    public boolean lithium$isSubscribedWithData(me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber<ItemStack> subscriber, int subscriberData) {
+         if (this.isEmpty()) {
+             throw new IllegalStateException("Cannot be subscribed to an empty ItemStack!");
+         }
+ 
+-        return net.caffeinemc.mods.lithium.common.util.change_tracking.ChangeSubscriber.containsSubscriber(this.subscriber, this.subscriberData, subscriber, subscriberData);
++        return me.s0nd3r.watermc.engine.common.util.change_tracking.ChangeSubscriber.containsSubscriber(this.subscriber, this.subscriberData, subscriber, subscriberData);
+     }
+ 
+     @Override
