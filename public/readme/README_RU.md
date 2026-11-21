@@ -2,6 +2,7 @@
 <div align="center">
 
 [![Download](https://img.shields.io/github/v/release/s0nd3r-py/WaterMc?label=скачать&style=for-the-badge&colorA=0b1e2d&colorB=1f8fd6)](https://github.com/s0nd3r-py/WaterMc/releases/latest)⠀
+[![Website](https://img.shields.io/badge/сайт-s0nd3r--py.github.io-blue?style=for-the-badge&colorA=0b1e2d&colorB=1f8fd6)](https://s0nd3r-py.github.io/WaterMc/)⠀
 [![Minecraft](https://img.shields.io/badge/minecraft-1.21.11-blue?style=for-the-badge&colorA=0b1e2d&colorB=1f8fd6)](https://github.com/s0nd3r-py/WaterMc/releases)⠀
 [![Java](https://img.shields.io/badge/java-21-blue?style=for-the-badge&colorA=0b1e2d&colorB=1f8fd6)](https://adoptium.net/)⠀
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=for-the-badge&colorA=0b1e2d&colorB=1f8fd6)](../../LICENSE.md)
