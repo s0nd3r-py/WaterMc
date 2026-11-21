@@ -10,7 +10,7 @@ if (Test-Path -LiteralPath 'D:\water-mc\env.sh') {
 
 $buildTasks = @(':watermc-server:createWaterMcJar')
 if ($Verify) {
-    $buildTasks += @(':watermc-server:runWaterTests', ':watermc-server:runWaterCompatibilityTests', ':watermc-server:scanJarForBadCalls', ':waterbench:jar')
+    $buildTasks += @(':watermc-server:runWaterTests', ':watermc-server:runWaterCompatibilityTests', ':watermc-server:scanJarForBadCalls')
 }
 Push-Location -LiteralPath $PSScriptRoot
 try {

@@ -1,4 +1,0 @@
-config-version: "3.0"
-performance:
-  reduce-packets:
-    reduce-entity-motion-packets: true

@@ -11,5 +11,3 @@ plugins {
 
 rootProject.name = "watermc"
 include("watermc-api", "watermc-server")
-include("waterbench")
-project(":waterbench").projectDir = file("benchmarks/waterbench")

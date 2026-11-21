@@ -16,28 +16,15 @@
 
 ## 💧 Features
 - **Based on [Leaf](https://github.com/Winds-Studio/Leaf)** (Paper → Purpur → Gale → Leaf): Bukkit, Spigot and Paper plugins work unchanged
-- **Faster world generation**: +27% chunks per second against Leaf, spawn point selection 2–3× faster on new worlds
-- **Fast startup**: own launcher reaches the server main class in 0.7 s instead of ~4 s, lazy DataFixerUpper, mappings loaded only when a plugin needs them
-- **Crowds and farms**: entity pushing in a 600-mob crowd costs half as much, Lithium brain-memory cache and non-POI block searches
+- **Faster world generation**: more chunks per second than Leaf, and much faster spawn point selection on new worlds
+- **Fast startup**: own launcher, lazy DataFixerUpper, mappings loaded only when a plugin needs them
+- **Crowds and farms**: cheaper entity pushing in mob crowds, Lithium brain-memory cache and non-POI block searches
 - **Built-in ViaVersion and ViaBackwards** (optional), your own copy in `plugins/` always wins
 - **Raytrace entity culling** (optional): entities hidden behind walls are not sent, which also blinds ESP cheats
 - **Clean server folder**: `config/`, `data/`, `worlds/`, `logs/` instead of thirty files in the root
 - **Admin tools**: `/watermc inspect`, `/watermc drain`, plugin and Netty watchdogs, security audit that names the plugin behind every OP grant or console command
 - **WaterScript**: built-in scripting with events, commands, timers and variables
 - **Fixes**: villager trade item dupe (1.21.6+), End portal/platform ignoring `BlockDestroyEvent` cancellation
-
-## 📈 Benchmarks
-Measured on an AMD FX-4100 (4 threads), same seed, cores run in turns. Raw logs are in [`benchmarks/`](benchmarks).
-
-| | Leaf / before | WaterMc |
-|---|---|---|
-| Launcher, `java -jar` → server main class | 3.8–4.4 s | **0.7–0.8 s** |
-| New chunk generation (256 chunks) | 2.09 chunks/s | **2.64 chunks/s** |
-| Spawn point selection, new world | 23–65 s | **9–15 s** |
-| Entity pushing, 600-mob crowd (main thread share) | 21–25% | **10–11%** |
-| Heap after startup and GC | 224 MiB | **214 MiB** |
-
-Run them on your own hardware with [`benchmarks/tools/chunkgen_rate.py`](benchmarks/tools/chunkgen_rate.py) and [`benchmarks/tools/world_prep.py`](benchmarks/tools/world_prep.py).
 
 ## 📥 Download
 Get the latest build from [GitHub Releases](https://github.com/s0nd3r-py/WaterMc/releases/latest). On the first start the jar downloads the vanilla server from Mojang and applies WaterMc on top of it, the same way Paper and Leaf do.
@@ -50,7 +37,6 @@ java -Xms4G -Xmx4G -jar watermc-paperclip-1.21.11.jar --nogui
 - [What WaterMc changes compared to Leaf](docs/about-watermc.md)
 - [Configuration keys added in this release](docs/release-description.md)
 - [WaterScript](docs/scripting.md)
-- [JVM flags](docs/jvm-guide.md)
 
 ## 📦 Building
 WaterMc keeps its Minecraft changes as patches against Leaf, so no Mojang code is stored in this repository. You need JDK 21 and Git.

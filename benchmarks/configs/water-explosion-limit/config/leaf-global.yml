@@ -1,5 +1,0 @@
-config-version: "3.0"
-network:
-  explosion-packet-limit:
-    enabled: true
-    max-packets-per-player-per-tick: 8
